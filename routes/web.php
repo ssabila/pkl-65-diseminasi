@@ -2,79 +2,89 @@
 
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DataController;
 use App\Http\Controllers\PageController;
-use App\Http\Controllers\UserAccountController; // Kita simpan
-use App\Http\Controllers\DashboardController; // Kita simpan
-use App\Http\Controllers\Auth\LogoutController; // Kita simpan
-use App\Http\Controllers\AdminSettingController; // Kita simpan
+use App\Http\Controllers\UserAccountController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\AdminSettingController;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Public Routes
 |--------------------------------------------------------------------------
-|
-| Rute-rute publik (Landing Page & Dashboard Diseminasi)
-|
 */
 
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/hasil-riset', [PageController::class, 'hasilRiset'])->name('hasil-riset');
 Route::get('/dokumen', [PageController::class, 'dokumen'])->name('dokumen');
-// TODO: Buat rute untuk Dashboard Diseminasi Anda di sini
-// Contoh: Route::get('/diseminasi', [DiseminasiController::class, 'index'])->name('diseminasi.index');
 
 
 /*
 |--------------------------------------------------------------------------
-| Admin & Authenticated Routes
+| Authenticated Routes
 |--------------------------------------------------------------------------
-|
-| Rute-rute yang memerlukan login admin
-|
 */
 
-// Grup untuk semua rute yang memerlukan login
 Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
 
+    // User Account
     Route::prefix('user')->name('user.')->group(function () {
         Route::controller(UserAccountController::class)->group(function () {
-            Route::get('account', 'index')->name('index');
-            // Anda mungkin perlu rute lain dari template aslinya
-            // jika halaman IndexPage.vue memanggilnya.
+            Route::get('/account', 'index')->name('index');
         });
     });
 
-    // Rute Logout
-    Route::post('logout', [LogoutController::class, 'destroy'])->name('logout');
+    // Logout
+    Route::post('/logout', [LogoutController::class, 'destroy'])->name('logout');
 
-    // Grup untuk semua rute admin yang dilindungi
-    Route::middleware([
-        'role:Super Admin', // <-- Ini adalah penjaga utama admin Anda!
-        // Semua middleware yang kita hapus (disable.account, dll) sudah dibersihkan
-    ])->group(function () {
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Routes (Super Admin only)
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware(['role:Super Admin'])->group(function () {
 
-        // Rute /dashboard setelah login
+        // Dashboard (root dashboard)
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Grup untuk semua rute di bawah prefix /admin
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Panel
+        |--------------------------------------------------------------------------
+        */
         Route::prefix('admin')->name('admin.')->group(function () {
 
-            // Rute Pengaturan (Settings)
-            Route::prefix('settings')->name('setting.')->group(function () {
-                Route::controller(AdminSettingController::class)->group(function () {
-                    Route::get('/', 'index')->name('index');
-                    Route::post('/update', 'update')->name('update');
-                });
-            });
 
-            // -----------------------------------------------------------------
-            // TODO: Buat rute-rute CRUD Diseminasi Anda di sini
-            // -----------------------------------------------------------------
-            // Contoh (un-comment saat Controller-nya sudah Anda buat):
-            
-            // Route::resource('riset', \App\Http\Controllers\RisetController::class);
-            // Route::resource('topik', \App\Http\Controllers\TopicController::class);
-            // Route::resource('visualisasi', \App\Http\Controllers\VisualizationController::class);
+            /*
+            |--------------------------------------------------------------
+            | Dashboard Actions
+            |--------------------------------------------------------------
+            */
+            Route::get('/dashboard/topics', [DashboardController::class, 'getTopics'])
+                ->name('dashboard.topics');
+
+            Route::post('/dashboard/upload-map', [DashboardController::class, 'uploadMapData'])
+                ->name('dashboard.upload-map');
+
+            Route::post('/dashboard/publish', [DashboardController::class, 'publish'])
+                ->name('dashboard.publish');
+
+            /*
+            |--------------------------------------------------------------
+            | Data Page (INI YANG KAMU MINTA)
+            |--------------------------------------------------------------
+            */
+            Route::get('/data', [DataController::class, 'index'])->name('data');
+
+            /*
+            |--------------------------------------------------------------
+            | TODO: CRUD Diseminasi
+            |--------------------------------------------------------------
+            */
+            // Route::resource('riset', App\Http\Controllers\RisetController::class);
+            // Route::resource('topik', App\Http\Controllers\TopicController::class);
+            // Route::resource('visualisasi', App\Http\Controllers\VisualizationController::class);
 
         });
     });

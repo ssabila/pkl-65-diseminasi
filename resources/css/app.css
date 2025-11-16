@@ -93,8 +93,7 @@
 @source "../views";
 
 /* Theme Configuration */
-@theme {
-    --font-sans: 'TT Bells', sans-serif; 
+@theme { 
     --primary-gradient-from: #0d9488;
     --primary-gradient-to: #14b8a6;
     --primary-color: #0d9488;
@@ -106,7 +105,30 @@
     --selection-color-dark: rgba(37, 99, 235, 0.2);
     --error-color: #ef4444;
     --error-color-rgb: 239, 68, 68;
+
+      /* --- KUSTOMISASI PKL 65 --- */
+    --color-pkl-base-orange: #F58220;
+    --color-pkl-base-cream: #FDF8E1;
+
+    --color-pkl-compliment-yellow: #FBE18B;
+    --color-pkl-compliment-blue: #3A539B;
+    --color-pkl-compliment-green: #668A4B;
+    --color-pkl-compliment-purple: #6E498B;
+
+    --font-sans: "TT Bells", sans-serif;
+    --font-headline: "Rakkas", serif;
+    --font-sub: "Yodnam", sans-serif;
 }
+
+@layer utilities {
+    .bg-auth {
+        background-image: url('../images/assets/background-pkl.svg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+}
+
 
 /* Base color variables for light/dark themes */
 :root {

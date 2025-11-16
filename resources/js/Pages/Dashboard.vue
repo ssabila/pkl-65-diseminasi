@@ -1,248 +1,673 @@
 <script setup>
-import { Head, usePage } from '@inertiajs/vue3'
-import { computed, ref } from 'vue'
-import Default from '../Layouts/Default.vue'
-import MetricWidget from '@/Components/Widgets/MetricWidget.vue'
-import StatWidget from '@/Components/Widgets/StatWidget.vue'
-import ChartWidget from '@/Components/Widgets/ChartWidget.vue'
+import { Head, useForm } from '@inertiajs/vue3'
+import { ref, watch, computed, nextTick } from 'vue'
+import Default from '@/Layouts/Default.vue'
+import FormSelect from '@/Components/FormSelect.vue'
+import FormTextarea from '@/Components/FormTextarea.vue'
+import FormInput from '@/Components/FormInput.vue'
+import axios from 'axios'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import 'leaflet.heat'
+import VueApexCharts from 'vue3-apexcharts'
 
 defineOptions({
     layout: Default
 })
 
 const props = defineProps({
-    stats: {
-        type: Array,
-        required: true,
-        default: () => []
+    risets: Array,
+    visualizationTypes: Array,
+})
+
+const form = useForm({
+    riset_id: null,
+    topic_id: null,
+    visualization_type_id: null,
+    interpretation: '',
+    chart_data: null,
+    chart_options: null,
+})
+
+const topics = ref([])
+const loadingTopics = ref(false)
+const showPreview = ref(false)
+const chartCategories = ref([])
+const mapFile = ref(null)
+const mapData = ref([])
+const uploadingMap = ref(false)
+const selectedVisualizationType = ref(null)
+const chartOptions = ref({})
+const chartSeries = ref([])
+const mapInstance = ref(null)
+
+// Watch for riset selection changes
+watch(() => form.riset_id, async (newRisetId) => {
+    topics.value = []
+    form.topic_id = null
+    
+    if (newRisetId) {
+        loadingTopics.value = true
+        try {
+            const response = await axios.get(route('dashboard.topics'), {
+                params: { riset_id: newRisetId }
+            })
+            topics.value = response.data.topics
+        } catch (error) {
+            console.error('Failed to load topics:', error)
+        } finally {
+            loadingTopics.value = false
+        }
     }
 })
 
-const page = usePage()
-const userName = computed(() => page.props.auth.user?.name || 'User')
-
-const formattedDate = computed(() => {
-    const date = new Date()
-    return {
-        display: date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        }),
-        mobileDisplay: date.toLocaleDateString('en-US', {
-            month: '2-digit',
-            day: '2-digit'
-        }),
-        dayOfWeek: date.toLocaleDateString('en-US', { weekday: 'short' })
+// Watch visualization type changes
+watch(() => form.visualization_type_id, (newTypeId) => {
+    const vizType = props.visualizationTypes.find(vt => vt.id === newTypeId)
+    selectedVisualizationType.value = vizType ? vizType.type_code : null
+    
+    // Reset data when type changes
+    chartCategories.value = []
+    mapData.value = []
+    mapFile.value = null
+    showPreview.value = false
+    
+    // Initialize with one empty row for bar/pie
+    if (['bar', 'pie'].includes(selectedVisualizationType.value)) {
+        addCategory()
     }
 })
 
-const greeting = computed(() => {
-    const hour = new Date().getHours()
-    if (hour < 12) return 'Good morning'
-    if (hour < 17) return 'Good afternoon'
-    return 'Good evening'
+const risetOptions = props.risets.map(r => ({
+    value: r.id,
+    label: r.name
+}))
+
+const topicOptions = computed(() => {
+    return topics.value.map(t => ({
+        value: t.id,
+        label: t.name
+    }))
 })
 
-const icons = {
-    revenue: '<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-    users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-    conversion:
-        '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>',
-    response: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-    chatMinutes:
-        '<path d="M39.37 18.432c0 3.058-.906 5.862-2.466 8.203a14.728 14.728 0 0 1-10.079 6.367c-.717.127-1.455.19-2.214.19-.759 0-1.497-.063-2.214-.19a14.728 14.728 0 0 1-10.078-6.368 14.692 14.692 0 0 1-2.467-8.202c0-8.16 6.6-14.76 14.76-14.76s14.759 6.6 14.759 14.76Z"/><path d="m44.712 38.17-3.431.83a2.063 2.063 0 0 0-1.539 1.572l-.728 3.122c-.09.384-.281.734-.554 1.012a2.068 2.068 0 0 1-.992.564c-.375.09-.768.073-1.134-.052a2.078 2.078 0 0 1-.938-.653l-9.92-11.64-9.92 11.661a2.078 2.078 0 0 1-.938.653 2.038 2.038 0 0 1-1.134.052 2.067 2.067 0 0 1-.992-.563 2.137 2.137 0 0 1-.554-1.012l-.728-3.123a2.13 2.13 0 0 0-.55-1.01 2.06 2.06 0 0 0-.988-.562L6.24 38.19a2.073 2.073 0 0 1-.956-.533 2.14 2.14 0 0 1-.563-.953 2.175 2.175 0 0 1-.015-1.113c.091-.366.276-.7.536-.97l8.11-8.284a14.672 14.672 0 0 0 4.307 4.281 14.34 14.34 0 0 0 5.634 2.134 12.29 12.29 0 0 0 2.183.191c.749 0 1.477-.063 2.184-.19 4.138-.617 7.694-3.017 9.94-6.416l8.11 8.285c1.144 1.147.583 3.165-.998 3.547Z"/>',
-    expertRating:
-        '<path d="m26.91 5.776 4.483 10.683a1.544 1.544 0 0 0 1.287.942l11.474.992a1.544 1.544 0 0 1 .876 2.715L36.325 28.7a1.559 1.559 0 0 0-.49 1.523l2.61 11.296a1.544 1.544 0 0 1-2.295 1.677l-9.86-5.982a1.53 1.53 0 0 0-1.59 0l-9.861 5.982a1.544 1.544 0 0 1-2.295-1.677l2.609-11.296a1.56 1.56 0 0 0-.49-1.523l-8.705-7.593a1.544 1.544 0 0 1 .876-2.715l11.474-.992a1.544 1.544 0 0 0 1.287-.942l4.483-10.683a1.544 1.544 0 0 1 2.833 0Z"/>',
-    sessionsCompleted:
-        '<path d="M10.811 39.091c-1.775-1.775-.598-5.505-1.5-7.69-.939-2.255-4.377-4.089-4.377-6.5 0-2.413 3.438-4.246 4.376-6.502.903-2.182-.274-5.914 1.501-7.69 1.776-1.775 5.508-.598 7.69-1.5 2.266-.939 4.09-4.377 6.501-4.377 2.412 0 4.246 3.438 6.501 4.376 2.185.903 5.915-.274 7.69 1.501 1.776 1.776.598 5.506 1.502 7.69.937 2.266 4.376 4.09 4.376 6.501 0 2.412-3.439 4.246-4.377 6.501-.903 2.185.274 5.915-1.5 7.69-1.776 1.776-5.506.598-7.69 1.501-2.256.938-4.09 4.377-6.502 4.377s-4.245-3.439-6.5-4.377c-2.183-.903-5.915.275-7.69-1.5Z"/><path d="m17.281 26.444 4.632 4.631L32.718 20.27"/>',
-    appDownloads:
-        '<path d="M45.571 12.006 27.046 30.531l-7.719-7.718L5.434 36.706"/><path d="M45.569 24.356v-12.35h-12.35"/>',
-    tasks: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>',
-    messages: '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>',
-    projects: '<path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>',
-    performance: '<path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>'
+const visualizationTypeOptions = props.visualizationTypes.map(vt => ({
+    value: vt.id,
+    label: vt.type_name
+}))
+
+const isBarOrPie = computed(() => {
+    return ['bar', 'pie'].includes(selectedVisualizationType.value)
+})
+
+const isPeta = computed(() => {
+    return selectedVisualizationType.value === 'peta'
+})
+
+const addCategory = () => {
+    chartCategories.value.push({ category: '', value: '' })
 }
 
-const stocks = ref([
-    {
-        symbol: 'AAPL',
-        name: 'Apple, Inc',
-        price: '173.25',
-        change: 0.86,
-        icon: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg',
-        bgColor: 'gray'
-    },
-    {
-        symbol: 'PYPL',
-        name: 'Paypal, Inc',
-        price: '65.23',
-        change: -1.42,
-        icon: 'https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg',
-        bgColor: 'blue'
-    },
-    {
-        symbol: 'TSLA',
-        name: 'Tesla, Inc',
-        price: '241.53',
-        change: 2.76,
-        icon: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Tesla_logo.png',
-        bgColor: 'red'
-    },
-    {
-        symbol: 'HPQ',
-        name: 'HP Inc',
-        price: '29.78',
-        change: 0.95,
-        icon: 'https://logodownload.org/wp-content/uploads/2014/04/hp-logo-1.png',
-        bgColor: 'blue'
+const removeCategory = (index) => {
+    chartCategories.value.splice(index, 1)
+}
+
+const handleMapFileChange = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    uploadingMap.value = true
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+        const response = await axios.post(route('dashboard.upload-map'), formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+
+        if (response.data.success) {
+            mapData.value = response.data.data
+            alert(`Berhasil memuat ${response.data.total_points} titik data`)
+        }
+    } catch (error) {
+        console.error('Upload failed:', error)
+        alert(error.response?.data?.message || 'Gagal mengupload file')
+        mapData.value = []
+    } finally {
+        uploadingMap.value = false
     }
-])
+}
+
+const handlePreview = () => {
+    // Validation
+    if (!form.riset_id || !form.topic_id || !form.visualization_type_id || !form.interpretation) {
+        alert('Mohon lengkapi semua field yang wajib diisi')
+        return
+    }
+
+    // Prepare chart data based on type
+    if (isBarOrPie.value) {
+        const validCategories = chartCategories.value.filter(c => c.category && c.value)
+        if (validCategories.length === 0) {
+            alert('Mohon isi minimal satu kategori dan nilai')
+            return
+        }
+
+        const categories = validCategories.map(c => c.category)
+        const values = validCategories.map(c => parseFloat(c.value) || 0)
+
+        form.chart_data = {
+            labels: categories,
+            datasets: [{
+                data: values,
+                backgroundColor: generateColors(values.length)
+            }]
+        }
+        
+        // Prepare ApexCharts data
+        prepareApexChart(categories, values)
+    } else if (isPeta.value) {
+        if (mapData.value.length === 0) {
+            alert('Mohon upload file data peta terlebih dahulu')
+            return
+        }
+        form.chart_data = { points: mapData.value }
+    }
+
+    showPreview.value = true
+    
+    // Render preview after DOM update
+    nextTick(() => {
+        if (isPeta.value) {
+            renderMap()
+        }
+    })
+}
+
+const prepareApexChart = (categories, values) => {
+    if (selectedVisualizationType.value === 'bar') {
+        chartSeries.value = [{
+            name: 'Nilai',
+            data: values
+        }]
+        
+        chartOptions.value = {
+            chart: {
+                type: 'bar',
+                height: 400,
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: true,
+                        selection: false,
+                        zoom: false,
+                        zoomin: false,
+                        zoomout: false,
+                        pan: false,
+                        reset: false
+                    }
+                },
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 800,
+                }
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 8,
+                    dataLabels: {
+                        position: 'top',
+                    },
+                    columnWidth: '60%',
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function (val) {
+                    return val.toFixed(0)
+                },
+                offsetY: -20,
+                style: {
+                    fontSize: '12px',
+                    colors: ["#304758"]
+                }
+            },
+            xaxis: {
+                categories: categories,
+                position: 'bottom',
+                labels: {
+                    style: {
+                        fontSize: '12px'
+                    }
+                }
+            },
+            yaxis: {
+                title: {
+                    text: 'Nilai'
+                },
+                labels: {
+                    formatter: function (val) {
+                        return val.toFixed(0)
+                    }
+                }
+            },
+            colors: ['#008FFB'],
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shade: 'light',
+                    type: "vertical",
+                    shadeIntensity: 0.25,
+                    gradientToColors: undefined,
+                    inverseColors: true,
+                    opacityFrom: 0.85,
+                    opacityTo: 0.85,
+                    stops: [50, 0, 100]
+                },
+            },
+            tooltip: {
+                enabled: true,
+                theme: 'light',
+                y: {
+                    formatter: function (val) {
+                        return val.toFixed(2)
+                    }
+                }
+            }
+        }
+    } else if (selectedVisualizationType.value === 'pie') {
+        chartSeries.value = values
+        
+        chartOptions.value = {
+            chart: {
+                type: 'pie',
+                height: 400,
+                toolbar: {
+                    show: true
+                },
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 800,
+                }
+            },
+            labels: categories,
+            colors: generateColors(values.length),
+            legend: {
+                position: 'bottom',
+                fontSize: '14px',
+                formatter: function(seriesName, opts) {
+                    return seriesName + ": " + opts.w.globals.series[opts.seriesIndex]
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function (val, opts) {
+                    const name = opts.w.globals.labels[opts.seriesIndex]
+                    return [name, val.toFixed(1) + '%']
+                },
+                style: {
+                    fontSize: '12px',
+                }
+            },
+            plotOptions: {
+                pie: {
+                    expandOnClick: true,
+                    donut: {
+                        labels: {
+                            show: false
+                        }
+                    }
+                }
+            },
+            tooltip: {
+                enabled: true,
+                theme: 'light',
+                y: {
+                    formatter: function (val) {
+                        return val.toFixed(2)
+                    }
+                }
+            },
+            responsive: [{
+                breakpoint: 480,
+                options: {
+                    chart: {
+                        width: 300
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }]
+        }
+    }
+}
+
+const renderMap = () => {
+    const mapContainer = document.getElementById('previewMap')
+    if (!mapContainer || mapData.value.length === 0) return
+
+    // Clear existing map
+    if (mapInstance.value) {
+        mapInstance.value.remove()
+    }
+    mapContainer.innerHTML = ''
+
+    // Calculate center
+    const avgLat = mapData.value.reduce((sum, p) => sum + p.lat, 0) / mapData.value.length
+    const avgLng = mapData.value.reduce((sum, p) => sum + p.lng, 0) / mapData.value.length
+
+    // Create map
+    mapInstance.value = L.map('previewMap').setView([avgLat, avgLng], 10)
+
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18
+    }).addTo(mapInstance.value)
+
+    // Prepare heatmap data
+    const heatData = mapData.value.map(point => [
+        point.lat,
+        point.lng,
+        point.density/100
+    ])
+
+    // Add heatmap layer
+    L.heatLayer(heatData, {
+        radius: 25,
+        blur: 15,
+        maxZoom: 17,
+        max: 1.0,
+        gradient: {
+            0.0: 'blue',
+            0.5: 'lime',
+            0.7: 'yellow',
+            1.0: 'red'
+        }
+    }).addTo(mapInstance.value)
+
+    // Add markers for reference (optional)
+    mapData.value.forEach(point => {
+        L.circleMarker([point.lat, point.lng], {
+            radius: 3,
+            fillColor: '#ff7800',
+            color: '#000',
+            weight: 1,
+            opacity: 0.5,
+            fillOpacity: 0.5
+        })
+        .bindPopup(`Density: ${point.density}`)
+        .addTo(mapInstance.value)
+    })
+}
+
+const generateColors = (count) => {
+    const colors = [
+        '#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0',
+        '#546E7A', '#26a69a', '#D10CE8', '#F9A3A4', '#90EE7E'
+    ]
+    return colors.slice(0, count)
+}
+
+const handleReset = () => {
+    form.reset()
+    topics.value = []
+    chartCategories.value = []
+    mapData.value = []
+    mapFile.value = null
+    showPreview.value = false
+    selectedVisualizationType.value = null
+    chartOptions.value = {}
+    chartSeries.value = []
+    
+    if (mapInstance.value) {
+        mapInstance.value.remove()
+        mapInstance.value = null
+    }
+}
+
+const handlePublish = async () => {
+    if (!confirm('Apakah Anda yakin ingin mempublikasikan visualisasi ini?')) {
+        return
+    }
+
+    try {
+        const response = await axios.post(route('dashboard.publish'), {
+            riset_id: form.riset_id,
+            topic_id: form.topic_id,
+            visualization_type_id: form.visualization_type_id,
+            interpretation: form.interpretation,
+            chart_data: form.chart_data,
+            chart_options: chartOptions.value,
+        })
+
+        if (response.data.success) {
+            alert('Visualisasi berhasil dipublikasikan!')
+            handleReset()
+        }
+    } catch (error) {
+        console.error('Publish failed:', error)
+        alert(error.response?.data?.message || 'Gagal mempublikasikan visualisasi')
+    }
+}
 </script>
 
 <template>
+    <Head title="Input Data Riset" />
 
-    <Head title="Dashboard" />
-
-    <main class="min-h-screen">
-        <div class="max-w-6xl mx-auto">
-            <header class="mb-6 sm:mb-8 lg:mb-10">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-3 sm:mb-2">
-                    <h1
-                        class="text-2xl sm:text-3xl font-bold text-[var(--color-text)] flex items-center gap-2 sm:gap-3">
-                        <span class="hidden sm:inline">{{ greeting }},</span>
-                        <span class="sm:hidden">{{ greeting }}</span>
-                        {{ userName }}
-                        <span class="text-blue-500 dark:text-blue-400 animate-pulse">•</span>
-                    </h1>
-                    <time
-                        class="text-xs sm:text-sm font-medium text-[var(--color-text-muted)] bg-[var(--color-surface)] px-3 sm:px-4 py-2 sm:py-2.5 rounded-full shadow-sm self-start sm:self-auto">
-                        <div class="hidden sm:block">
-                            {{ formattedDate.display }}
-                        </div>
-                        <div class="sm:hidden flex items-center gap-1">
-                            <span class="font-semibold">{{ formattedDate.dayOfWeek }}</span>
-                            <span>{{ formattedDate.mobileDisplay }}</span>
-                        </div>
-                    </time>
-                </div>
-                <p class="text-sm sm:text-base text-[var(--color-text-muted)]">
-                    Here's what's happening with your portfolio today.
-                </p>
-            </header>
-
-            <!-- Metrics Widgets -->
-            <section class="mb-10">
-                <h2 class="text-xl font-semibold text-[var(--color-text)] mb-4">
-                    Metric Widgets
-                </h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <MetricWidget title="Total Revenue" :value="84621" trend="up" :change="12.5" :svg="icons.revenue"
-                        color="emerald" />
-                    <MetricWidget title="Active Users" :value="2847" trend="up" :change="8.2" :svg="icons.users"
-                        color="blue" />
-                    <MetricWidget title="Conversion Rate" value="3.24%" trend="down" :change="-1.8"
-                        :svg="icons.conversion" color="amber" />
-                    <MetricWidget title="Avg. Response Time" value="284ms" trend="up" :change="15.3"
-                        :svg="icons.response" color="rose" />
-                </div>
-            </section>
-
-            <!-- Stock Widgets -->
-            <section class="mb-10">
-                <h2 class="text-xl font-semibold text-[var(--color-text)] mb-4">
-                    Stock Widgets
-                </h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StockWidget :stock="stocks[0]" :src="stocks[0].icon" :alt="stocks[0].name"
-                        :bg-color="stocks[0].bgColor" size="lg" />
-                    <StockWidget :stock="stocks[1]" :src="stocks[1].icon" :alt="stocks[1].name"
-                        :bg-color="stocks[1].bgColor" size="lg" />
-                    <StockWidget :stock="stocks[2]" :src="stocks[2].icon" :alt="stocks[2].name"
-                        :bg-color="stocks[2].bgColor" size="lg" />
-                    <StockWidget :stock="stocks[3]" :src="stocks[3].icon" :alt="stocks[3].name"
-                        :bg-color="stocks[3].bgColor" size="lg" />
-                </div>
-            </section>
-
-            <!-- Retro Stats Widget-->
-            <section class="mb-10">
-                <h2 class="text-xl font-semibold text-[var(--color-text)] mb-4">
-                    Retro Stat Widgets
-                </h2>
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 w-full mx-auto max-w-8xl">
-                    <RetroStatWidget title="Expert Chat & Call Minutes" value="75K+" viewBox="0 0 50 50"
-                        color="text-blue-500 dark:text-blue-400" :svg="icons.chatMinutes" />
-                    <RetroStatWidget title="Average Expert Rating" value="4.9" viewBox="0 0 51 50"
-                        color="text-blue-500 dark:text-blue-400" :svg="icons.expertRating" />
-                    <RetroStatWidget title="Sessions Completed" value="8900+" viewBox="0 0 50 50"
-                        color="text-blue-500 dark:text-blue-400" :svg="icons.sessionsCompleted" />
-                    <RetroStatWidget title="App Downloads" value="1.5M+" viewBox="0 0 51 50"
-                        color="text-blue-500 dark:text-blue-400" :svg="icons.appDownloads" />
-                </div>
-            </section>
-
-            <!-- Stats Widgets -->
-            <section class="mb-10">
-                <h2 class="text-xl font-semibold text-[var(--color-text)] mb-4">
-                    Stats Overview
-                </h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatWidget v-for="(stat, index) in stats" :key="index" :title="stat.title" :value="stat.value"
-                        :trend="stat.growth.startsWith('+')
-                                ? 'up'
-                                : stat.growth.startsWith('-')
-                                    ? 'down'
-                                    : 'neutral'
-                            " :color="stat.growth.startsWith('+')
-                                ? 'green'
-                                : stat.growth.startsWith('-')
-                                    ? 'red'
-                                    : 'blue'
-                            " :icon="stat.title.includes('Member')
-                                ? icons.users
-                                : stat.title.includes('Growth')
-                                    ? icons.performance
-                                    : stat.title.includes('Session')
-                                        ? icons.projects
-                                        : icons.tasks
-                            " />
-                </div>
-            </section>
-
-            <!-- Progress Widgets -->
-            <section class="mb-10">
-                <h2 class="text-xl font-semibold text-[var(--color-text)] mb-4">
-                    Progress Widgets
-                </h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <ProgressWidget title="Storage Used" :value="75" :max="100" description="75GB of 100GB used"
-                        color="blue" />
-                    <ProgressWidget title="Tasks Completed" :value="42" :max="60" description="42 of 60 tasks done"
-                        color="green" />
-                    <ProgressWidget title="Project Progress" :value="88" :max="100" description="Nearly complete"
-                        color="purple" />
-                    <ProgressWidget title="Monthly Goals" :value="35" :max="50" description="70% achieved"
-                        color="indigo" />
-                </div>
-            </section>
-
-            <!-- Chart Widgets -->
-            <section class="mb-10">
-                <h2 class="text-xl font-semibold text-[var(--color-text)] mb-4">
-                    Chart Widgets
-                </h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <ChartWidget title="Revenue" value="$45,231" :change="12.5"
-                        :data="[30, 40, 35, 50, 49, 60, 70, 91, 125]" color="emerald" />
-                    <ChartWidget title="Visitors" value="8,234" :change="8.1"
-                        :data="[20, 30, 35, 45, 40, 55, 60, 70, 65]" color="blue" />
-                    <ChartWidget title="Orders" value="1,234" :change="-3.2"
-                        :data="[50, 45, 40, 42, 38, 35, 33, 30, 28]" color="red" />
-                    <ChartWidget title="Conversion" value="3.24%" :change="5.4"
-                        :data="[15, 20, 18, 25, 30, 28, 35, 40, 42]" color="purple" />
-                </div>
-            </section>
+    <div class="min-h-screen bg-pkl-base-cream">
+        <div class="max-w-6xl mx-auto sm:p-4">
+            <h1 class="font-headline mt-3 text-[40px] tracking-wide">Kelola Diseminasi</h1>
+            <p class="text-[16px]">Kelola Data dan Interpretasi untuk Diseminasi</p>
         </div>
-    </main>
+        
+        <main class="max-w-6xl mx-auto p-4 sm:p-4">
+            <!-- Form Input -->
+            <div class="bg-[var(--color-surface)] rounded-lg shadow-md p-6 border border-[var(--color-border)] mb-6">
+                <div class="mb-6">
+                    <h2 class="text-[20px] text-[var(--color-text)]">Form Input Data</h2>
+                    <p class="text-[16px]">Kelola Data dan Interpretasi untuk Diseminasi</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Riset -->
+                    <FormSelect 
+                        label="Pilih Riset" 
+                        v-model="form.riset_id"
+                        :options="risetOptions"
+                        :error="form.errors.riset_id"
+                        placeholder="-- Pilih Riset --"
+                        required 
+                    />
+
+                    <!-- Sub Topik -->
+                    <FormSelect 
+                        label="Pilih Sub Topik" 
+                        v-model="form.topic_id"
+                        :options="topicOptions"
+                        :error="form.errors.topic_id"
+                        :disabled="!form.riset_id || loadingTopics"
+                        :placeholder="loadingTopics ? 'Loading...' : '-- Pilih Sub Topik --'"
+                        required 
+                    />
+
+                    <!-- Jenis Grafik -->
+                    <FormSelect 
+                        label="Pilih Jenis Grafik" 
+                        v-model="form.visualization_type_id"
+                        :options="visualizationTypeOptions"
+                        :error="form.errors.visualization_type_id"
+                        placeholder="-- Pilih Jenis Grafik --"
+                        required 
+                    />
+
+                    <!-- Dynamic Form: Bar/Pie Chart -->
+                    <div v-if="isBarOrPie" class="border-t pt-6">
+                        <h3 class="text-lg font-semibold mb-4">Input Data Kategori</h3>
+                        <div class="space-y-3">
+                            <div 
+                                v-for="(category, index) in chartCategories" 
+                                :key="index"
+                                class="flex gap-3 items-end"
+                            >
+                                <div class="flex-1">
+                                    <FormInput
+                                        :label="index === 0 ? 'Kategori' : ''"
+                                        v-model="category.category"
+                                        placeholder="Nama kategori"
+                                    />
+                                </div>
+                                <div class="flex-1">
+                                    <FormInput
+                                        :label="index === 0 ? 'Nilai' : ''"
+                                        v-model="category.value"
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="Nilai"
+                                    />
+                                </div>
+                                <button
+                                    v-if="chartCategories.length > 1"
+                                    @click="removeCategory(index)"
+                                    type="button"
+                                    class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition"
+                                >
+                                    Hapus
+                                </button>
+                            </div>
+                        </div>
+                        <button
+                            @click="addCategory"
+                            type="button"
+                            class="mt-3 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
+                        >
+                            + Tambah Kategori
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Form: Peta -->
+                    <div v-if="isPeta" class="border-t pt-6">
+                        <h3 class="text-lg font-semibold mb-4">Upload Data Peta</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">
+                                    File Excel/CSV
+                                    <span class="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="file"
+                                    accept=".csv,.xlsx,.xls"
+                                    @change="handleMapFileChange"
+                                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                />
+                                <p class="mt-1 text-sm text-gray-500">
+                                    Format: latitude, longitude, density
+                                </p>
+                            </div>
+                            <div v-if="uploadingMap" class="text-sm text-gray-600">
+                                Memproses file...
+                            </div>
+                            <div v-if="mapData.length > 0" class="text-sm text-green-600">
+                                ✓ {{ mapData.length }} titik data berhasil dimuat
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interpretasi -->
+                    <FormTextarea
+                        label="Interpretasi"
+                        v-model="form.interpretation"
+                        :error="form.errors.interpretation"
+                        placeholder="Masukkan interpretasi visualisasi"
+                        :rows="4"
+                        required
+                    />
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end gap-3 pt-4">
+                        <button 
+                            @click="handleReset"
+                            type="button"
+                            class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition"
+                        >
+                            Reset
+                        </button>
+                        <button 
+                            @click="handlePreview"
+                            type="button"
+                            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
+                        >
+                            Preview
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div 
+                v-if="showPreview"
+                class="bg-[var(--color-surface)] rounded-lg shadow-md p-6 border border-[var(--color-border)]"
+            >
+                <div class="mb-6">
+                    <h2 class="text-[20px] text-[var(--color-text)]">Preview Visualisasi</h2>
+                </div>
+
+                <!-- ApexChart Preview (Bar/Pie) -->
+                <div v-if="isBarOrPie" class="mb-6 bg-white rounded-lg p-4">
+                    <VueApexCharts 
+                        :options="chartOptions" 
+                        :series="chartSeries"
+                        :type="selectedVisualizationType"
+                        height="400"
+                    />
+                </div>
+
+                <!-- Map Preview -->
+                <div v-if="isPeta" class="mb-6">
+                    <div 
+                        id="previewMap" 
+                        class="w-full h-[500px] border rounded-lg"
+                    ></div>
+                </div>
+
+                <!-- Interpretation -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2">Interpretasi</h3>
+                    <div class="p-4 bg-gray-50 rounded-lg text-justify leading-relaxed">
+                        {{ form.interpretation }}
+                    </div>
+                </div>
+
+                <!-- Publish Button -->
+                <div class="flex justify-end">
+                    <button
+                        @click="handlePublish"
+                        type="button"
+                        class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition shadow-md hover:shadow-lg"
+                    >
+                        📤 Publish
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
 </template>
+
+<style scoped>
+/* Leaflet fixes */
+:deep(.leaflet-container) {
+    z-index: 1;
+}
+
+/* ApexCharts customization */
+:deep(.apexcharts-canvas) {
+    margin: 0 auto;
+}
+
+:deep(.apexcharts-menu) {
+    background: #fff;
+    border: 1px solid #ddd;
+}
+</style>
