@@ -24,6 +24,7 @@ const form = useForm({
     riset_id: null,
     topic_id: null,
     visualization_type_id: null,
+    title: '',
     interpretation: '',
     chart_data: null,
     chart_options: null,
@@ -49,7 +50,7 @@ watch(() => form.riset_id, async (newRisetId) => {
     if (newRisetId) {
         loadingTopics.value = true
         try {
-            const response = await axios.get(route('dashboard.topics'), {
+            const response = await axios.get(route('admin.dashboard.topics'), {
                 params: { riset_id: newRisetId }
             })
             topics.value = response.data.topics
@@ -120,7 +121,7 @@ const handleMapFileChange = async (event) => {
     formData.append('file', file)
 
     try {
-        const response = await axios.post(route('dashboard.upload-map'), formData, {
+        const response = await axios.post(route('admin.dashboard.upload-map'), formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         })
 
@@ -139,7 +140,7 @@ const handleMapFileChange = async (event) => {
 
 const handlePreview = () => {
     // Validation
-    if (!form.riset_id || !form.topic_id || !form.visualization_type_id || !form.interpretation) {
+    if (!form.riset_id || !form.topic_id || !form.visualization_type_id || !form.title || !form.interpretation){
         alert('Mohon lengkapi semua field yang wajib diisi')
         return
     }
@@ -434,10 +435,11 @@ const handlePublish = async () => {
     }
 
     try {
-        const response = await axios.post(route('dashboard.publish'), {
+        const response = await axios.post(route('admin.dashboard.publish'), {
             riset_id: form.riset_id,
             topic_id: form.topic_id,
             visualization_type_id: form.visualization_type_id,
+            title: form.title,
             interpretation: form.interpretation,
             chart_data: form.chart_data,
             chart_options: chartOptions.value,
@@ -500,6 +502,15 @@ const handlePublish = async () => {
                         :options="visualizationTypeOptions"
                         :error="form.errors.visualization_type_id"
                         placeholder="-- Pilih Jenis Grafik --"
+                        required 
+                    />
+
+                    <!-- Judul Visualisasi -->
+                    <FormInput 
+                        label="Judul Visualisasi" 
+                        v-model="form.title"
+                        :error="form.errors.title"
+                        placeholder="Masukkan judul visualisasi"
                         required 
                     />
 
@@ -612,6 +623,7 @@ const handlePublish = async () => {
             >
                 <div class="mb-6">
                     <h2 class="text-[20px] text-[var(--color-text)]">Preview Visualisasi</h2>
+                    <h3 class="text-[24px] font-bold text-[var(--color-text)] mt-2">{{ form.title }}</h3>
                 </div>
 
                 <!-- ApexChart Preview (Bar/Pie) -->

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,6 @@ class LogoutController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return Inertia::location(route('login'));
     }
 }

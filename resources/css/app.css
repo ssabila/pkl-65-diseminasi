@@ -122,7 +122,7 @@
 
 @layer utilities {
     .bg-auth {
-        background-image: url('../images/assets/background-pkl.svg');
+        background-image: url('../images/assets/background-login.png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
