@@ -136,6 +136,7 @@ class DataController extends Controller
             'riset_id' => 'required|exists:risets,id',
             'topic_id' => 'required|exists:topics,id',
             'visualization_type_id' => 'required|exists:visualization_types,id',
+            'title' => 'required|string|max:255',
             'interpretation' => 'required|string',
             'chart_data' => 'required|array',
             'chart_options' => 'nullable|array',
@@ -159,7 +160,7 @@ class DataController extends Controller
         $visualization = Visualization::create([
             'topic_id' => $validated['topic_id'],
             'visualization_type_id' => $validated['visualization_type_id'],
-            'title' => $title,
+            'title' => $validated['title'],
             'interpretation' => $validated['interpretation'],
             'chart_data' => $validated['chart_data'],
             'chart_options' => $validated['chart_options'] ?? null,
@@ -175,13 +176,5 @@ class DataController extends Controller
                 'title' => $visualization->title,
             ]
         ]);
-    }
-
-    /**
-     * Generate title for visualization
-     */
-    private function generateTitle($typeName, $topicName)
-    {
-        return $typeName . ' - ' . $topicName;
     }
 }
