@@ -12,7 +12,7 @@
         "guzzlehttp/guzzle": "^7.2",
         "http-interop/http-factory-guzzle": "^1.2",
         "inertiajs/inertia-laravel": "^2.0",
-        "intervention/image": "^3.4",
+        "intervention/image": "^3.11",
         "jenssegers/agent": "^2.6",
         "laravel/fortify": "^1.23",
         "laravel/framework": "^12.0",
