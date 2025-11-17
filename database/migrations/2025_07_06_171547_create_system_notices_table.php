@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('type')->default('info');
             $table->dateTime('visible_from')->nullable();
             $table->dateTime('expires_at')->nullable();
-            $table->foreignUlid('created_by')->constrained('users');
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
     }
