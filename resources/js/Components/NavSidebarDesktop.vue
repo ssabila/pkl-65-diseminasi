@@ -60,7 +60,6 @@ const navigationSections = reactive([
                     1.125.504 1.125 1.125V21h4.125c.621 0
                     1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />`
             },
-            { type: 'divider' }
         ]
     },
 
@@ -81,7 +80,6 @@ const navigationSections = reactive([
                     3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125
                     1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />`
             },
-            { type: 'divider' }
         ]
     },
 
@@ -98,7 +96,6 @@ const navigationSections = reactive([
                     21a8.966 8.966 0 0 1-5.982-2.275M15
                     9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />`
             },
-            { type: 'divider' }
         ]
     }
 ])

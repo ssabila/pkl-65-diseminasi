@@ -461,15 +461,16 @@ const handlePublish = async () => {
 
     <div class="min-h-screen bg-pkl-base-cream">
         <div class="max-w-6xl mx-auto sm:p-4">
-            <h1 class="font-headline mt-3 text-[40px] tracking-wide">Kelola Diseminasi</h1>
-            <p class="text-[16px]">Kelola Data dan Interpretasi untuk Diseminasi</p>
+<h1 class="font-headline mt-3 text-[40px] tracking-wide text-[#7A2509]">
+    Kelola Diseminasi
+</h1>            <p class="text-[16px]">Kelola Data dan Interpretasi untuk Diseminasi</p>
         </div>
         
         <main class="max-w-6xl mx-auto p-4 sm:p-4">
             <!-- Form Input -->
             <div class="bg-[var(--color-surface)] rounded-lg shadow-md p-6 border border-[var(--color-border)] mb-6">
                 <div class="mb-6">
-                    <h2 class="text-[20px] text-[var(--color-text)]">Form Input Data</h2>
+                    <h2 class="text-[20px] text-[#7A2509]">Form Input Data</h2>                  
                     <p class="text-[16px]">Kelola Data dan Interpretasi untuk Diseminasi</p>
                 </div>
 
@@ -601,17 +602,21 @@ const handlePublish = async () => {
                         <button 
                             @click="handleReset"
                             type="button"
-                            class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition"
-                        >
+                                class="px-4 py-2 bg-[#FCEFEA] border border-[#7A2509] text-[#7A2509] rounded-lg transition hover:bg-[#7A2509] hover:text-white"                        >
                             Reset
                         </button>
-                        <button 
-                            @click="handlePreview"
-                            type="button"
-                            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
-                        >
-                            Preview
-                        </button>
+                            <button 
+                                @click="handlePreview"
+                                type="button"
+                                class="px-4 py-2 bg-[#7A2509] hover:bg-[#5e1d07] text-white rounded-lg transition flex items-center gap-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                </svg>
+
+                                <span>Preview</span>
+                            </button>
                     </div>
                 </div>
             </div>
@@ -657,9 +662,12 @@ const handlePublish = async () => {
                     <button
                         @click="handlePublish"
                         type="button"
-                        class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition shadow-md hover:shadow-lg"
+                        class="px-6 py-3 bg-[#7A2509] hover:bg-[#5e1d07] text-white font-semibold rounded-lg transition shadow-md hover:shadow-lg flex items-center gap-2"
                     >
-                        📤 Publish
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12Zm0 0h7.5" />
+                        </svg>
+                        <span>Konfirmasi & Publish</span>
                     </button>
                 </div>
             </div>
