@@ -745,16 +745,3 @@ pre {
     border-color: var(--color-border);
     background-color: var(--color-surface);
 }
-
-/* === PKL 65 THEME COLORS === */
-:root {
-    --pkl-orange: #EF874B;
-    --pkl-yellow: #FCDA7B;
-    --pkl-maroon: #7A2509;
-    --pkl-cream: #FCEFEA;
-}
-
-.bg-pkl-orange { background-color: var(--pkl-orange); }
-.bg-pkl-yellow { background-color: var(--pkl-yellow); }
-.bg-pkl-cream { background-color: var(--pkl-cream); }
-.text-pkl-maroon { color: var(--pkl-maroon); }
