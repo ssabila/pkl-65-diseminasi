@@ -11,6 +11,7 @@ import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
 import VueApexCharts from 'vue3-apexcharts'
 
+
 defineOptions({
     layout: Default
 })
@@ -461,13 +462,24 @@ const handlePublish = async () => {
 
     <div class="min-h-screen bg-pkl-base-cream">
         <div class="max-w-6xl mx-auto sm:p-4">
+            
             <h1 class="font-headline mt-3 text-[40px] tracking-wide">Kelola Diseminasi</h1>
             <p class="text-[16px]">Kelola Data dan Interpretasi untuk Diseminasi</p>
         </div>
         
         <main class="max-w-6xl mx-auto p-4 sm:p-4">
             <!-- Form Input -->
+             <img
+                    src="/images/assets/pattern-batik.svg"
+                    alt="Pattern Batik"
+                    class="w-full h-auto mb-4"
+                />
             <div class="bg-[var(--color-surface)] rounded-lg shadow-md p-6 border border-[var(--color-border)] mb-6">
+                <img
+                    src="/images/assets/pattern-batik.svg"
+                    alt="Pattern Batik"
+                    class="w-full h-auto mb-4"
+                />
                 <div class="mb-6">
                     <h2 class="text-[20px] text-[var(--color-text)]">Form Input Data</h2>
                     <p class="text-[16px]">Kelola Data dan Interpretasi untuk Diseminasi</p>
