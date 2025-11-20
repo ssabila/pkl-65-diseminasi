@@ -5,6 +5,8 @@ import Default from '@/Layouts/Default.vue'
 import FormSelect from '@/Components/FormSelect.vue'
 import FormTextarea from '@/Components/FormTextarea.vue'
 import FormInput from '@/Components/FormInput.vue'
+import ConfirmDialog from '@/Components/ConfirmDialog.vue'
+import NotificationDialog from '@/Components/NotificationDialog.vue'
 import axios from 'axios'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -41,6 +43,14 @@ const selectedVisualizationType = ref(null)
 const chartOptions = ref({})
 const chartSeries = ref([])
 const mapInstance = ref(null)
+
+// Dialog states
+const showDeleteConfirm = ref(false)
+const showPublishConfirm = ref(false)
+const showSuccessNotif = ref(false)
+const showErrorNotif = ref(false)
+const notificationMessage = ref('')
+const notificationTitle = ref('')
 
 // Watch for riset selection changes
 watch(() => form.riset_id, async (newRisetId) => {
@@ -127,11 +137,15 @@ const handleMapFileChange = async (event) => {
 
         if (response.data.success) {
             mapData.value = response.data.data
-            alert(`Berhasil memuat ${response.data.total_points} titik data`)
+            notificationTitle.value = 'Upload Berhasil!'
+            notificationMessage.value = `Berhasil memuat ${response.data.total_points} titik data`
+            showSuccessNotif.value = true
         }
     } catch (error) {
         console.error('Upload failed:', error)
-        alert(error.response?.data?.message || 'Gagal mengupload file')
+        notificationTitle.value = 'Upload Gagal!'
+        notificationMessage.value = error.response?.data?.message || 'Gagal mengupload file'
+        showErrorNotif.value = true
         mapData.value = []
     } finally {
         uploadingMap.value = false
@@ -141,7 +155,9 @@ const handleMapFileChange = async (event) => {
 const handlePreview = () => {
     // Validation
     if (!form.riset_id || !form.topic_id || !form.visualization_type_id || !form.title || !form.interpretation){
-        alert('Mohon lengkapi semua field yang wajib diisi')
+        notificationTitle.value = 'Data Tidak Lengkap'
+        notificationMessage.value = 'Mohon lengkapi semua field yang wajib diisi'
+        showErrorNotif.value = true
         return
     }
 
@@ -149,7 +165,9 @@ const handlePreview = () => {
     if (isBarOrPie.value) {
         const validCategories = chartCategories.value.filter(c => c.category && c.value)
         if (validCategories.length === 0) {
-            alert('Mohon isi minimal satu kategori dan nilai')
+            notificationTitle.value = 'Data Tidak Lengkap'
+            notificationMessage.value = 'Mohon isi minimal satu kategori dan nilai'
+            showErrorNotif.value = true
             return
         }
 
@@ -168,7 +186,9 @@ const handlePreview = () => {
         prepareApexChart(categories, values)
     } else if (isPeta.value) {
         if (mapData.value.length === 0) {
-            alert('Mohon upload file data peta terlebih dahulu')
+            notificationTitle.value = 'Data Peta Kosong'
+            notificationMessage.value = 'Mohon upload file data peta terlebih dahulu'
+            showErrorNotif.value = true
             return
         }
         form.chart_data = { points: mapData.value }
@@ -429,10 +449,12 @@ const handleReset = () => {
     }
 }
 
+const handlePublishClick = () => {
+    showPublishConfirm.value = true
+}
+
 const handlePublish = async () => {
-    if (!confirm('Apakah Anda yakin ingin mempublikasikan visualisasi ini?')) {
-        return
-    }
+    showPublishConfirm.value = false
 
     try {
         const response = await axios.post(route('admin.dashboard.publish'), {
@@ -446,12 +468,16 @@ const handlePublish = async () => {
         })
 
         if (response.data.success) {
-            alert('Visualisasi berhasil dipublikasikan!')
+            notificationTitle.value = 'Update Berhasil!'
+            notificationMessage.value = 'Visualisasi berhasil dipublikasikan!'
+            showSuccessNotif.value = true
             handleReset()
         }
     } catch (error) {
         console.error('Publish failed:', error)
-        alert(error.response?.data?.message || 'Gagal mempublikasikan visualisasi')
+        notificationTitle.value = 'Publish Gagal!'
+        notificationMessage.value = error.response?.data?.message || 'Gagal mempublikasikan visualisasi'
+        showErrorNotif.value = true
     }
 }
 </script>
@@ -468,13 +494,21 @@ const handlePublish = async () => {
         
         <main class="max-w-6xl mx-auto p-4 sm:p-4">
             <!-- Form Input -->
-            <div class="bg-[var(--color-surface)] rounded-lg shadow-md p-6 border border-[var(--color-border)] mb-6">
-                <div class="mb-6">
-                    <h2 class="text-[20px] text-[#7A2509]">Form Input Data</h2>                  
-                    <p class="text-[16px]">Kelola Data dan Interpretasi untuk Diseminasi</p>
+            <div class="bg-[var(--color-surface)] rounded-lg shadow-md border border-[var(--color-border)] mb-6 overflow-hidden">
+                <div class="relative h-32 overflow-hidden">
+                    <!-- Batik Pattern -->
+                    <div class="absolute inset-0">
+                        <img src="/images/assets/pattern-batik.svg" alt="Pattern Batik" class="w-full h-full object-cover" />
+                    </div>
                 </div>
+                
+                <div class="p-6">
+                    <div class="mb-6">
+                        <h2 class="text-[20px] text-[#7A2509]">Form Input Data</h2>                  
+                        <p class="text-[16px]">Kelola Data dan Interpretasi untuk Diseminasi</p>
+                    </div>
 
-                <div class="space-y-6">
+                    <div class="space-y-6">
                     <!-- Riset -->
                     <FormSelect 
                         label="Pilih Riset" 
@@ -620,6 +654,7 @@ const handlePublish = async () => {
                     </div>
                 </div>
             </div>
+        </div>
 
             <!-- Preview Section -->
             <div 
@@ -660,7 +695,7 @@ const handlePublish = async () => {
                 <!-- Publish Button -->
                 <div class="flex justify-end">
                     <button
-                        @click="handlePublish"
+                        @click="handlePublishClick"
                         type="button"
                         class="px-6 py-3 bg-[#7A2509] hover:bg-[#5e1d07] text-white font-semibold rounded-lg transition shadow-md hover:shadow-lg flex items-center gap-2"
                     >
@@ -672,6 +707,35 @@ const handlePublish = async () => {
                 </div>
             </div>
         </main>
+
+        <!-- Dialogs -->
+        <ConfirmDialog
+            :show="showPublishConfirm"
+            message="Apakah anda yakin ingin mempublish hasil visualisasi berikut?"
+            confirm-text="Publish Visualisasi"
+            cancel-text="Cancel"
+            confirm-color="blue"
+            @confirm="handlePublish"
+            @close="showPublishConfirm = false"
+        />
+
+        <NotificationDialog
+            :show="showSuccessNotif"
+            type="success"
+            :title="notificationTitle"
+            :message="notificationMessage"
+            button-text="OK"
+            @close="showSuccessNotif = false"
+        />
+
+        <NotificationDialog
+            :show="showErrorNotif"
+            type="error"
+            :title="notificationTitle"
+            :message="notificationMessage"
+            button-text="OK"
+            @close="showErrorNotif = false"
+        />
     </div>
 </template>
 
