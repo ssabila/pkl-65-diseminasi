@@ -7,6 +7,7 @@ use Inertia\Response;
 use Illuminate\Http\Request; // Diperlukan untuk membaca query string
 use App\Models\Riset;
 use App\Models\Visualization;
+use App\Models\Document;
 
 class PageController extends Controller
 {
@@ -66,8 +67,21 @@ class PageController extends Controller
      */
     public function dokumen(Request $request): Response
     {
-        // Kirim ID dokumen yang sedang dipilih dari URL query (document_id)
+        // 1. Ambil semua dokumen
+        $allDocs = Document::all();
+
+        // 2. Grouping berdasarkan 'category' untuk Sidebar
+        // Hasil: [ { id: 1, name: 'Laporan', items: [...] }, ... ]
+        $categories = $allDocs->groupBy('category')->map(function ($items, $name) {
+            return [
+                'id' => \Illuminate\Support\Str::slug($name), // ID unik dari nama kategori
+                'name' => $name,
+                'items' => $items
+            ];
+        })->values(); // Reset array keys agar jadi array murni di JSON
+
         return Inertia::render('Dokumen', [
+            'documentCategories' => $categories, // Data Dinamis
             'selectedDocumentId' => $request->query('document_id'),
         ]);
     }
