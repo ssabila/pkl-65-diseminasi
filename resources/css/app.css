@@ -87,7 +87,12 @@
 
 @tailwind base;
 @tailwind components;
+
 @tailwind utilities;
+
+@source "../views";
+@source "../js";
+
 
 @import 'tailwindcss';
 @source "../views";

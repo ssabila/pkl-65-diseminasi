@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; // Diperlukan untuk membaca query string
 use App\Models\Riset;
 use App\Models\Visualization;
 
@@ -20,28 +20,21 @@ class PageController extends Controller
         return Inertia::render('Home');
     }
 
-    /**
-     * PERBAIKAN: Saya hapus ": Response" di sini.
-     * Sekarang fungsi ini bebas mau me-return halaman ATAU redirect.
-     */
     public function hasilRiset(Request $request) 
     {
-        // 1. Ambil Data Sidebar
+        // LOGIC HASIL RISET (TETAP DINAMIS DARI DB)
         $risetTopics = Riset::with(['topics' => function($query) {
             $query->where('is_published', true);
         }])
         ->where('is_published', true)
         ->get();
 
-        // 2. Cek URL & Auto-Select
         $topicId = $request->query('topic_id');
 
-        // Kalau gak ada topik dipilih, otomatis pilih yang pertama biar gak kosong
         if (!$topicId && $risetTopics->isNotEmpty()) {
             $firstRiset = $risetTopics->first();
             if ($firstRiset->topics->isNotEmpty()) {
                 $firstTopicId = $firstRiset->topics->first()->id;
-                // Ini yang bikin error tadi. Sekarang sudah aman!
                 return to_route('hasil-riset', ['topic_id' => $firstTopicId]);
             }
         }
@@ -53,6 +46,11 @@ class PageController extends Controller
                 ->where('is_published', true)
                 ->with(['topic.riset']) 
                 ->first();
+            
+            if ($activeVisualization) {
+                $type = \App\Models\VisualizationType::find($activeVisualization->visualization_type_id);
+                $activeVisualization->setRelation('type', $type);
+            }
         }
 
         return Inertia::render('HasilRiset', [
@@ -62,8 +60,15 @@ class PageController extends Controller
         ]);
     }
 
-    public function dokumen(): Response
+    /**
+     * Show the dokumen page.
+     * PERBAIKAN: Hanya mengirim ID yang dipilih dari URL.
+     */
+    public function dokumen(Request $request): Response
     {
-        return Inertia::render('Dokumen'); 
+        // Kirim ID dokumen yang sedang dipilih dari URL query (document_id)
+        return Inertia::render('Dokumen', [
+            'selectedDocumentId' => $request->query('document_id'),
+        ]);
     }
 }
