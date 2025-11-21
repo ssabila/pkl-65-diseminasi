@@ -16,19 +16,26 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                // Font Body (TT Bells)
                 sans: ['"TT Bells"', ...defaultTheme.fontFamily.sans],
-                // Font Judul Besar (Rakkas)
                 headline: ['"Rakkas"', 'serif'],
-                // Font Menu & Sub-judul (Yodnam)
                 sub: ['"Yodnam"', 'sans-serif'],
             },
             colors: {
-                'pkl-base-orange': '#F58220',  
-                'pkl-base-cream': '#FDF8E1',   
-                'pkl-compliment-blue': '#3A539B',
-                'pkl-compliment-yellow': '#FBE18B',
-                'pkl-dark-blue': '#1E3A8A',
+                // --- KEMBALI KE NAMA VARIABEL ASLI (DENGAN WARNA BARU) ---
+                'pkl-base-orange': '#ef874b',  // Hex Baru
+                'pkl-base-cream': '#fffbdf',   // Hex Baru
+                
+                // Warna Pelengkap (Sesuai Request)
+                'pkl-compliment-yellow': '#fcda7b',
+                'pkl-compliment-light-orange': '#f69a5c',
+                'pkl-compliment-teal': '#50829b',
+                'pkl-compliment-green': '#748d63',
+                'pkl-compliment-purple': '#8174a0',
+
+                // Warna Netral (Agar teks terbaca)
+                'pkl-dark': '#333333',
+                'pkl-text': '#555555',
+                'pkl-border': '#e5e5e5',
             }
         },
     },
