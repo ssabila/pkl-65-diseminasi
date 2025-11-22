@@ -43,6 +43,11 @@ Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
     | Admin Routes (Super Admin only)
     |--------------------------------------------------------------------------
     */
+    Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/history', [\App\Http\Controllers\Admin\HistoryController::class, 'index'])
+        ->name('admin.history');
+    });
+
     Route::middleware(['role:Super Admin'])->group(function () {
 
         // Dashboard (root dashboard)
