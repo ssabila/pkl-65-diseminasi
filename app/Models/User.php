@@ -12,15 +12,13 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Scout\Searchable;
-use OwenIt\Auditing\Contracts\Auditable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class User extends Authenticatable implements Auditable
+class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
     use HasUlids;
-    use \OwenIt\Auditing\Auditable;
     use HasRoles;
     use Searchable;
 

@@ -53,7 +53,7 @@ onUnmounted(() => {
 
 <template>
     <div
-        class="min-h-screen bg-[#FCEFEA]"
+        class="min-h-screen bg-[#FFFBDF]"
         :class="{ 'opacity-0': !isLayoutReady }"
         role="document">
 

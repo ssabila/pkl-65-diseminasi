@@ -636,7 +636,7 @@ const handlePublish = async () => {
                         <button 
                             @click="handleReset"
                             type="button"
-                                class="px-4 py-2 bg-[#FCEFEA] border border-[#7A2509] text-[#7A2509] rounded-lg transition hover:bg-[#7A2509] hover:text-white"                        >
+                                class="px-4 py-2 bg-[#FFFBDF] border border-[#7A2509] text-[#7A2509] rounded-lg transition hover:bg-[#7A2509] hover:text-white"                        >
                             Reset
                         </button>
                             <button 

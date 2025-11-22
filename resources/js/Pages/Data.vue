@@ -728,7 +728,7 @@ button.publish-btn {
 
 /* RESET */
 button.reset-btn {
-    background: #FCEFEA !important;
+    background: #FFFBDF !important;
     border: 2px solid #7A2509 !important;
     color: #7A2509 !important;
 }

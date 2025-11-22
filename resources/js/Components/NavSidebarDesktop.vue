@@ -50,6 +50,22 @@ const navigationSections = reactive([
     {
         items: [
             {
+                name: 'Dashboard',
+                route: 'dashboard',
+                icon: `<path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439
+                    1.591 0L21.75 12M4.5 9.75v10.125c0
+                    .621.504 1.125 1.125 1.125H9.75v-4.875c0
+                    -.621.504-1.125 1.125-1.125h2.25c.621 0
+                    1.125.504 1.125 1.125V21h4.125c.621 0
+                    1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />`
+            },
+        ]
+    },
+
+    {
+        items: [
+            {
                 name: 'Data',
                 route: 'admin.data',
                 icon: `<path stroke-linecap="round" stroke-linejoin="round"
@@ -70,22 +86,6 @@ const navigationSections = reactive([
     {
         items: [
             {
-                name: 'Dashboard',
-                route: 'dashboard',
-                icon: `<path stroke-linecap="round" stroke-linejoin="round"
-                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439
-                    1.591 0L21.75 12M4.5 9.75v10.125c0
-                    .621.504 1.125 1.125 1.125H9.75v-4.875c0
-                    -.621.504-1.125 1.125-1.125h2.25c.621 0
-                    1.125.504 1.125 1.125V21h4.125c.621 0
-                    1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />`
-            },
-        ]
-    },
-
-    {
-        items: [
-            {
                 name: 'Profile',
                 route: 'user.index',
                 icon: `<path stroke-linecap="round" stroke-linejoin="round"
@@ -95,6 +95,18 @@ const navigationSections = reactive([
                     0m11.963 0A8.966 8.966 0 0 1 12
                     21a8.966 8.966 0 0 1-5.982-2.275M15
                     9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />`
+            },
+        ]
+    },
+
+    {
+        items: [
+            {
+                name: 'Beranda Diseminasi',
+                route: 'home',
+                icon: `<path stroke-linecap="round" stroke-linejoin="round"
+                    d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12
+                    59.768 59.768 0 013.27 20.876L5.999 12zm0 0h7.5" />`
             },
         ]
     }
@@ -133,7 +145,7 @@ const navigationSections = reactive([
                                     :class="[
                                         'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-150',
                                         isCurrentRoute(item.route)
-                                            ? 'bg-[#F4E4A6] text-[#7A2509] font-medium shadow-sm'
+                                            ? 'bg-[#FCDA7B] text-[#7A2509] font-medium shadow-sm'
                                             : 'text-white hover:bg-orange-500/50'
                                     ]"
                                 >
@@ -156,7 +168,7 @@ const navigationSections = reactive([
                                     :class="[
                                         'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-150 w-full text-left',
                                         isDropdownOpen(sectionIndex)
-                                            ? 'bg-[#F4E4A6] text-[#7A2509] font-medium shadow-sm'
+                                            ? 'bg-[#FCDA7B] text-[#7A2509] font-medium shadow-sm'
                                             : 'text-white hover:bg-orange-500/50'
                                     ]"
                                     @click="toggleDropdown(sectionIndex)"
@@ -204,7 +216,7 @@ const navigationSections = reactive([
                                             :class="[
                                                 'flex items-center px-4 py-2 rounded-lg transition-colors duration-150',
                                                 isCurrentRoute(child.route)
-                                                    ? 'bg-[#F4E4A6] text-[#7A2509] font-medium shadow-sm'
+                                                    ? 'bg-[#FCDA7B] text-[#7A2509] font-medium shadow-sm'
                                                     : 'text-white hover:bg-orange-500/50'
                                             ]"
                                         >

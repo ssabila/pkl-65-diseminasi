@@ -108,7 +108,7 @@
 
       /* --- KUSTOMISASI PKL 65 --- */
     --color-pkl-base-orange: #F58220;
-    --color-pkl-base-cream: #FCEFEA;
+    --color-pkl-base-cream: #FFFBDF;
 
     --color-pkl-compliment-yellow: #FBE18B;
     --color-pkl-compliment-blue: #3A539B;
@@ -144,7 +144,7 @@
     --pkl-orange: #EF874B;
     --pkl-yellow: #FCDA7B;
     --pkl-maroon: #7A2509;
-    --pkl-cream: #FCEFEA;
+    --pkl-cream: #FFFBDF;
 }
 
 .dark {
