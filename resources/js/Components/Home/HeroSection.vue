@@ -1,5 +1,4 @@
 <script setup>
-// Data dan Assets tetap sama seperti sebelumnya
 const content = {
     title: 'Praktik Kerja Lapangan',
     subtitle: 'Politeknik Statistika STIS T.A. 2025/2026',
@@ -101,4 +100,3 @@ const colors = {
     font-family: 'Georgia', 'Times New Roman', Times, serif;
 }
 </style>
->>>>>>> 93a3467 (Hero Section)
