@@ -30,9 +30,29 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * Get topics based on selected riset
-     */
+    public function edit($id)
+    {
+        $visualization = Visualization::findOrFail($id);
+        return Inertia::render('Admin/EditVisualization', [
+            'visualization' => $visualization
+        ]);
+    }
+    // Method untuk update data
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'riset_name' => 'required|string',
+            'date' => 'required|date',
+            'file_size' => 'required|string',
+        ]);
+        $visualization = Visualization::findOrFail($id);
+        $visualization->update($validated);
+        return redirect()->route('admin.dashboard.index')
+            ->with('success', 'Visualisasi berhasil diperbarui!');
+    }
+    
     public function getTopics(Request $request)
     {
         $request->validate([
@@ -51,9 +71,6 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * Upload and process CSV/Excel file for map
-     */
     public function uploadMapData(Request $request)
     {
         $request->validate([
@@ -74,7 +91,6 @@ class DashboardController extends Controller
             $rows = $data[0];
             $headers = array_map('strtolower', array_map('trim', $rows[0]));
             
-            // Check required columns
             $requiredColumns = ['latitude', 'longitude', 'density'];
             $missingColumns = array_diff($requiredColumns, $headers);
             
@@ -127,9 +143,6 @@ class DashboardController extends Controller
         }
     }
 
-    /**
-     * Publish/Store visualization
-     */
     public function publish(Request $request)
     {
         $validated = $request->validate([
@@ -150,9 +163,6 @@ class DashboardController extends Controller
         // Get visualization type
         $vizType = VisualizationType::findOrFail($validated['visualization_type_id']);
 
-        // Generate title based on type
-        $title = $this->generateTitle($vizType->type_name, $topic->name);
-
         // Get the next order number for this topic
         $nextOrder = Visualization::where('topic_id', $validated['topic_id'])
             ->max('order') + 1;
@@ -164,7 +174,7 @@ class DashboardController extends Controller
             'interpretation' => $validated['interpretation'],
             'chart_data' => $validated['chart_data'],
             'chart_options' => $validated['chart_options'] ?? null,
-            'order' => $nextOrder,
+            'order' => $nextOrder ?? 1,
             'is_published' => true,
         ]);
 
@@ -176,5 +186,13 @@ class DashboardController extends Controller
                 'title' => $visualization->title,
             ]
         ]);
+    }
+
+    /**
+     * 🔧 TAMBAHKAN METHOD INI - Generate title for visualization
+     */
+    private function generateTitle($typeName, $topicName)
+    {
+        return ucfirst($typeName) . ' - ' . $topicName;
     }
 }
