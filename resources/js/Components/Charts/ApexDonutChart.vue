@@ -36,6 +36,24 @@ const chartOptions = computed(() => ({
         itemMargin: { vertical: 8 },
         labels: { colors: '#333333' }
     },
+    tooltip: {
+        theme: 'light',
+        style: { fontSize: '12px', fontFamily: 'TT Bells, sans-serif' },
+        custom: function({ series, seriesIndex, dataPointIndex, w }) {
+            const categoryName = w.config.labels[seriesIndex];
+            const value = series[seriesIndex];
+            const total = series.reduce((sum, val) => sum + val, 0);
+            const percentage = ((value / total) * 100).toFixed(1);
+            
+            return `
+                <div class="px-3 py-2 bg-white shadow-lg rounded-lg border">
+                    <div class="font-semibold text-gray-800">${categoryName}</div>
+                    <div class="text-sm text-gray-600">Nilai: <span class="font-bold text-[#ef874b]">${value}</span></div>
+                    <div class="text-xs text-gray-500">${percentage}% dari total</div>
+                </div>
+            `;
+        }
+    },
     plotOptions: {
         pie: {
             donut: {

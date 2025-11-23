@@ -82,14 +82,6 @@ Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
             */
             Route::get('/data', [DataController::class, 'index'])->name('data');
 
-            /*
-            |--------------------------------------------------------------
-            | TODO: CRUD Diseminasi
-            |--------------------------------------------------------------
-            */
-            // Route::resource('riset', App\Http\Controllers\RisetController::class);
-            // Route::resource('topik', App\Http\Controllers\TopicController::class);
-            // Route::resource('visualisasi', App\Http\Controllers\VisualizationController::class);
 
             // routes/web.php atau routes/admin.php
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
