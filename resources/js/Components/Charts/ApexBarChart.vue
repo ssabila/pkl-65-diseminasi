@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 
 const props = defineProps({
@@ -9,28 +9,15 @@ const props = defineProps({
     colors: { type: Array, default: () => ['#ef874b', '#50829b'] } 
 });
 
+const chartRef = ref(null);
+
 const chartOptions = computed(() => ({
     chart: {
         id: 'bar-chart',
         fontFamily: 'TT Bells, sans-serif',
-        // --- AKTIFKAN TOOLBAR DOWNLOAD ---
-        toolbar: { 
-            show: true,
-            tools: {
-                download: true,
-                selection: false,
-                zoom: false,
-                zoomin: false,
-                zoomout: false,
-                pan: false,
-                reset: false 
-            },
-            export: {
-                csv: { filename: 'Data_Riset_PKL65', headerCategory: 'Kategori', headerValue: 'Nilai' },
-                png: { filename: 'Grafik_Riset_PKL65' },
-                svg: { filename: 'Grafik_Riset_PKL65' }
-            }
-        },
+        toolbar: { show: false }, // Hamburger OFF
+        // --- PERBAIKAN WARNA FONT (Dark Slate Blue) ---
+        foreColor: '#1e293b', 
         zoom: { enabled: false }
     },
     colors: props.colors,
@@ -49,17 +36,18 @@ const chartOptions = computed(() => ({
         axisBorder: { show: false },
         axisTicks: { show: false },
         labels: {
-            style: { colors: '#333333', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 }
+            // Pakai warna tema, bukan hitam
+            style: { colors: '#1e293b', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 }
         }
     },
     yaxis: {
         labels: {
-            style: { colors: '#333333', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 }
+            style: { colors: '#1e293b', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 }
         }
     },
     grid: {
         show: true,
-        borderColor: '#E5E5E5',
+        borderColor: '#e2e8f0', // Slate-200 (lebih soft dari abu biasa)
         strokeDashArray: 0,
         position: 'back',
     },
@@ -68,7 +56,7 @@ const chartOptions = computed(() => ({
         horizontalAlign: 'right',
         fontFamily: 'TT Bells, sans-serif',
         fontWeight: 600,
-        labels: { colors: '#333333' },
+        labels: { colors: '#1e293b' },
         markers: { radius: 12 }
     },
     tooltip: {
@@ -78,8 +66,24 @@ const chartOptions = computed(() => ({
 }));
 
 const series = computed(() => props.chartData.datasets || []);
+
+// Fungsi Download
+const downloadChart = () => {
+    if (chartRef.value) {
+        chartRef.value.chart.dataURI().then(({ imgURI }) => {
+            const link = document.createElement('a');
+            link.href = imgURI;
+            link.download = `Chart-${props.title || 'Export'}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
+};
+
+defineExpose({ downloadChart });
 </script>
 
 <template>
-    <VueApexCharts type="bar" :height="height" :options="chartOptions" :series="series" />
+    <VueApexCharts ref="chartRef" type="bar" :height="height" :options="chartOptions" :series="series" />
 </template>

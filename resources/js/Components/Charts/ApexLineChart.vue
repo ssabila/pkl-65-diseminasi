@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 
 const props = defineProps({
@@ -9,57 +9,57 @@ const props = defineProps({
     colors: { type: Array, default: () => ['#ef874b', '#50829b'] }
 });
 
+const chartRef = ref(null);
+
 const chartOptions = computed(() => ({
     chart: {
         id: 'line-chart',
         fontFamily: 'TT Bells, sans-serif',
-        // --- AKTIFKAN TOOLBAR ---
-        toolbar: { 
-            show: true,
-            tools: { download: true, selection: false, zoom: false, zoomin: false, zoomout: false, pan: false, reset: false },
-            export: {
-                csv: { filename: 'Data_Riset_PKL65' },
-                png: { filename: 'Grafik_Riset_PKL65' },
-                svg: { filename: 'Grafik_Riset_PKL65' }
-            }
-        },
-        zoom: { enabled: false },
-        dropShadow: { enabled: false }
+        toolbar: { show: false }, // Hamburger mati
+        zoom: { enabled: false }
     },
     colors: props.colors,
-    stroke: { curve: 'smooth', width: 4 },
-    markers: {
-        size: 6,
-        strokeColors: '#fff',
-        strokeWidth: 2,
-        hover: { size: 8 }
-    },
+    stroke: { curve: 'smooth', width: 3 },
+    dataLabels: { enabled: false },
     xaxis: {
         categories: props.chartData.labels || [],
         axisBorder: { show: false },
         axisTicks: { show: false },
-        labels: { 
-            style: { colors: '#333333', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 } 
-        }
+        labels: { style: { colors: '#333333', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 } }
     },
     yaxis: {
-        labels: {
-            style: { colors: '#333333', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 }
-        }
+        labels: { style: { colors: '#333333', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 } }
     },
-    grid: { borderColor: '#E5E5E5', strokeDashArray: 4 },
+    grid: { show: true, borderColor: '#E5E5E5', strokeDashArray: 0 },
     legend: {
         position: 'top',
         horizontalAlign: 'right',
+        fontFamily: 'TT Bells, sans-serif',
         fontWeight: 600,
         labels: { colors: '#333333' },
-        fontFamily: 'TT Bells, sans-serif'
-    }
+        markers: { radius: 12 }
+    },
+    tooltip: { theme: 'light', style: { fontSize: '12px', fontFamily: 'TT Bells, sans-serif' } }
 }));
 
 const series = computed(() => props.chartData.datasets || []);
+
+const downloadChart = () => {
+    if (chartRef.value) {
+        chartRef.value.chart.dataURI().then(({ imgURI }) => {
+            const link = document.createElement('a');
+            link.href = imgURI;
+            link.download = `Chart-${props.title || 'Export'}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
+};
+
+defineExpose({ downloadChart });
 </script>
 
 <template>
-    <VueApexCharts type="line" :height="height" :options="chartOptions" :series="series" />
+    <VueApexCharts ref="chartRef" type="line" :height="height" :options="chartOptions" :series="series" />
 </template>

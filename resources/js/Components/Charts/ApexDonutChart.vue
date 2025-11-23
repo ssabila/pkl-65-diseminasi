@@ -1,65 +1,70 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 
 const props = defineProps({
     chartData: Object,
     title: String,
     height: { type: [String, Number], default: 350 },
-    colors: { type: Array, default: () => ['#ef874b', '#50829b', '#748d63', '#fcda7b'] }
+    colors: { type: Array, default: () => ['#ef874b', '#50829b'] }
 });
 
+const chartRef = ref(null);
+
 const chartOptions = computed(() => ({
-    chart: { 
+    chart: {
+        id: 'donut-chart',
         fontFamily: 'TT Bells, sans-serif',
-        // --- AKTIFKAN TOOLBAR ---
-        toolbar: { show: true } // Default tools sudah cukup untuk donut
+        toolbar: { show: false } // Hamburger mati
     },
-    colors: props.colors,
     labels: props.chartData.labels || [],
-    dataLabels: {
-        enabled: true,
-        style: { 
-            fontSize: '13px', 
-            fontFamily: 'TT Bells, sans-serif',
-            fontWeight: 700,
-        },
-        dropShadow: { enabled: false }
-    },
-    stroke: { show: true, colors: ['#fff'], width: 2 },
-    legend: {
-        position: 'right',
-        offsetY: 50,
-        fontFamily: 'TT Bells, sans-serif',
-        fontWeight: 600,
-        markers: { radius: 12 },
-        itemMargin: { vertical: 8 },
-        labels: { colors: '#333333' }
-    },
+    colors: props.colors,
     plotOptions: {
         pie: {
             donut: {
-                size: '70%',
+                size: '60%',
                 labels: {
                     show: true,
-                    name: { show: true, fontSize: '14px', color: '#555555', fontFamily: 'TT Bells, sans-serif' },
-                    value: { 
-                        show: true, 
-                        fontSize: '24px', 
-                        fontWeight: 700, 
-                        color: '#ef874b', // Angka tengah Orange
-                        fontFamily: 'TT Bells, sans-serif'
-                    },
-                    total: { show: true, label: 'Total', color: '#555555', fontFamily: 'TT Bells, sans-serif' }
+                    name: { show: true, fontSize: '14px', fontWeight: 600, fontFamily: 'TT Bells, sans-serif' },
+                    value: { show: true, fontSize: '20px', fontWeight: 700, fontFamily: 'TT Bells, sans-serif' },
+                    total: { show: true, showAlways: true, label: 'Total', fontSize: '14px', color: '#333' }
                 }
             }
         }
-    }
+    },
+    dataLabels: { enabled: true },
+    stroke: { show: true, width: 2, colors: ['#ffffff'] },
+    legend: {
+        position: 'bottom',
+        horizontalAlign: 'center',
+        fontFamily: 'TT Bells, sans-serif',
+        fontWeight: 500,
+        labels: { colors: '#333333' },
+        markers: { radius: 12 }
+    },
+    tooltip: { theme: 'light', style: { fontSize: '12px', fontFamily: 'TT Bells, sans-serif' } }
 }));
 
 const series = computed(() => props.chartData.datasets || []);
+
+const downloadChart = () => {
+    if (chartRef.value) {
+        chartRef.value.chart.dataURI().then(({ imgURI }) => {
+            const link = document.createElement('a');
+            link.href = imgURI;
+            link.download = `Chart-${props.title || 'Export'}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
+};
+
+defineExpose({ downloadChart });
 </script>
 
 <template>
-    <VueApexCharts type="donut" :height="height" :options="chartOptions" :series="series" />
+    <div class="w-full flex justify-center">
+        <VueApexCharts ref="chartRef" type="donut" :height="height" :options="chartOptions" :series="series" class="w-full max-w-lg" />
+    </div>
 </template>
