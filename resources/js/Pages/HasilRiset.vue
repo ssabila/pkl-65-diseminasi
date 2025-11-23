@@ -1,65 +1,140 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
-import PKL65Layout from '@/Layouts/PKL65Layout.vue';
+import { Head } from '@inertiajs/vue3'
+import { computed } from 'vue'
+import Sidebar from '@/Components/Sidebar.vue'
 
-// Definisikan layout
-defineOptions({ layout: PKL65Layout });
+import ApexBarChart from '@/Components/Charts/ApexBarChart.vue'
+import ApexDonutChart from '@/Components/Charts/ApexDonutChart.vue'
+import ApexLineChart from '@/Components/Charts/ApexLineChart.vue'
+import ApexAreaChart from '@/Components/Charts/ApexAreaChart.vue'
 
-// Nanti lu bisa terima data dari controller di sini
-// defineProps({
-//   risets: Array,
-//   topics: Array,
-//   visualizations: Array
-// });
+const props = defineProps({
+    risetTopics: { type: Array, default: () => [] },
+    activeVisualization: { type: Object, default: null },
+    selectedTopicId: { type: [String, Number], default: null }
+})
+
+const pklColors = ['#ef874b', '#50829b', '#748d63', '#fcda7b', '#8174a0', '#f69a5c'];
+
+const chartComponents = {
+    'bar-chart': ApexBarChart,
+    'pie-chart': ApexDonutChart,
+    'donut-chart': ApexDonutChart,
+    'line-chart': ApexLineChart,
+    'area-chart': ApexAreaChart
+};
+
+const dynamicChartComponent = computed(() => {
+    if (!props.activeVisualization || !props.activeVisualization.type) return null
+    return chartComponents[props.activeVisualization.type.type_code] || null
+})
+
+const formattedChartData = computed(() => {
+    const vis = props.activeVisualization;
+    if (!vis || !vis.chart_data) return null;
+    const rawData = vis.chart_data;
+    const typeCode = vis.type?.type_code;
+
+    try {
+        if (['bar-chart', 'line-chart', 'area-chart'].includes(typeCode)) {
+            if (rawData.categories && Array.isArray(rawData.series)) {
+                return { labels: rawData.categories, datasets: rawData.series };
+            }
+        } else if (['pie-chart', 'donut-chart'].includes(typeCode)) {
+            if (rawData.labels && Array.isArray(rawData.series)) {
+                return { labels: rawData.labels, datasets: rawData.series };
+            }
+        }
+        return rawData;
+    } catch (e) {
+        return null;
+    }
+})
 </script>
 
 <template>
-  <Head title="Hasil Riset" />
+    <Head title="Hasil Riset" />
 
-  <main class="flex min-h-screen">
-    
-    <aside class="w-1/4 bg-pkl-base-orange p-8">
-      <h2 class="font-sub text-2xl text-white">Website Hasil PKL 65</h2>
-      
-      <nav class="mt-8 space-y-4">
-        <div>
-          <h3 class="font-sub text-lg text-orange-100">Riset 1</h3>
-          <ul class="mt-2 space-y-1 pl-4">
-            <li><Link href="#" class="text-white hover:underline">Sub Topik 1.1</Link></li>
-            <li><Link href="#" class="text-white hover:underline">Sub Topik 1.2</Link></li>
-          </ul>
-        </div>
-        <div>
-          <h3 class="font-sub text-lg text-orange-100">Riset 2</h3>
-          <ul class="mt-2 space-y-1 pl-4">
-            <li><Link href="#" class="text-white hover:underline">Sub Topik 2.1</Link></li>
-          </ul>
-        </div>
-        </nav>
-    </aside>
+    <div class="flex flex-col md:flex-row min-h-screen w-full bg-pkl-base-cream font-sans overflow-hidden text-pkl-dark">
+        
+        <Sidebar 
+            :riset-topics="risetTopics" 
+            :selected-topic-id="selectedTopicId" 
+            active-page="hasil-riset" 
+        />
 
-    <section class="w-3/4 bg-pkl-light-yellow p-10">
-      <h1 class="font-sub text-4xl text-pkl-dark-blue">
-        Judul Sub Menu
-      </h1>
+        <main class="flex-1 p-6 md:p-12 h-screen overflow-y-auto scroll-smooth relative">
+            <div class="absolute top-0 right-0 w-full h-full pointer-events-none opacity-40 mix-blend-multiply">
+                <img src="/images/assets/pattern kuning 1.svg" class="absolute top-0 right-0 w-[500px] opacity-30" />
+            </div>
 
-      <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
-        <h2 class="font-sub text-2xl text-pkl-dark-blue">
-          Distribusi Berdasarkan Variabel 1
-        </h2>
-        <div class="mt-4">
-          <div class="bg-gray-200 h-64 w-full flex items-center justify-center">
-            (Chart.js Canvas di sini)
-          </div>
-        </div>
-        <div class="mt-4">
-          <h3 class="font-sub text-lg text-pkl-dark-blue">Interpretasi:</h3>
-          <p class="mt-2 text-gray-700">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit...
-          </p>
-        </div>
-      </div>
+            <div v-if="activeVisualization" class="animate-fade-in max-w-6xl mx-auto pb-20 relative z-10">
+                <div class="mb-8">
+                    <div class="inline-flex items-center gap-2 mb-3 px-3 py-1.5 rounded-full bg-white/60 border border-pkl-base-orange/20">
+                        <span class="w-2 h-2 rounded-full bg-pkl-base-orange"></span>
+                        <span class="text-xs font-sub font-bold text-pkl-base-orange uppercase tracking-wider">
+                            {{ activeVisualization.topic?.riset?.name }}
+                        </span>
+                    </div>
+                    <h1 class="font-headline text-4xl md:text-5xl text-pkl-base-orange leading-tight uppercase">
+                        {{ activeVisualization.topic?.name }}
+                    </h1>
+                </div>
 
-      </section>
-  </main>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-pkl-border overflow-hidden mb-10 relative">
+                    <div class="h-1.5 w-full bg-gradient-to-r from-pkl-base-orange to-pkl-compliment-yellow"></div>
+
+                    <div class="px-8 pt-8 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <h2 class="font-sub text-xl text-pkl-base-orange font-bold tracking-wide uppercase max-w-3xl">
+                            {{ activeVisualization.title }}
+                        </h2>
+                        <span class="px-3 py-1 border border-pkl-base-orange-200 text-pkl-base-orange text-[10px] font-bold font-sub uppercase rounded-md tracking-widest">
+                            {{ activeVisualization.type?.name || 'CHART' }}
+                        </span>
+                    </div>
+
+                    <div class="px-6 pb-8 min-h-[450px] flex flex-col justify-center">
+                        <component
+                            :is="dynamicChartComponent"
+                            v-if="dynamicChartComponent && formattedChartData"
+                            :chart-data="formattedChartData"
+                            :title="activeVisualization.title"
+                            :colors="pklColors"
+                            height="420" 
+                        />
+                        <div v-else class="flex flex-col items-center justify-center h-64 border-2 border-dashed border-pkl-base-orange-200 rounded-2xl bg-pkl-base-orange-50/50">
+                            <p class="font-sub text-pkl-base-orange text-sm font-bold uppercase tracking-wide">Data visualisasi belum tersedia</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-[#FAFAF9] px-8 py-8 border-t border-gray-100">
+                        <div class="flex items-center gap-2 mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pkl-compliment-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h3 class="font-sub text-sm font-bold text-pkl-compliment-teal uppercase tracking-widest">
+                                Interpretasi Data
+                            </h3>
+                        </div>
+                        <p class="text-pkl-text leading-relaxed text-justify text-base font-sans whitespace-pre-line">
+                            {{ activeVisualization.interpretation || 'Belum ada interpretasi data untuk visualisasi ini.' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div v-else class="h-full flex flex-col items-center justify-center text-center opacity-80 pb-20">
+                <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg mb-6 animate-pulse">
+                    <img src="/images/assets/LOGO-PKL_REV8.png" class="w-14 opacity-80" />
+                </div>
+                <h2 class="font-headline text-4xl text-pkl-base-orange mb-2">MULAI EKSPLORASI</h2>
+                <p class="font-sub text-pkl-text tracking-wide">Silakan pilih topik riset pada menu di sebelah kiri.</p>
+            </div>
+        </main>
+    </div>
 </template>
+
+<style scoped>
+.animate-fade-in { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>

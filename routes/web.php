@@ -91,6 +91,13 @@ Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
             // Route::resource('topik', App\Http\Controllers\TopicController::class);
             // Route::resource('visualisasi', App\Http\Controllers\VisualizationController::class);
 
+            // routes/web.php atau routes/admin.php
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::delete('/dashboard/{id}', [DashboardController::class, 'destroy'])->name('dashboard.delete');
+    Route::get('/dashboard/{id}/edit', [DashboardController::class, 'edit'])->name('dashboard.edit');
+});
+
         });
     });
 });
