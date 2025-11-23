@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('system_notices', function (Blueprint $table) {
@@ -20,17 +17,16 @@ return new class extends Migration
             $table->string('type')->default('info');
             $table->dateTime('visible_from')->nullable();
             $table->dateTime('expires_at')->nullable();
-            $table->foreignId('created_by')->constrained('users');
+
+            // PERBAIKAN: Menyesuaikan dengan tabel Users yang pakai ULID
+            $table->foreignUlid('created_by')->constrained('users')->cascadeOnDelete(); 
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('system_notices');
     }
 };
-
