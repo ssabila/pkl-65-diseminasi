@@ -472,6 +472,12 @@ const handlePublish = async () => {
         <main class="max-w-6xl mx-auto p-4 sm:p-4">
             <!-- Form Input -->
             <div class="bg-[var(--color-surface)] rounded-lg shadow-md p-6 border border-[var(--color-border)] mb-6">
+                <div class="relative h-32 overflow-hidden">
+                    <!-- Batik Pattern -->
+                    <div class="absolute inset-0">
+                        <img src="/images/assets/pattern-batik.svg" alt="Pattern Batik" class="w-full h-full object-cover" />
+                    </div>
+                </div>
 
                 <div class="mb-6">
                     <h2 class="text-[20px] title-sub">Form Input Data</h2>
