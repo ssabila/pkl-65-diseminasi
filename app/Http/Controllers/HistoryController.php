@@ -7,7 +7,7 @@ use App\Models\Riset;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class AdminDashboardController extends Controller
+class HistoryController extends Controller
 {
     public function index()
     {

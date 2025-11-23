@@ -468,10 +468,15 @@ const handlePublish = async () => {
         })
 
         if (response.data.success) {
-            notificationTitle.value = 'Update Berhasil!'
-            notificationMessage.value = 'Visualisasi berhasil dipublikasikan!'
+            notificationTitle.value = 'Publikasi Berhasil!'
+            notificationMessage.value = 'Visualisasi berhasil dipublikasikan dan sekarang dapat dilihat di halaman hasil riset publik!'
             showSuccessNotif.value = true
             handleReset()
+            
+            // Optional: Auto-open public dashboard in new tab to show result
+            // setTimeout(() => {
+            //     window.open(`/hasil-riset?topic_id=${form.topic_id}`, '_blank');
+            // }, 2000);
         }
     } catch (error) {
         console.error('Publish failed:', error)

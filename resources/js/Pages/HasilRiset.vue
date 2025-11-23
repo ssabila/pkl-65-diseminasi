@@ -7,6 +7,7 @@ import ApexBarChart from '@/Components/Charts/ApexBarChart.vue'
 import ApexDonutChart from '@/Components/Charts/ApexDonutChart.vue'
 import ApexLineChart from '@/Components/Charts/ApexLineChart.vue'
 import ApexAreaChart from '@/Components/Charts/ApexAreaChart.vue'
+import LeafletMap from '@/Components/Charts/LeafletMap.vue'
 
 const props = defineProps({
     risetTopics: { type: Array, default: () => [] },
@@ -17,11 +18,17 @@ const props = defineProps({
 const pklColors = ['#ef874b', '#50829b', '#748d63', '#fcda7b', '#8174a0', '#f69a5c'];
 
 const chartComponents = {
+    'bar': ApexBarChart,
     'bar-chart': ApexBarChart,
+    'pie': ApexDonutChart,
     'pie-chart': ApexDonutChart,
+    'donut': ApexDonutChart,
     'donut-chart': ApexDonutChart,
+    'line': ApexLineChart,
     'line-chart': ApexLineChart,
-    'area-chart': ApexAreaChart
+    'area': ApexAreaChart,
+    'area-chart': ApexAreaChart,
+    'peta': LeafletMap
 };
 
 const dynamicChartComponent = computed(() => {
@@ -36,17 +43,28 @@ const formattedChartData = computed(() => {
     const typeCode = vis.type?.type_code;
 
     try {
-        if (['bar-chart', 'line-chart', 'area-chart'].includes(typeCode)) {
+        // Data sudah dalam format yang benar dengan labels dan datasets
+        if (rawData.labels && Array.isArray(rawData.datasets)) {
+            return rawData;
+        }
+        
+        // Fallback untuk format lama dengan categories dan series
+        if (['bar', 'bar-chart', 'line', 'line-chart', 'area', 'area-chart'].includes(typeCode)) {
             if (rawData.categories && Array.isArray(rawData.series)) {
                 return { labels: rawData.categories, datasets: rawData.series };
             }
-        } else if (['pie-chart', 'donut-chart'].includes(typeCode)) {
+        } else if (['pie', 'pie-chart', 'donut', 'donut-chart'].includes(typeCode)) {
             if (rawData.labels && Array.isArray(rawData.series)) {
                 return { labels: rawData.labels, datasets: rawData.series };
             }
+        } else if (typeCode === 'peta') {
+            // Untuk peta, data bisa berupa array koordinat dari upload Excel
+            return rawData;
         }
+        
         return rawData;
     } catch (e) {
+        console.error('Error formatting chart data:', e);
         return null;
     }
 })

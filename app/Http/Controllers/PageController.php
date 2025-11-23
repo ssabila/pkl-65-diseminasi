@@ -46,6 +46,7 @@ class PageController extends Controller
             $activeVisualization = Visualization::where('topic_id', $topicId)
                 ->where('is_published', true)
                 ->with(['topic.riset']) 
+                ->orderBy('created_at', 'desc') // Ambil yang terbaru
                 ->first();
             
             if ($activeVisualization) {

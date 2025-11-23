@@ -73,7 +73,18 @@ const chartOptions = computed(() => ({
     },
     tooltip: {
         theme: 'light',
-        style: { fontSize: '12px', fontFamily: 'TT Bells, sans-serif' }
+        style: { fontSize: '12px', fontFamily: 'TT Bells, sans-serif' },
+        custom: function({ series, seriesIndex, dataPointIndex, w }) {
+            const categoryName = w.globals.labels[dataPointIndex];
+            const value = series[seriesIndex][dataPointIndex];
+            
+            return `
+                <div class="px-3 py-2 bg-white shadow-lg rounded-lg border">
+                    <div class="font-semibold text-gray-800">${categoryName}</div>
+                    <div class="text-sm text-gray-600">Nilai: <span class="font-bold text-[#ef874b]">${value}</span></div>
+                </div>
+            `;
+        }
     }
 }));
 
