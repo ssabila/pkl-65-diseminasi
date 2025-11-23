@@ -1,70 +1,70 @@
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Thin.woff2') format('woff2');
-    font-weight: 100; /* Thin */
+    font-weight: 100;
     font-style: normal;
     font-display: swap;
 }
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Thin Italic.woff2') format('woff2');
-    font-weight: 100; /* Thin */
+    font-weight: 100;
     font-style: italic;
     font-display: swap;
 }
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Light.woff2') format('woff2');
-    font-weight: 300; /* Light */
+    font-weight: 300;
     font-style: normal;
     font-display: swap;
 }
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Light Italic.woff2') format('woff2');
-    font-weight: 300; /* Light */
+    font-weight: 300;
     font-style: italic;
     font-display: swap;
 }
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Regular.woff2') format('woff2');
-    font-weight: 400; /* Regular */
+    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Italic.woff2') format('woff2');
-    font-weight: 400; /* Regular */
+    font-weight: 400;
     font-style: italic;
     font-display: swap;
 }
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Bold.woff2') format('woff2');
-    font-weight: 700; /* Bold */
+    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Bold Italic.woff2') format('woff2');
-    font-weight: 700; /* Bold */
+    font-weight: 700;
     font-style: italic;
     font-display: swap;
 }
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Black.woff2') format('woff2');
-    font-weight: 900; /* Black */
+    font-weight: 900;
     font-style: normal;
     font-display: swap;
 }
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Black Italic.woff2') format('woff2');
-    font-weight: 900; /* Black */
+    font-weight: 900;
     font-style: italic;
     font-display: swap;
 }
@@ -96,7 +96,7 @@
 @theme { 
     --primary-gradient-from: #0d9488;
     --primary-gradient-to: #14b8a6;
-    --primary-color: #0d9488;
+    --primary-color: #7A2509;
     --primary-hover: #0f766e;
     --primary-color-rgb: 13, 148, 136;
     --selection-color: #3b82f6;
@@ -108,7 +108,7 @@
 
       /* --- KUSTOMISASI PKL 65 --- */
     --color-pkl-base-orange: #F58220;
-    --color-pkl-base-cream: #FDF8E1;
+    --color-pkl-base-cream: #FCEFEA;
 
     --color-pkl-compliment-yellow: #FBE18B;
     --color-pkl-compliment-blue: #3A539B;
@@ -139,6 +139,12 @@
     --color-border-strong: #d1d5db; /* gray-300 */
     --color-text: #111827; /* gray-900 */
     --color-text-muted: #4b5563; /* gray-600 */
+    
+    /* === PKL 65 THEME COLORS VARIABLES === */
+    --pkl-orange: #EF874B;
+    --pkl-yellow: #FCDA7B;
+    --pkl-maroon: #7A2509;
+    --pkl-cream: #FCEFEA;
 }
 
 .dark {
@@ -173,15 +179,11 @@ input:focus {
     color: var(--color-text);
 }
 
-/* Dark heading colors inherit from variables; no override needed */
-
 .container-border {
     background-color: var(--color-surface);
     border: 1px solid var(--color-border);
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
-
-/* Container border uses variables in both themes */
 
 .container-border-table {
     background-color: var(--color-surface);
@@ -303,8 +305,6 @@ input:focus {
 .link:hover {
     color: var(--primary-hover);
 }
-
-/* Link colors are variable-driven for both themes */
 
 /* Form Input States */
 input:focus,
@@ -560,12 +560,16 @@ pre {
     }
 }
 
-/* Navigation Styles */
+/* =========================================
+   NAVIGATION STYLES (UPDATED)
+   ========================================= */
+
 .nav-sidebar {
     height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: var(--color-surface);
+    /* Background Sidebar dasar menggunakan variabel PKL Orange */
+    background-color: var(--color-pkl-base-orange); 
     box-shadow:
         0 10px 15px -3px rgba(0, 0, 0, 0.1),
         0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -574,174 +578,121 @@ pre {
     transition-timing-function: ease-in-out;
 }
 
-.dark .nav-sidebar {
-    background-color: var(--color-surface);
-}
-
+/* --- Base Nav Item (Layout) --- */
 .nav-item {
     display: flex;
     align-items: center;
-    padding-left: 0.625rem;
-    padding-right: 0.625rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
     border-radius: 0.5rem;
-    transition-property: all;
-    transition-duration: 200ms;
-    transition-timing-function: ease-in-out;
+    transition: all 200ms ease-in-out;
+    font-weight: 500;
+    margin-bottom: 2px;
 }
 
+/* --- 1. STATE: ACTIVE (Sedang Dipilih) --- */
+/* Background Kuning, Tulisan Coklat Maroon */
 .nav-item-active {
-    color: var(--primary-color);
+    background-color: #FCDA7B; /* Kuning */
+    color: #7A2509;            /* Coklat Maroon */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.dark .nav-item-active {
-    color: var(--primary-color);
-}
-
-.nav-item-default {
-    color: var(--color-text-muted);
-}
-
-.dark .nav-item-default {
-    color: var(--color-text-muted);
-}
-
-.nav-item-default:hover {
-    color: var(--color-text);
-    background-color: var(--color-surface-muted);
-}
-
-.dark .nav-item-default:hover {
-    color: var(--color-text);
-    background-color: rgba(55, 65, 81, 0.5);
-}
-
-.nav-icon {
-    width: 18px;
-    height: 18px;
-    margin-right: 0.625rem;
-    transition-property: color;
-    transition-duration: 200ms;
-    transition-timing-function: linear;
-}
-
+/* Icon saat Active: Ikut warna Coklat */
 .nav-icon-active {
-    color: var(--primary-color);
+    color: #7A2509; 
 }
 
-.dark .nav-icon-active {
-    color: var(--primary-color);
+/* --- 2. STATE: DEFAULT (Tidak Dipilih) --- */
+/* Background Transparan, Tulisan Putih */
+.nav-item-default {
+    background-color: transparent;
+    color: #ffffff; /* Putih */
 }
 
+/* Icon saat Default: Putih */
 .nav-icon-default {
-    color: var(--color-text-muted);
+    color: #ffffff;
+    transition: color 200ms ease-in-out;
 }
 
-.dark .nav-icon-default {
-    color: var(--color-text-muted);
+/* --- 3. HOVER EFFECT (Hanya pada Default) --- */
+/* Saat di-hover, berubah jadi Kuning & Coklat (Seperti Active) */
+.nav-item-default:hover {
+    background-color: #FCDA7B; /* Jadi Kuning */
+    color: #7A2509;            /* Jadi Coklat */
 }
 
+/* Saat item di-hover, paksa icon di dalamnya jadi Coklat juga */
+.nav-item-default:hover .nav-icon-default {
+    color: #7A2509;
+}
+
+/* --- Icon Sizing --- */
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* --- Dropdown Styles --- */
 .nav-dropdown {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-left: 0.625rem;
-    padding-right: 0.625rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding: 0.625rem 0.75rem;
     border-radius: 0.5rem;
-    transition-property: all;
-    transition-duration: 200ms;
-    transition-timing-function: ease-in-out;
     cursor: pointer;
+    transition: all 200ms ease-in-out;
 }
 
-.nav-dropdown-active {
-    color: var(--primary-color);
+/* Dropdown Active */
+.nav-dropdown.nav-item-active {
+    background-color: #FCDA7B;
+    color: #7A2509;
 }
 
-.dark .nav-dropdown-active {
-    color: var(--primary-color);
+/* Dropdown Default */
+.nav-dropdown.nav-item-default {
+    color: #ffffff;
 }
 
-.nav-dropdown-default {
-    color: var(--color-text-muted);
+.nav-dropdown.nav-item-default:hover {
+    background-color: #FCDA7B;
+    color: #7A2509;
 }
 
-.dark .nav-dropdown-default {
-    color: var(--color-text-muted);
-}
-
-.nav-dropdown-default:hover {
-    color: var(--color-text);
-    background-color: var(--color-surface-muted);
-}
-
-.dark .nav-dropdown-default:hover {
-    color: var(--color-text);
-    background-color: rgba(55, 65, 81, 0.5);
-}
-
+/* Child Item (Sub-menu) */
 .nav-child-item {
     display: flex;
     align-items: center;
-    padding-left: 0.375rem;
-    padding-right: 0.375rem;
-    padding-top: 0.375rem;
-    padding-bottom: 0.375rem;
+    padding: 0.5rem 0.75rem;
     border-radius: 0.5rem;
-    transition-property: all;
-    transition-duration: 200ms;
-    transition-timing-function: ease-in-out;
+    transition: all 200ms ease-in-out;
 }
 
-.nav-child-item-active {
-    color: var(--primary-color);
-    font-weight: 500;
-}
-
-.dark .nav-child-item-active {
-    color: var(--primary-color);
-}
-
-.nav-child-item-default {
-    color: var(--color-text-muted);
-}
-
-.dark .nav-child-item-default {
-    color: var(--color-text-muted);
-}
-
-.nav-child-item-default:hover {
-    color: var(--color-text);
-    background-color: var(--color-surface-muted);
-}
-
-.dark .nav-child-item-default:hover {
-    color: var(--color-text);
-    background-color: rgba(55, 65, 81, 0.5);
-}
-
+/* Divider Style */
 .nav-divider {
     height: 1px;
     width: 100%;
-    background-color: var(--color-border);
+    /* Divider putih transparan agar terlihat di background orange */
+    background-color: rgba(255, 255, 255, 0.3); 
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
 }
-
-/* Divider color is the same in both themes via variable */
 
 .nav-footer {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-    border-top: 1px solid var(--color-border);
-    background-color: var(--color-surface);
+    padding: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    background-color: var(--color-pkl-base-orange);
 }
 
-.dark .nav-footer {
-    border-color: var(--color-border);
-    background-color: var(--color-surface);
-}
+/* PKL Helper Classes (Utility) */
+.bg-pkl-orange { background-color: var(--pkl-orange); }
+.bg-pkl-yellow { background-color: var(--pkl-yellow); }
+.bg-pkl-cream { background-color: var(--pkl-cream); }
+.text-pkl-maroon { color: var(--pkl-maroon); }
