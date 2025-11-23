@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,14 +14,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            // 1. Membuat Role "Super Admin" DULU
             RoleSeeder::class,
-            
-            // 2. BARU Membuat User Admin dan memberinya role
-            UserSeeder::class,
-
-            // 3. Membuat setting default
             SettingSeeder::class,
+            PermissionRoleSeeder::class,
+            UserSeeder::class,
+            RisetSeeder::class,
+            TopicSeeder::class,
+            VisualizationTypeSeeder::class,
         ]);
     }
 }

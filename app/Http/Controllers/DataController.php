@@ -11,7 +11,7 @@ use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 
-class DashboardController extends Controller
+class DataController extends Controller
 {
     public function index()
     {

@@ -7,7 +7,7 @@ const user = computed(() => page.props.auth?.user)
 
 const openDropdowns = ref(new Set())
 
-const toggleDropdown = sectionIndex => {
+const toggleDropdown = (sectionIndex) => {
     if (openDropdowns.value.has(sectionIndex)) {
         openDropdowns.value.delete(sectionIndex)
     } else {
@@ -15,32 +15,34 @@ const toggleDropdown = sectionIndex => {
     }
 }
 
-const isDropdownOpen = sectionIndex => {
+const isDropdownOpen = (sectionIndex) => {
     return openDropdowns.value.has(sectionIndex)
 }
 
-const hasPermission = permissionName =>
+const hasPermission = (permissionName) =>
     !permissionName || (user.value?.permissions?.includes(permissionName) ?? false)
 
-const isCurrentRoute = routeName => {
+const isCurrentRoute = (routeName) => {
     if (!routeName) return false
 
     const currentUrl = page.url.value
     const routeUrl = route(routeName)
+
     return currentUrl === routeUrl || route().current(routeName)
 }
 
-const hasVisibleChildren = item => {
+const hasVisibleChildren = (item) => {
     if (!item?.children?.length) return false
-    return item.children.some(child => hasPermission(child.permission))
+    return item.children.some((child) => hasPermission(child.permission))
 }
 
-const sectionHasVisibleItems = section => {
+const sectionHasVisibleItems = (section) => {
     if (!section?.items?.length) return false
     return section.items.some(
-        item =>
+        (item) =>
             item.type !== 'divider' &&
-            (hasPermission(item.permission) || (item.children && hasVisibleChildren(item)))
+            (hasPermission(item.permission) ||
+                (item.children && hasVisibleChildren(item)))
     )
 }
 
@@ -50,57 +52,84 @@ const navigationSections = reactive([
             {
                 name: 'Dashboard',
                 route: 'dashboard',
-                icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />'
+                icon: `<path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.25 12l8.954-8.955c.44-.439 1.152-.439
+                    1.591 0L21.75 12M4.5 9.75v10.125c0
+                    .621.504 1.125 1.125 1.125H9.75v-4.875c0
+                    -.621.504-1.125 1.125-1.125h2.25c.621 0
+                    1.125.504 1.125 1.125V21h4.125c.621 0
+                    1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />`
             },
-            { type: 'divider' }
         ]
     },
+
     {
         items: [
             {
-                name: 'Settings',
-                icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z" />',
-                children: [
-                    {
-                        name: 'User Management',
-                        route: 'admin.user.index'
-                    },
-                    {
-                        name: 'Roles & Permissions',
-                        route: 'admin.permission.role.index'
-                    },
-                    {
-                        name: 'Personalisation',
-                        route: 'admin.personalization.index'
-                    },
-                    {
-                        name: 'Audit Logs',
-                        route: 'admin.audit.index'
-                    },
-                    {
-                        name: 'Login History',
-                        route: 'admin.login.history.index'
-                    },
-                    {
-                        name: 'Backup Management',
-                        route: 'admin.backup.index'
-                    },
-                    {
-                        name: 'Health Status',
-                        route: 'admin.health.index'
-                    }
-                ]
+                name: 'Data',
+                route: 'admin.data',
+                icon: `<path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 13.125C3 12.504 3.504 12 4.125
+                    12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5
+                    20.496 6.996 21 6.375 21h-2.25A1.125
+                    1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504
+                    -1.125 1.125-1.125h2.25c.621 0 1.125.504
+                    1.125 1.125v11.25c0 .621-.504 1.125-1.125
+                    1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5
+                    4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496
+                    3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125
+                    1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />`
             },
-            { type: 'divider' }
+        ]
+    },
+
+    {
+        items: [
+            {
+                name: 'Profile',
+                route: 'user.index',
+                icon: `<path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17.982 18.725A7.488 7.488 0 0 0 12
+                    15.75a7.488 7.488 0 0 0-5.982
+                    2.975m11.963 0a9 9 0 1 0-11.963
+                    0m11.963 0A8.966 8.966 0 0 1 12
+                    21a8.966 8.966 0 0 1-5.982-2.275M15
+                    9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />`
+            },
+        ]
+    },
+
+    {
+        items: [
+            {
+                name: 'Beranda Diseminasi',
+                route: 'home',
+                icon: `<path stroke-linecap="round" stroke-linejoin="round"
+                    d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12
+                    59.768 59.768 0 013.27 20.876L5.999 12zm0 0h7.5" />`
+            },
         ]
     }
 ])
 </script>
 
 <template>
-    <aside data-sidebar-content class="nav-sidebar" @click.stop>
-        <nav class="flex-1 overflow-y-auto py-2 px-2" aria-labelledby="nav-heading">
-            <ul class="space-y-1">
+    <aside data-sidebar-content class="nav-sidebar flex flex-col h-full" @click.stop>
+        <!-- Header Section -->
+        <div class="bg-pkl-base-orange px-4 py-6 border-b border-orange-400">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+                    <img src="/images/assets/LOGO-PKL_REV8.png" class="w-10 h-10 object-contain" alt="Logo PKL 65">
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-white font-semibold text-base leading-tight">Admin Panel PKL 65</h2>
+                    <p class="text-orange-100 text-xs">Tahun Ajaran 2025/2026</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4 px-3 bg-pkl-base-orange" aria-labelledby="nav-heading">
+            <ul class="space-y-2">
                 <template v-for="(section, sectionIndex) in navigationSections" :key="sectionIndex">
                     <template v-if="sectionHasVisibleItems(section)">
                         <template v-for="(item, itemIndex) in section.items" :key="itemIndex">
@@ -111,60 +140,50 @@ const navigationSections = reactive([
                             <li v-else>
                                 <!-- Regular navigation item -->
                                 <Link
-                                    v-if="
-                                        !item.children &&
-                                        hasPermission(item.permission) &&
-                                        item.route
-                                    "
+                                    v-if="!item.children && hasPermission(item.permission) && item.route"
                                     :href="route(item.route)"
                                     :class="[
-                                        'nav-item',
+                                        'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-150',
                                         isCurrentRoute(item.route)
-                                            ? 'nav-item-active'
-                                            : 'nav-item-default'
-                                    ]">
+                                            ? 'bg-[#FCDA7B] text-[#7A2509] font-medium shadow-sm'
+                                            : 'text-white hover:bg-orange-500/50'
+                                    ]"
+                                >
                                     <svg
-                                        :class="[
-                                            'nav-icon',
-                                            isCurrentRoute(item.route)
-                                                ? 'nav-icon-active'
-                                                : 'nav-icon-default'
-                                        ]"
+                                        class="w-5 h-5 flex-shrink-0"
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         stroke-width="1.5"
                                         stroke="currentColor"
                                         aria-hidden="true"
-                                        v-html="item.icon"></svg>
-                                    <span class="text-sm font-medium">{{ item.name }}</span>
+                                        v-html="item.icon"
+                                    ></svg>
+                                    <span class="text-sm">{{ item.name }}</span>
                                 </Link>
 
                                 <!-- Dropdown navigation item -->
                                 <button
                                     v-else-if="item.children && hasVisibleChildren(item)"
                                     :class="[
-                                        'nav-item w-full text-left cursor-pointer',
+                                        'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-150 w-full text-left',
                                         isDropdownOpen(sectionIndex)
-                                            ? 'nav-item-active'
-                                            : 'nav-item-default'
+                                            ? 'bg-[#FCDA7B] text-[#7A2509] font-medium shadow-sm'
+                                            : 'text-white hover:bg-orange-500/50'
                                     ]"
-                                    @click="toggleDropdown(sectionIndex)">
+                                    @click="toggleDropdown(sectionIndex)"
+                                >
                                     <svg
-                                        :class="[
-                                            'nav-icon',
-                                            isDropdownOpen(sectionIndex)
-                                                ? 'nav-icon-active'
-                                                : 'nav-icon-default'
-                                        ]"
+                                        class="w-5 h-5 flex-shrink-0"
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         stroke-width="1.5"
                                         stroke="currentColor"
                                         aria-hidden="true"
-                                        v-html="item.icon"></svg>
-                                    <span class="text-sm font-medium flex-1">{{ item.name }}</span>
+                                        v-html="item.icon"
+                                    ></svg>
+                                    <span class="text-sm flex-1">{{ item.name }}</span>
                                     <svg
                                         :class="[
                                             'w-4 h-4 transition-transform duration-200',
@@ -174,34 +193,34 @@ const navigationSections = reactive([
                                         fill="none"
                                         viewBox="0 0 24 24"
                                         stroke-width="1.5"
-                                        stroke="currentColor">
+                                        stroke="currentColor"
+                                    >
                                         <path
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
-                                            d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                            d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                                        />
                                     </svg>
                                 </button>
                             </li>
 
                             <!-- Dropdown children -->
                             <li
-                                v-if="
-                                    item.children &&
-                                    isDropdownOpen(sectionIndex) &&
-                                    hasVisibleChildren(item)
-                                ">
-                                <ul class="ml-7 space-y-1">
+                                v-if="item.children && isDropdownOpen(sectionIndex) && hasVisibleChildren(item)"
+                            >
+                                <ul class="ml-7 mt-1 space-y-1">
                                     <li v-for="child in item.children" :key="child.name">
                                         <Link
                                             v-if="hasPermission(child.permission)"
                                             :href="route(child.route)"
                                             :class="[
-                                                'nav-item pl-4',
+                                                'flex items-center px-4 py-2 rounded-lg transition-colors duration-150',
                                                 isCurrentRoute(child.route)
-                                                    ? 'nav-item-active'
-                                                    : 'nav-item-default'
-                                            ]">
-                                            <span class="text-sm font-medium">
+                                                    ? 'bg-[#FCDA7B] text-[#7A2509] font-medium shadow-sm'
+                                                    : 'text-white hover:bg-orange-500/50'
+                                            ]"
+                                        >
+                                            <span class="text-sm">
                                                 {{ child.name }}
                                             </span>
                                         </Link>
@@ -213,5 +232,31 @@ const navigationSections = reactive([
                 </template>
             </ul>
         </nav>
+
+        <!-- Logout Button at Bottom -->
+        <div class="bg-pkl-base-orange px-3 py-4 border-t border-orange-400">
+            <Link
+                :href="route('logout')"
+                method="post"
+                as="button"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-white hover:bg-orange-500/50 transition-colors duration-150 w-full"
+            >
+                <svg
+                    class="w-5 h-5 flex-shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+                    />
+                </svg>
+                <span class="text-sm">Logout</span>
+            </Link>
+        </div>
     </aside>
 </template>

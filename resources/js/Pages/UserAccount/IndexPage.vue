@@ -1,10 +1,12 @@
 <script setup>
-import { Head, useForm } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { Head, useForm, usePage } from '@inertiajs/vue3'
+import { ref, computed, watch } from 'vue'
 import Default from '@/Layouts/Default.vue'
 import Modal from '@/Components/Modal.vue'
 import FormInput from '@/Components/FormInput.vue'
 import PageHeader from '@/Components/PageHeader.vue'
+import ConfirmDialog from '@/Components/ConfirmDialog.vue'
+import NotificationDialog from '@/Components/NotificationDialog.vue'
 
 defineOptions({
     layout: Default
@@ -17,10 +19,18 @@ const props = defineProps({
     }
 })
 
-const deactivateModal = ref(false)
-const deleteModal = ref(false)
-const deactivateForm = useForm({})
-const deleteForm = useForm({})
+const page = usePage()
+
+// Extract NIM from email (assuming format: nim@stis.ac.id)
+const userNIM = computed(() => {
+    if (props.user.email) {
+        const emailParts = props.user.email.split('@')
+        if (emailParts[0] && /^\d+$/.test(emailParts[0])) {
+            return emailParts[0]
+        }
+    }
+    return '222012345' // Default NIM for demo
+})
 
 const profileForm = useForm({
     name: props.user.name,
@@ -34,44 +44,41 @@ const passwordForm = useForm({
     password_confirmation: ''
 })
 
+// Dialog states
+const showPasswordConfirm = ref(false)
+const showSuccessNotif = ref(false)
+const showErrorNotif = ref(false)
+const notificationMessage = ref('')
+const notificationTitle = ref('')
+
+// Watch for flash messages
+watch(() => page.props.flash, (flash) => {
+    if (flash?.success) {
+        notificationTitle.value = 'Berhasil!'
+        notificationMessage.value = flash.success
+        showSuccessNotif.value = true
+    } else if (flash?.error) {
+        notificationTitle.value = 'Gagal!'
+        notificationMessage.value = flash.error
+        showErrorNotif.value = true
+    }
+}, { deep: true })
+
 const submitProfileForm = () => {
     profileForm.put('/user/profile-information', {
         preserveScroll: true
     })
 }
 
+const handlePasswordSubmit = () => {
+    showPasswordConfirm.value = true
+}
+
 const submitPasswordForm = () => {
+    showPasswordConfirm.value = false
     passwordForm.put('/user/password', {
         preserveScroll: true,
         onSuccess: () => passwordForm.reset()
-    })
-}
-
-const confirmDeactivateAccount = () => {
-    return
-}
-
-const confirmDeleteAccount = () => {
-    return
-}
-
-const deactivateAccount = () => {
-    deactivateForm.post(route('user.deactivate'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            deactivateModal.value = false
-            window.location.href = route('home')
-        }
-    })
-}
-
-const deleteAccount = () => {
-    deleteForm.post(route('user.delete'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            deleteModal.value = false
-            window.location.href = route('home')
-        }
     })
 }
 </script>
@@ -81,79 +88,109 @@ const deleteAccount = () => {
     <main class="max-w-7xl mx-auto" aria-labelledby="profile-settings">
         <div class="container-border">
             <PageHeader
-                title="Account Settings"
-                description="Manage your profile information, password, and account settings"
-                :breadcrumbs="[{ label: 'Dashboard', href: '/' }, { label: 'Account Settings' }]" />
+                title="Profil Saya"
+                description="Kelola informasi profil dan akun Anda"/>
 
             <!-- Basic Information Section -->
             <div class="p-6 dark:bg-gray-900">
                 <div
-                    class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-100 dark:border-gray-700 p-6">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-                        Basic Information
-                    </h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                        Update your personal information and email address
-                    </p>
-
-                    <form
-                        id="profile-form"
-                        class="max-w-2xl space-y-8"
-                        @submit.prevent="submitProfileForm">
-                        <div class="space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <FormInput
-                                    v-model="profileForm.name"
-                                    label="Legal name"
-                                    :error="profileForm.errors.name"
-                                    required
-                                    placeholder="Enter your full name" />
-                                <FormInput
-                                    v-model="profileForm.email"
-                                    label="Email address"
-                                    type="email"
-                                    autocomplete="email"
-                                    :error="profileForm.errors.email"
-                                    disabled />
-                            </div>
-                            <FormInput
-                                v-model="profileForm.location"
-                                label="Location"
-                                :error="profileForm.errors.location"
-                                placeholder="Enter your location" />
+                    class="bg-white dark:bg-gray-800 shadow-sm rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                    
+                    <div class="relative h-32 overflow-hidden">
+                        <!-- Batik Pattern -->
+                        <div class="absolute inset-0">
+                            <img src="/images/assets/pattern-batik.svg" alt="Pattern Batik" class="w-full h-full object-cover" />
                         </div>
-                    </form>
+                    </div>
+
+                    <!-- Profile Info Section -->
+                    <div class="relative px-6 pb-6">
+                        <!-- Avatar -->
+                        <div class="absolute -top-12 left-6">
+                            <div class="w-24 h-24 bg-white dark:bg-gray-800 rounded-full border-4 border-white dark:border-gray-800 shadow-lg flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-orange-500">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Name and Info -->
+                        <div class="pt-16 space-y-1">
+                            <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                                {{ user.name }}
+                            </h2>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                NIM: {{ userNIM }}
+                            </p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                Politeknik Statistika STIS
+                            </p>
+                        </div>
+
+                        <!-- Form Section -->
+                        <div class="mt-8">
+                            <h3 class="text-base font-medium text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-500">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                </svg>
+                                Nama Lengkap
+                            </h3>
+
+                            <form class="space-y-6">
+                                <!-- Two Column Layout -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Nama Lengkap -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Nama Lengkap
+                                        </label>
+                                        <input
+                                            type="text"
+                                            :value="user.name"
+                                            disabled
+                                            class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 cursor-not-allowed"
+                                            placeholder="Nama Mahasiswa"
+                                        />
+                                    </div>
+
+                                    <!-- NIM -->
+                                    <div>
+                                        <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+                                            </svg>
+                                            NIM
+                                        </label>
+                                        <input
+                                            type="text"
+                                            :value="userNIM"
+                                            disabled
+                                            class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 cursor-not-allowed"
+                                            placeholder="222012345"
+                                        />
+                                    </div>
+                                </div>
+
+                                <!-- Email (Full Width) -->
+                                <div>
+                                    <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-500">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                                        </svg>
+                                        Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        :value="user.email"
+                                        disabled
+                                        class="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 cursor-not-allowed"
+                                        placeholder="mahasiswa@stis.ac.id"
+                                    />
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div
-                class="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                <button
-                    type="submit"
-                    form="profile-form"
-                    class="btn btn-sm btn-primary"
-                    :disabled="profileForm.processing"
-                    :aria-busy="profileForm.processing">
-                    <svg
-                        v-if="profileForm.processing"
-                        class="animate-spin h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true">
-                        <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4" />
-                        <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    {{ profileForm.processing ? 'Saving...' : 'Save profile' }}
-                </button>
             </div>
             <!-- Password Section -->
             <div class="p-6 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
@@ -169,7 +206,7 @@ const deleteAccount = () => {
                     <form
                         id="password-form"
                         class="max-w-2xl space-y-8"
-                        @submit.prevent="submitPasswordForm">
+                        @submit.prevent="handlePasswordSubmit">
                         <div class="space-y-6">
                             <FormInput
                                 v-model="passwordForm.current_password"
@@ -226,171 +263,35 @@ const deleteAccount = () => {
                     {{ passwordForm.processing ? 'Updating...' : 'Update password' }}
                 </button>
             </div>
-            <!-- Danger Zone Section -->
-            <div class="p-4 sm:p-6 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-                <div class="rounded-lg border border-red-200 dark:border-red-800 p-4 sm:p-6">
-                    <h3
-                        class="text-base sm:text-lg font-semibold text-red-600 dark:text-red-400 mb-4 sm:mb-6">
-                        Danger Zone
-                    </h3>
-
-                    <!-- Deactivate Account -->
-                    <div
-                        class="mb-4 sm:mb-6 p-3 sm:p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-700">
-                        <h4
-                            class="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100 mb-2">
-                            Deactivate Account
-                        </h4>
-                        <p
-                            class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 leading-relaxed">
-                            Hide your profile and data temporarily. You can reactivate your account
-                            anytime.
-                        </p>
-                        <button
-                            class="w-full sm:w-auto btn-secondary btn-sm inline-flex items-center gap-2"
-                            @click="confirmDeactivateAccount">
-                            <svg
-                                class="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                stroke-width="2">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                            </svg>
-                            <span class="hidden sm:inline">Deactivate account</span>
-                            <span class="sm:hidden">Deactivate</span>
-                        </button>
-                    </div>
-
-                    <!-- Delete Account -->
-                    <div
-                        class="p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-700">
-                        <h4
-                            class="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100 mb-2">
-                            Delete Account Permanently
-                        </h4>
-                        <p
-                            class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-4 leading-relaxed">
-                            This action is permanent and cannot be undone. All your data will be
-                            permanently deleted.
-                        </p>
-                        <button
-                            class="w-full sm:w-auto btn-danger btn-sm inline-flex items-center gap-2"
-                            @click="confirmDeleteAccount">
-                            <svg
-                                class="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                stroke-width="2">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            <span class="hidden sm:inline">Permanently delete account</span>
-                            <span class="sm:hidden">Delete Account</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
         </div>
 
-        <Modal :show="deactivateModal" size="sm" @close="deactivateModal = false">
-            <template #title>
-                <div class="flex items-center gap-2 text-red-600 dark:text-red-400">
-                    <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.5">
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    Deactivate Account
-                </div>
-            </template>
+        <!-- Dialogs -->
+        <ConfirmDialog
+            :show="showPasswordConfirm"
+            message="Apakah anda yakin ingin menghapus hasil visualisasi berikut?"
+            confirm-text="Hapus Visualisasi"
+            cancel-text="Cancel"
+            confirm-color="red"
+            @confirm="submitPasswordForm"
+            @close="showPasswordConfirm = false"
+        />
 
-            <template #default>
-                <div class="space-y-4">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Are you sure you want to deactivate your account? This action cannot be
-                        undone.
-                    </p>
-                </div>
-            </template>
+        <NotificationDialog
+            :show="showSuccessNotif"
+            type="success"
+            :title="notificationTitle"
+            :message="notificationMessage"
+            button-text="OK"
+            @close="showSuccessNotif = false"
+        />
 
-            <template #footer>
-                <div class="flex justify-end gap-3">
-                    <button
-                        type="button"
-                        class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-500 dark:hover:text-gray-400 cursor-pointer"
-                        :disabled="deactivateForm.processing"
-                        @click="deactivateModal = false">
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        class="btn-danger"
-                        :disabled="deactivateForm.processing"
-                        @click="deactivateAccount">
-                        {{ deactivateForm.processing ? 'Deactivating...' : 'Yes, deactivate' }}
-                    </button>
-                </div>
-            </template>
-        </Modal>
-
-        <Modal :show="deleteModal" size="sm" @close="deleteModal = false">
-            <template #title>
-                <div class="flex items-center gap-2 text-red-600 dark:text-red-400">
-                    <svg
-                        class="w-5 h-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="1.5">
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    Delete Account
-                </div>
-            </template>
-
-            <template #default>
-                <div class="space-y-4">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Are you sure you want to delete your account? This action is permanent and
-                        cannot be undone.
-                    </p>
-                </div>
-            </template>
-
-            <template #footer>
-                <div class="flex justify-end gap-3">
-                    <button
-                        type="button"
-                        class="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-500 dark:hover:text-gray-400 cursor-pointer"
-                        :disabled="deleteForm.processing"
-                        @click="deleteModal = false">
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        class="btn-danger"
-                        :disabled="deleteForm.processing"
-                        @click="deleteAccount">
-                        {{ deleteForm.processing ? 'Deleting...' : 'Yes, delete' }}
-                    </button>
-                </div>
-            </template>
-        </Modal>
+        <NotificationDialog
+            :show="showErrorNotif"
+            type="error"
+            :title="notificationTitle"
+            :message="notificationMessage"
+            button-text="OK"
+            @close="showErrorNotif = false"
+        />
     </main>
 </template>

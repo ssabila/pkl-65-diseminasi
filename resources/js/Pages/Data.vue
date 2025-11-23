@@ -5,13 +5,12 @@ import Default from '@/Layouts/Default.vue'
 import FormSelect from '@/Components/FormSelect.vue'
 import FormTextarea from '@/Components/FormTextarea.vue'
 import FormInput from '@/Components/FormInput.vue'
-import ConfirmDialog from '@/Components/ConfirmDialog.vue'
-import NotificationDialog from '@/Components/NotificationDialog.vue'
 import axios from 'axios'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
 import VueApexCharts from 'vue3-apexcharts'
+
 
 defineOptions({
     layout: Default
@@ -43,14 +42,6 @@ const selectedVisualizationType = ref(null)
 const chartOptions = ref({})
 const chartSeries = ref([])
 const mapInstance = ref(null)
-
-// Dialog states
-const showDeleteConfirm = ref(false)
-const showPublishConfirm = ref(false)
-const showSuccessNotif = ref(false)
-const showErrorNotif = ref(false)
-const notificationMessage = ref('')
-const notificationTitle = ref('')
 
 // Watch for riset selection changes
 watch(() => form.riset_id, async (newRisetId) => {
@@ -137,15 +128,11 @@ const handleMapFileChange = async (event) => {
 
         if (response.data.success) {
             mapData.value = response.data.data
-            notificationTitle.value = 'Upload Berhasil!'
-            notificationMessage.value = `Berhasil memuat ${response.data.total_points} titik data`
-            showSuccessNotif.value = true
+            alert(`Berhasil memuat ${response.data.total_points} titik data`)
         }
     } catch (error) {
         console.error('Upload failed:', error)
-        notificationTitle.value = 'Upload Gagal!'
-        notificationMessage.value = error.response?.data?.message || 'Gagal mengupload file'
-        showErrorNotif.value = true
+        alert(error.response?.data?.message || 'Gagal mengupload file')
         mapData.value = []
     } finally {
         uploadingMap.value = false
@@ -155,9 +142,7 @@ const handleMapFileChange = async (event) => {
 const handlePreview = () => {
     // Validation
     if (!form.riset_id || !form.topic_id || !form.visualization_type_id || !form.title || !form.interpretation){
-        notificationTitle.value = 'Data Tidak Lengkap'
-        notificationMessage.value = 'Mohon lengkapi semua field yang wajib diisi'
-        showErrorNotif.value = true
+        alert('Mohon lengkapi semua field yang wajib diisi')
         return
     }
 
@@ -165,9 +150,7 @@ const handlePreview = () => {
     if (isBarOrPie.value) {
         const validCategories = chartCategories.value.filter(c => c.category && c.value)
         if (validCategories.length === 0) {
-            notificationTitle.value = 'Data Tidak Lengkap'
-            notificationMessage.value = 'Mohon isi minimal satu kategori dan nilai'
-            showErrorNotif.value = true
+            alert('Mohon isi minimal satu kategori dan nilai')
             return
         }
 
@@ -186,9 +169,7 @@ const handlePreview = () => {
         prepareApexChart(categories, values)
     } else if (isPeta.value) {
         if (mapData.value.length === 0) {
-            notificationTitle.value = 'Data Peta Kosong'
-            notificationMessage.value = 'Mohon upload file data peta terlebih dahulu'
-            showErrorNotif.value = true
+            alert('Mohon upload file data peta terlebih dahulu')
             return
         }
         form.chart_data = { points: mapData.value }
@@ -449,12 +430,10 @@ const handleReset = () => {
     }
 }
 
-const handlePublishClick = () => {
-    showPublishConfirm.value = true
-}
-
 const handlePublish = async () => {
-    showPublishConfirm.value = false
+    if (!confirm('Apakah Anda yakin ingin mempublikasikan visualisasi ini?')) {
+        return
+    }
 
     try {
         const response = await axios.post(route('admin.dashboard.publish'), {
@@ -468,16 +447,12 @@ const handlePublish = async () => {
         })
 
         if (response.data.success) {
-            notificationTitle.value = 'Update Berhasil!'
-            notificationMessage.value = 'Visualisasi berhasil dipublikasikan!'
-            showSuccessNotif.value = true
+            alert('Visualisasi berhasil dipublikasikan!')
             handleReset()
         }
     } catch (error) {
         console.error('Publish failed:', error)
-        notificationTitle.value = 'Publish Gagal!'
-        notificationMessage.value = error.response?.data?.message || 'Gagal mempublikasikan visualisasi'
-        showErrorNotif.value = true
+        alert(error.response?.data?.message || 'Gagal mempublikasikan visualisasi')
     }
 }
 </script>
@@ -485,79 +460,83 @@ const handlePublish = async () => {
 <template>
     <Head title="Input Data Riset" />
 
-    <div class="min-h-screen bg-pkl-base-cream">
+    <div class="min-h-screen bg-pkl-base-cream data-page">
         <div class="max-w-6xl mx-auto sm:p-4">
-<h1 class="font-headline mt-3 text-[40px] tracking-wide text-[#7A2509]">
-    Kelola Diseminasi
-</h1>            <p class="text-[16px]">Kelola Data dan Interpretasi untuk Diseminasi</p>
+            
+            <h1 class="font-headline mt-3 text-[40px] tracking-wide title-main">
+                Kelola Diseminasi
+            </h1>
+            <p class="text-[16px] subtitle-main">
+                Kelola Data dan Interpretasi untuk Diseminasi
+            </p>
         </div>
-        
+
         <main class="max-w-6xl mx-auto p-4 sm:p-4">
             <!-- Form Input -->
-            <div class="bg-[var(--color-surface)] rounded-lg shadow-md border border-[var(--color-border)] mb-6 overflow-hidden">
-                <div class="relative h-32 overflow-hidden">
-                    <!-- Batik Pattern -->
-                    <div class="absolute inset-0">
-                        <img src="/images/assets/pattern-batik.svg" alt="Pattern Batik" class="w-full h-full object-cover" />
-                    </div>
+             <img
+                    src="/images/assets/pattern-batik.svg"
+                    alt="Pattern Batik"
+                    class="w-full h-auto mb-4"
+                />
+            <div class="bg-[var(--color-surface)] rounded-lg shadow-md p-6 border border-[var(--color-border)] mb-6">
+                <div class="mb-6">
+                    <h2 class="text-[20px] title-sub">Form Input Data</h2>
+                    <p class="text-[16px] subtitle-sub">
+                        Kelola Data dan Interpretasi untuk Diseminasi
+                    </p>
                 </div>
-                
-                <div class="p-6">
-                    <div class="mb-6">
-                        <h2 class="text-[20px] text-[#7A2509]">Form Input Data</h2>                  
-                        <p class="text-[16px]">Kelola Data dan Interpretasi untuk Diseminasi</p>
-                    </div>
 
-                    <div class="space-y-6">
-                    <!-- Riset -->
+                <div class="space-y-6">
+
+                    <!-- Pilih Riset -->
                     <FormSelect 
-                        label="Pilih Riset" 
+                        label="Pilih Riset"
                         v-model="form.riset_id"
                         :options="risetOptions"
                         :error="form.errors.riset_id"
                         placeholder="-- Pilih Riset --"
-                        required 
+                        required
                     />
 
-                    <!-- Sub Topik -->
+                    <!-- Pilih Sub Topik -->
                     <FormSelect 
-                        label="Pilih Sub Topik" 
+                        label="Pilih Sub Topik"
                         v-model="form.topic_id"
                         :options="topicOptions"
                         :error="form.errors.topic_id"
                         :disabled="!form.riset_id || loadingTopics"
                         :placeholder="loadingTopics ? 'Loading...' : '-- Pilih Sub Topik --'"
-                        required 
+                        required
                     />
 
                     <!-- Jenis Grafik -->
                     <FormSelect 
-                        label="Pilih Jenis Grafik" 
+                        label="Pilih Jenis Grafik"
                         v-model="form.visualization_type_id"
                         :options="visualizationTypeOptions"
                         :error="form.errors.visualization_type_id"
                         placeholder="-- Pilih Jenis Grafik --"
-                        required 
+                        required
                     />
 
                     <!-- Judul Visualisasi -->
-                    <FormInput 
-                        label="Judul Visualisasi" 
+                    <FormInput
+                        label="Judul Visualisasi"
                         v-model="form.title"
                         :error="form.errors.title"
                         placeholder="Masukkan judul visualisasi"
-                        required 
+                        required
                     />
 
-                    <!-- Dynamic Form: Bar/Pie Chart -->
+                    <!-- Dynamic Form: Bar / Pie -->
                     <div v-if="isBarOrPie" class="border-t pt-6">
                         <h3 class="text-lg font-semibold mb-4">Input Data Kategori</h3>
+
                         <div class="space-y-3">
-                            <div 
-                                v-for="(category, index) in chartCategories" 
-                                :key="index"
-                                class="flex gap-3 items-end"
-                            >
+                            <div v-for="(category, index) in chartCategories"
+                                 :key="index"
+                                 class="flex gap-3 items-end">
+
                                 <div class="flex-1">
                                     <FormInput
                                         :label="index === 0 ? 'Kategori' : ''"
@@ -565,6 +544,7 @@ const handlePublish = async () => {
                                         placeholder="Nama kategori"
                                     />
                                 </div>
+
                                 <div class="flex-1">
                                     <FormInput
                                         :label="index === 0 ? 'Nilai' : ''"
@@ -574,6 +554,7 @@ const handlePublish = async () => {
                                         placeholder="Nilai"
                                     />
                                 </div>
+
                                 <button
                                     v-if="chartCategories.length > 1"
                                     @click="removeCategory(index)"
@@ -582,8 +563,10 @@ const handlePublish = async () => {
                                 >
                                     Hapus
                                 </button>
+
                             </div>
                         </div>
+
                         <button
                             @click="addCategory"
                             type="button"
@@ -596,25 +579,30 @@ const handlePublish = async () => {
                     <!-- Dynamic Form: Peta -->
                     <div v-if="isPeta" class="border-t pt-6">
                         <h3 class="text-lg font-semibold mb-4">Upload Data Peta</h3>
+
                         <div class="space-y-3">
                             <div>
                                 <label class="block text-sm font-medium mb-2">
                                     File Excel/CSV
                                     <span class="text-red-500">*</span>
                                 </label>
+
                                 <input
                                     type="file"
                                     accept=".csv,.xlsx,.xls"
                                     @change="handleMapFileChange"
                                     class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                 />
+
                                 <p class="mt-1 text-sm text-gray-500">
                                     Format: latitude, longitude, density
                                 </p>
                             </div>
+
                             <div v-if="uploadingMap" class="text-sm text-gray-600">
                                 Memproses file...
                             </div>
+
                             <div v-if="mapData.length > 0" class="text-sm text-green-600">
                                 ✓ {{ mapData.length }} titik data berhasil dimuat
                             </div>
@@ -631,60 +619,65 @@ const handlePublish = async () => {
                         required
                     />
 
-                    <!-- Action Buttons -->
-                    <div class="flex justify-end gap-3 pt-4">
-                        <button 
+                    <!-- Buttons -->
+                    <div class="flex justify-end gap-6 pt-6">
+
+                        <!-- RESET -->
+                        <button
                             @click="handleReset"
                             type="button"
-                                class="px-4 py-2 bg-[#FFFBDF] border border-[#7A2509] text-[#7A2509] rounded-lg transition hover:bg-[#7A2509] hover:text-white"                        >
+                            class="reset-btn"
+                        >
                             Reset
                         </button>
-                            <button 
-                                @click="handlePreview"
-                                type="button"
-                                class="px-4 py-2 bg-[#7A2509] hover:bg-[#5e1d07] text-white rounded-lg transition flex items-center gap-2"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                                </svg>
 
-                                <span>Preview</span>
-                            </button>
+                        <!-- PREVIEW -->
+                        <button
+                            @click="handlePreview"
+                            type="button"
+                            class="preview-btn"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 fill="currentColor"
+                                 viewBox="0 0 24 24"
+                                 class="w-6 h-6">
+                                <path d="M12 5C5 5 1 12 1 12s4 7 11 7 11-7 11-7-4-7-11-7zm0 11a4 4 0 110-8 4 4 0 010 8z"/>
+                            </svg>
+                            Preview
+                        </button>
+
                     </div>
+
                 </div>
             </div>
-        </div>
 
-            <!-- Preview Section -->
-            <div 
-                v-if="showPreview"
-                class="bg-[var(--color-surface)] rounded-lg shadow-md p-6 border border-[var(--color-border)]"
-            >
+            <!-- PREVIEW SECTION -->
+            <div v-if="showPreview"
+                 class="bg-[var(--color-surface)] rounded-lg shadow-md p-6 border border-[var(--color-border)]">
+
                 <div class="mb-6">
-                    <h2 class="text-[20px] text-[var(--color-text)]">Preview Visualisasi</h2>
-                    <h3 class="text-[24px] font-bold text-[var(--color-text)] mt-2">{{ form.title }}</h3>
+                    <h2 class="text-[20px] text-[#7A2509]">Preview Visualisasi</h2>
+                    <h3 class="text-[24px] font-bold text-[#7A2509] mt-2">
+                        {{ form.title }}
+                    </h3>
                 </div>
 
-                <!-- ApexChart Preview (Bar/Pie) -->
+                <!-- ApexChart -->
                 <div v-if="isBarOrPie" class="mb-6 bg-white rounded-lg p-4">
-                    <VueApexCharts 
-                        :options="chartOptions" 
+                    <VueApexCharts
+                        :options="chartOptions"
                         :series="chartSeries"
                         :type="selectedVisualizationType"
                         height="400"
                     />
                 </div>
 
-                <!-- Map Preview -->
+                <!-- Peta -->
                 <div v-if="isPeta" class="mb-6">
-                    <div 
-                        id="previewMap" 
-                        class="w-full h-[500px] border rounded-lg"
-                    ></div>
+                    <div id="previewMap" class="w-full h-[500px] border rounded-lg"></div>
                 </div>
 
-                <!-- Interpretation -->
+                <!-- Interpretasi -->
                 <div class="mb-6">
                     <h3 class="text-lg font-semibold mb-2">Interpretasi</h3>
                     <div class="p-4 bg-gray-50 rounded-lg text-justify leading-relaxed">
@@ -692,66 +685,84 @@ const handlePublish = async () => {
                     </div>
                 </div>
 
-                <!-- Publish Button -->
-                <div class="flex justify-end">
-                    <button
-                        @click="handlePublishClick"
-                        type="button"
-                        class="px-6 py-3 bg-[#7A2509] hover:bg-[#5e1d07] text-white font-semibold rounded-lg transition shadow-md hover:shadow-lg flex items-center gap-2"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12Zm0 0h7.5" />
-                        </svg>
-                        <span>Konfirmasi & Publish</span>
-                    </button>
-                </div>
+                <!-- PUBLISH -->
+                <button
+                    @click="handlePublish"
+                    type="button"
+                    class="publish-btn"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         fill="currentColor"
+                         viewBox="0 0 20 20"
+                         class="w-6 h-6">
+                        <path d="M3 16a1 1 0 001 1h12a1 1 0 001-1v-5a1 1 0 112 0v5a3 3 0 01-3 3H4a3 3 0 01-3-3v-5a1 1 0 112 0v5z"/>
+                        <path d="M7 9l3-3 3 3m-3-3v9"/>
+                    </svg>
+                    Publish
+                </button>
+
             </div>
         </main>
-
-        <!-- Dialogs -->
-        <ConfirmDialog
-            :show="showPublishConfirm"
-            message="Apakah anda yakin ingin mempublish hasil visualisasi berikut?"
-            confirm-text="Publish Visualisasi"
-            cancel-text="Cancel"
-            confirm-color="blue"
-            @confirm="handlePublish"
-            @close="showPublishConfirm = false"
-        />
-
-        <NotificationDialog
-            :show="showSuccessNotif"
-            type="success"
-            :title="notificationTitle"
-            :message="notificationMessage"
-            button-text="OK"
-            @close="showSuccessNotif = false"
-        />
-
-        <NotificationDialog
-            :show="showErrorNotif"
-            type="error"
-            :title="notificationTitle"
-            :message="notificationMessage"
-            button-text="OK"
-            @close="showErrorNotif = false"
-        />
     </div>
 </template>
 
-<style scoped>
-/* Leaflet fixes */
-:deep(.leaflet-container) {
-    z-index: 1;
+
+<style>
+/* ------------------------------ */
+/* BUTTON OVERRIDE FULL */
+/* ------------------------------ */
+button.reset-btn,
+button.preview-btn,
+button.publish-btn {
+    all: unset !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    border-radius: 22px !important;
+    padding: 12px 40px !important;
+    font-family: serif !important;
+    font-size: 20px !important;
+    gap: 10px !important;
 }
 
-/* ApexCharts customization */
-:deep(.apexcharts-canvas) {
-    margin: 0 auto;
+/* RESET */
+button.reset-btn {
+    background: #FFFBDF !important;
+    border: 2px solid #7A2509 !important;
+    color: #7A2509 !important;
+}
+button.reset-btn:hover {
+    background: #F7E4DC !important;
 }
 
-:deep(.apexcharts-menu) {
-    background: #fff;
-    border: 1px solid #ddd;
+/* PREVIEW */
+button.preview-btn {
+    background: #7A2509 !important;
+    color: white !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
 }
+button.preview-btn:hover {
+    background: #631D07 !important;
+}
+
+/* PUBLISH */
+button.publish-btn {
+    background: #7A2509 !important;
+    color: white !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+}
+button.publish-btn:hover {
+    background: #631D07 !important;
+}
+
+/* ------------------------------ */
+/* JUDUL WARNA OVERRIDE */
+/* ------------------------------ */
+
+.data-page h1.title-main,
+.data-page h2.title-sub {
+    color: #7A2509 !important;
+}
+
 </style>

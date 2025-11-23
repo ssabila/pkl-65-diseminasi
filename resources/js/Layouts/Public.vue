@@ -3,7 +3,6 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import NavSidebarDesktop from '@/Shared/Public/NavSidebarDesktop.vue'
 import Footer from '@/Shared/Public/Footer.vue'
-import { cycleTheme, getCurrentThemeState } from '@/darkMode'
 
 const sidebarStorageKey = 'sidebarOpen'
 const isMobile = () => window.innerWidth < 768

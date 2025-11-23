@@ -9,6 +9,7 @@ use Laravel\Fortify\Fortify;
 use App\Actions\Fortify\CreateNewUser;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
+use App\Actions\Fortify\LoginResponse;
 use App\Actions\Fortify\RegisterResponse;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
@@ -80,6 +81,12 @@ class FortifyServiceProvider extends ServiceProvider
         app()->singleton(
             \Laravel\Fortify\Contracts\RegisterResponse::class,
             RegisterResponse::class,
+        );
+
+        // Custom login response for proper Inertia redirect
+        app()->singleton(
+            \Laravel\Fortify\Contracts\LoginResponse::class,
+            LoginResponse::class,
         );
     }
 }

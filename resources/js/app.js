@@ -6,6 +6,8 @@ import 'nprogress/nprogress.css'
 import '../css/app.css'
 import { initializeTheme } from './utils/themeInit'
 import InstantSearch from 'vue-instantsearch/vue3/es'
+import 'leaflet/dist/leaflet.css'
+import VueApexCharts from 'vue3-apexcharts'
 
 
 initializeTheme()
