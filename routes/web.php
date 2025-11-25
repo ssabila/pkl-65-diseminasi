@@ -43,6 +43,11 @@ Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
     | Admin Routes (Super Admin only)
     |--------------------------------------------------------------------------
     */
+    Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/history', [\App\Http\Controllers\Admin\HistoryController::class, 'index'])
+        ->name('admin.history');
+    });
+
     Route::middleware(['role:Super Admin'])->group(function () {
 
         // Dashboard (root dashboard)
@@ -77,14 +82,13 @@ Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
             */
             Route::get('/data', [DataController::class, 'index'])->name('data');
 
-            /*
-            |--------------------------------------------------------------
-            | TODO: CRUD Diseminasi
-            |--------------------------------------------------------------
-            */
-            // Route::resource('riset', App\Http\Controllers\RisetController::class);
-            // Route::resource('topik', App\Http\Controllers\TopicController::class);
-            // Route::resource('visualisasi', App\Http\Controllers\VisualizationController::class);
+
+            // routes/web.php atau routes/admin.php
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::delete('/dashboard/{id}', [DashboardController::class, 'destroy'])->name('dashboard.delete');
+    Route::get('/dashboard/{id}/edit', [DashboardController::class, 'edit'])->name('dashboard.edit');
+});
 
         });
     });

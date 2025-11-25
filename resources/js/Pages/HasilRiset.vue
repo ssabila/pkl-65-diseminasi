@@ -6,6 +6,7 @@ import ApexBarChart from '@/Components/Charts/ApexBarChart.vue'
 import ApexDonutChart from '@/Components/Charts/ApexDonutChart.vue'
 import ApexLineChart from '@/Components/Charts/ApexLineChart.vue'
 import ApexAreaChart from '@/Components/Charts/ApexAreaChart.vue'
+import LeafletMap from '@/Components/Charts/LeafletMap.vue'
 
 const props = defineProps({
     risetTopics: { type: Array, default: () => [] },
@@ -17,9 +18,13 @@ const props = defineProps({
 const pklColors = ['#ef874b', '#50829b', '#748d63', '#fcda7b', '#8174a0', '#f69a5c'];
 
 const chartComponents = {
+    'bar': ApexBarChart,
     'bar-chart': ApexBarChart,
+    'pie': ApexDonutChart,
     'pie-chart': ApexDonutChart,
+    'donut': ApexDonutChart,
     'donut-chart': ApexDonutChart,
+    'line': ApexLineChart,
     'line-chart': ApexLineChart,
     'area-chart': ApexAreaChart
 };
@@ -40,6 +45,7 @@ const formatChartData = (vis) => {
         } else {
             if (rawData.categories && Array.isArray(rawData.series)) return { labels: rawData.categories, datasets: rawData.series };
         }
+        
         return rawData;
     } catch (e) { return null; }
 };

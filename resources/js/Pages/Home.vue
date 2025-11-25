@@ -20,16 +20,16 @@ defineOptions({ layout: PKL65Layout });
 </script>
 
 <template>
-    <Head title="Beranda" />
+   <Head title="Beranda" />
 
-          <HeroSection />
-    <LatarBelakangSection />
-    <TujuanSection />
+   <HeroSection />
+   <LatarBelakangSection />
+   <TujuanSection />
 
-       <RisetSection />
-    <CakupanSection />
-    <MetodeSampelSection />
+   <RisetSection />
+   <CakupanSection />
+   <MetodeSampelSection />
 
-       <MetodeDataSection />
-    <HasilSection />
+   <MetodeDataSection />
+   <HasilSection />
 </template>
