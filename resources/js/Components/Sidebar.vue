@@ -1,39 +1,36 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 
 const props = defineProps({
-    // Data untuk Menu Riset
     risetTopics: { type: Array, default: () => [] },
-    selectedTopicId: { type: [String, Number], default: null },
-    
-    // Data untuk Menu Dokumen (Scroll Lokal)
     documentCategories: { type: Array, default: () => [] },
-    
-    // Penanda Halaman Aktif ('hasil-riset' | 'dokumen' | '')
-    activePage: { type: String, default: '' },
+    activePage: { type: String, default: '' }, 
+    selectedTopicId: { type: [String, Number], default: null },
 });
 
-// --- LOGIC ACCORDION RISET ---
+const safeRisetTopics = computed(() => Array.isArray(props.risetTopics) ? props.risetTopics : []);
+const safeDocumentCategories = computed(() => Array.isArray(props.documentCategories) ? props.documentCategories : []);
+
 const openRisetId = ref(null);
 
 const toggleRiset = (id) => {
     openRisetId.value = openRisetId.value === id ? null : id;
 };
 
-// Buka accordion otomatis jika ada topik terpilih atau di halaman hasil riset
+// Auto-open accordion
 onMounted(() => {
-    if (props.selectedTopicId && props.risetTopics.length > 0) {
-        const activeRiset = props.risetTopics.find(r =>
-            r.topics.some(t => String(t.id) === String(props.selectedTopicId))
+    if (props.selectedTopicId && safeRisetTopics.value.length > 0) {
+        const activeRiset = safeRisetTopics.value.find(r =>
+            r.topics?.some(t => String(t.id) === String(props.selectedTopicId))
         );
         if (activeRiset) openRisetId.value = activeRiset.id;
-    } else if (props.activePage === 'hasil-riset' && props.risetTopics.length > 0) {
-        openRisetId.value = props.risetTopics[0].id;
+    } 
+    else if (props.activePage === 'hasil-riset' && safeRisetTopics.value.length > 0) {
+        openRisetId.value = safeRisetTopics.value[0].id;
     }
 });
 
-// --- LOGIC SCROLL DOKUMEN ---
 const scrollToCategory = (catId) => {
     const element = document.getElementById(catId);
     if (element) {
@@ -62,7 +59,7 @@ const scrollToCategory = (catId) => {
 
         <nav class="flex-1 overflow-y-auto px-4 pb-4 scrollbar-hide">
             
-            <div v-for="riset in risetTopics" :key="riset.id" class="mt-3 border-b border-white/10 pb-1">
+            <div v-for="riset in safeRisetTopics" :key="riset.id" class="mt-3 border-b border-white/10 pb-1">
                 <button @click="toggleRiset(riset.id)" class="w-full flex items-center justify-between px-3 py-2.5 text-white hover:bg-white/10 rounded-lg transition-all group focus:outline-none">
                     <h3 class="font-sans text-base font-bold text-white/90 tracking-wide uppercase text-left">
                         {{ riset.name }}
@@ -75,7 +72,7 @@ const scrollToCategory = (catId) => {
                 <div class="overflow-hidden transition-all duration-500 ease-in-out" :class="openRisetId === riset.id ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'">
                     <ul class="space-y-1 pl-2">
                         <li v-for="topic in riset.topics" :key="topic.id">
-                            <Link :href="route('hasil-riset', { topic_id: topic.id })" preserve-scroll 
+                            <Link :href="route('hasil-riset', { topic_id: topic.id })" 
                                 :class="['flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 w-full relative overflow-hidden shadow-sm', 
                                 String(topic.id) === String(selectedTopicId) 
                                     ? 'bg-white text-pkl-base-orange shadow-md translate-x-1 font-bold' 
@@ -87,28 +84,10 @@ const scrollToCategory = (catId) => {
                 </div>
             </div>
 
-            <div v-if="activePage === 'dokumen' && documentCategories.length > 0" class="mt-6 mb-2 px-2 animate-fade-in">
-                <h3 class="font-sub text-[10px] font-bold text-white/60 tracking-[0.2em] uppercase mb-2">
-                    KATEGORI DOKUMEN
-                </h3>
-                <div v-for="category in documentCategories" :key="category.id" class="mb-1">
-                    <button 
-                        @click="scrollToCategory(category.id)"
-                        class="w-full flex items-center justify-between px-4 py-2 text-white hover:bg-white/10 rounded-lg transition-all group focus:outline-none text-left"
-                    >
-                        <span class="font-sub text-xs font-bold tracking-wide uppercase opacity-90">
-                            {{ category.name }}
-                        </span>
-                        <span class="bg-white/20 text-white text-[9px] font-bold px-1.5 py-0.5 rounded group-hover:bg-white group-hover:text-pkl-base-orange transition">
-                            {{ category.items.length }}
-                        </span>
-                    </button>
-                </div>
-            </div>
-
             <div class="mt-6 pt-2 border-t border-white/20">
                 <h3 class="px-4 font-sub text-[10px] font-bold text-white/60 tracking-widest mb-2 uppercase">LAINNYA</h3>
                 <ul class="space-y-1 pl-2">
+                    
                     <li>
                         <Link :href="route('dokumen')" 
                             :class="['flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all w-full',
@@ -117,7 +96,27 @@ const scrollToCategory = (catId) => {
                                 : 'text-white hover:bg-white/10 hover:translate-x-1']">
                             DOKUMEN
                         </Link>
+
+                        <div v-if="activePage === 'dokumen' && safeDocumentCategories.length > 0" class="mt-2 mb-2 pl-4 ml-2 border-l border-white/20 animate-fade-in">
+                            <h4 class="text-[9px] font-bold text-white/50 tracking-widest mb-2 uppercase pl-2 pt-1">
+                                FILTER KATEGORI
+                            </h4>
+                            <div v-for="category in safeDocumentCategories" :key="category.id" class="mb-1">
+                                <button 
+                                    @click="scrollToCategory(category.id)"
+                                    class="w-full flex items-center justify-between px-3 py-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-md transition-all group focus:outline-none text-left"
+                                >
+                                    <span class="font-sans text-xs font-medium tracking-wide">
+                                        {{ category.name }}
+                                    </span>
+                                    <span class="bg-white/20 text-white text-[9px] font-bold px-1.5 py-0.5 rounded group-hover:bg-white group-hover:text-pkl-base-orange transition">
+                                        {{ category.items?.length || 0 }}
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
                     </li>
+
                     <li>
                         <Link href="/" class="flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white hover:bg-white/10 hover:translate-x-1 font-sans transition-all w-full">
                             KEMBALI KE BERANDA
@@ -136,6 +135,6 @@ const scrollToCategory = (catId) => {
 <style scoped>
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-.animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 </style>
