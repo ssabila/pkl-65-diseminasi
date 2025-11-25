@@ -15,7 +15,7 @@ const chartOptions = computed(() => ({
     chart: {
         id: 'area-chart',
         fontFamily: 'TT Bells, sans-serif',
-        toolbar: { show: false }, // Hamburger mati
+        toolbar: { show: false }, 
         zoom: { enabled: false }
     },
     colors: props.colors,

@@ -9,11 +9,9 @@ const props = defineProps({
     selectedTopicId: { type: [String, Number], default: null },
 });
 
-// --- SAFE GUARDS (PENTING: Mencegah error undefined length) ---
 const safeRisetTopics = computed(() => Array.isArray(props.risetTopics) ? props.risetTopics : []);
 const safeDocumentCategories = computed(() => Array.isArray(props.documentCategories) ? props.documentCategories : []);
 
-// --- LOGIC ACCORDION ---
 const openRisetId = ref(null);
 
 const toggleRiset = (id) => {
@@ -22,7 +20,6 @@ const toggleRiset = (id) => {
 
 // Auto-open accordion
 onMounted(() => {
-    // Gunakan safeRisetTopics dan optional chaining ?. untuk keamanan
     if (props.selectedTopicId && safeRisetTopics.value.length > 0) {
         const activeRiset = safeRisetTopics.value.find(r =>
             r.topics?.some(t => String(t.id) === String(props.selectedTopicId))
@@ -34,7 +31,6 @@ onMounted(() => {
     }
 });
 
-// --- LOGIC SCROLL ---
 const scrollToCategory = (catId) => {
     const element = document.getElementById(catId);
     if (element) {

@@ -16,7 +16,6 @@ const chartOptions = computed(() => ({
         id: 'bar-chart',
         fontFamily: 'TT Bells, sans-serif',
         toolbar: { show: false }, // Hamburger OFF
-        // --- PERBAIKAN WARNA FONT (Dark Slate Blue) ---
         foreColor: '#1e293b', 
         zoom: { enabled: false }
     },
@@ -36,7 +35,6 @@ const chartOptions = computed(() => ({
         axisBorder: { show: false },
         axisTicks: { show: false },
         labels: {
-            // Pakai warna tema, bukan hitam
             style: { colors: '#1e293b', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 }
         }
     },
@@ -47,7 +45,7 @@ const chartOptions = computed(() => ({
     },
     grid: {
         show: true,
-        borderColor: '#e2e8f0', // Slate-200 (lebih soft dari abu biasa)
+        borderColor: '#e2e8f0',
         strokeDashArray: 0,
         position: 'back',
     },
