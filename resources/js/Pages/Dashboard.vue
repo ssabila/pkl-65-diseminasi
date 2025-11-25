@@ -1,38 +1,82 @@
 <script setup>
-import { Head } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import Default from '@/Layouts/Default.vue'
 import axios from 'axios'
+import ConfirmDialog from '@/Components/ConfirmDialog.vue'
+import StatusDialog from '@/Components/StatusDialog.vue'
 
 defineOptions({
     layout: Default
 })
 
 const props = defineProps({
-    totalDiseminasi: Number,
-    totalUpdated: Number,
-    totalDeleted: Number,
+    totalDiseminasi: { type: Number, default: 0 },
+    totalUpdated: { type: Number, default: 0 },
+    totalDeleted: { type: Number, default: 0 },
     visualizations: {
         type: Array,
         default: () => []
     }
 })
 
-const handleDelete = async (visualizationId) => {
-    if (!confirm('Apakah Anda yakin ingin menghapus visualisasi ini?')) return
+const confirmState = ref({
+    show: false,
+    title: '',
+    message: '',
+    variant: 'danger',
+    confirmText: '',
+    targetId: null
+})
 
+const statusState = ref({
+    show: false,
+    title: '',
+    message: '',
+    variant: 'success'
+})
+
+const isProcessing = ref(false)
+
+const requestDelete = (visualization) => {
+    confirmState.value = {
+        show: true,
+        title: 'Hapus Visualisasi',
+        message: `Apakah Anda yakin ingin menghapus visualisasi "${visualization.title}"?`,
+        variant: 'danger',
+        confirmText: 'Hapus Visualisasi',
+        targetId: visualization.id
+    }
+}
+
+const performDelete = async () => {
+    if (!confirmState.value.targetId || isProcessing.value) return
+
+    isProcessing.value = true
     try {
-        await axios.delete(route('admin.dashboard.delete', visualizationId))
-        alert('Visualisasi berhasil dihapus!')
-        window.location.reload() // Reload halaman untuk update data, bisa diganti dengan Inertia.reload() jika pakai Inertia
+        await axios.delete(route('admin.dashboard.delete', confirmState.value.targetId))
+        statusState.value = {
+            show: true,
+            title: 'Hapus Berhasil!',
+            message: 'Visualisasi berhasil dihapus.',
+            variant: 'success'
+        }
+        router.reload({ only: ['visualizations', 'totalDiseminasi', 'totalDeleted'] })
     } catch (error) {
-        console.error('Delete failed:', error)
-        alert(error.response?.data?.message || 'Gagal menghapus visualisasi')
+        statusState.value = {
+            show: true,
+            title: 'Gagal Menghapus',
+            message: error.response?.data?.message || 'Terjadi kesalahan pada server.',
+            variant: 'danger'
+        }
+    } finally {
+        confirmState.value.show = false
+        isProcessing.value = false
     }
 }
 
 const handleEdit = (visualizationId) => {
-    window.location.href = route('admin.dashboard.edit', visualizationId)
+    router.visit(route('admin.dashboard.edit', visualizationId))
 }
 
 const getIconColor = (index) => {
@@ -107,15 +151,16 @@ const getIconBgColor = (index) => {
                             <h3 class="font-semibold text-[#7A2509] text-lg mb-1">
                                 {{ viz.title }}
                             </h3>
-                            <p class="text-sm text-gray-600 mb-1">
-                                {{ viz.description }}
+                            <p class="text-sm text-gray-600 mb-2">
+                                {{ viz.topic_name }} &middot; {{ viz.type_name }}
+                            </p>
+                            <p class="text-sm text-gray-500 mb-1 line-clamp-2">
+                                {{ viz.interpretation }}
                             </p>
                             <p class="text-xs text-gray-400">
                                 <span class="text-[#DC2626] font-medium">{{ viz.riset_name }}</span>
                                 <span class="mx-2">·</span>
-                                <span>{{ viz.date }}</span>
-                                <span class="mx-2">·</span>
-                                <span>{{ viz.file_size }}</span>
+                                <span>{{ viz.updated_at }}</span>
                             </p>
                         </div>
                     </div>
@@ -133,10 +178,10 @@ const getIconBgColor = (index) => {
                         </button>
 
                         <button 
-                            @click="handleDelete(viz.id)"
+                            @click="requestDelete(viz)"
                             class="px-5 py-2.5 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow"
                         >
-                            Delete
+                            Hapus
                         </button>
                     </div>
                 </div>
@@ -153,6 +198,23 @@ const getIconBgColor = (index) => {
                 </div>
             </div>
         </div>
+
+        <ConfirmDialog
+            :show="confirmState.show"
+            :title="confirmState.title"
+            :message="confirmState.message"
+            :confirm-text="confirmState.confirmText"
+            cancel-text="Batal"
+            :variant="confirmState.variant"
+            @cancel="confirmState.show = false"
+            @confirm="performDelete" />
+
+        <StatusDialog
+            :show="statusState.show"
+            :title="statusState.title"
+            :message="statusState.message"
+            :variant="statusState.variant"
+            @close="statusState.show = false" />
     </div>
 </template>
 

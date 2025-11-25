@@ -1,10 +1,12 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3'
-import { ref, watch, computed, nextTick } from 'vue'
+import { ref, watch, computed, nextTick, onMounted } from 'vue'
 import Default from '@/Layouts/Default.vue'
 import FormSelect from '@/Components/FormSelect.vue'
 import FormTextarea from '@/Components/FormTextarea.vue'
 import FormInput from '@/Components/FormInput.vue'
+import ConfirmDialog from '@/Components/ConfirmDialog.vue'
+import StatusDialog from '@/Components/StatusDialog.vue'
 import axios from 'axios'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -16,9 +18,21 @@ defineOptions({
 })
 
 const props = defineProps({
-    risets: Array,
-    visualizationTypes: Array,
+    risets: {
+        type: Array,
+        default: () => []
+    },
+    visualizationTypes: {
+        type: Array,
+        default: () => []
+    },
+    editingVisualization: {
+        type: Object,
+        default: null
+    }
 })
+
+const isEditing = computed(() => !!props.editingVisualization)
 
 const form = useForm({
     riset_id: null,
@@ -41,67 +55,79 @@ const selectedVisualizationType = ref(null)
 const chartOptions = ref({})
 const chartSeries = ref([])
 const mapInstance = ref(null)
+const isSettingUp = ref(false)
+const isSubmitting = ref(false)
 
-// Watch for riset selection changes
+const confirmState = ref({
+    show: false,
+    title: '',
+    message: '',
+    variant: 'primary',
+    confirmText: ''
+})
+
+const statusState = ref({
+    show: false,
+    title: '',
+    message: '',
+    variant: 'success'
+})
+
+const risetOptions = computed(() => props.risets.map(r => ({
+    value: r.id,
+    label: r.name
+})))
+
+const topicOptions = computed(() => topics.value.map(t => ({
+    value: t.id,
+    label: t.name
+})))
+
+const visualizationTypeOptions = computed(() => props.visualizationTypes.map(vt => ({
+    value: vt.id,
+    label: vt.type_name
+})))
+
+const isBarOrPie = computed(() => ['bar', 'pie'].includes(selectedVisualizationType.value))
+const isPeta = computed(() => selectedVisualizationType.value === 'peta')
+
+const loadTopics = async (risetId) => {
+    loadingTopics.value = true
+    try {
+        const response = await axios.get(route('admin.dashboard.topics'), {
+            params: { riset_id: risetId }
+        })
+        topics.value = response.data.topics
+    } catch (error) {
+        console.error('Failed to load topics:', error)
+    } finally {
+        loadingTopics.value = false
+    }
+}
+
 watch(() => form.riset_id, async (newRisetId) => {
     topics.value = []
     form.topic_id = null
-    
+
     if (newRisetId) {
-        loadingTopics.value = true
-        try {
-            const response = await axios.get(route('admin.dashboard.topics'), {
-                params: { riset_id: newRisetId }
-            })
-            topics.value = response.data.topics
-        } catch (error) {
-            console.error('Failed to load topics:', error)
-        } finally {
-            loadingTopics.value = false
-        }
+        await loadTopics(newRisetId)
     }
 })
 
-// Watch visualization type changes
 watch(() => form.visualization_type_id, (newTypeId) => {
     const vizType = props.visualizationTypes.find(vt => vt.id === newTypeId)
     selectedVisualizationType.value = vizType ? vizType.type_code : null
-    
-    // Reset data when type changes
+
+    if (isSettingUp.value) return
+
     chartCategories.value = []
     mapData.value = []
     mapFile.value = null
     showPreview.value = false
-    
-    // Initialize with one empty row for bar/pie
-    if (['bar', 'pie'].includes(selectedVisualizationType.value)) {
+
+    if (isBarOrPie.value) {
         addCategory()
     }
-})
-
-const risetOptions = props.risets.map(r => ({
-    value: r.id,
-    label: r.name
-}))
-
-const topicOptions = computed(() => {
-    return topics.value.map(t => ({
-        value: t.id,
-        label: t.name
-    }))
-})
-
-const visualizationTypeOptions = props.visualizationTypes.map(vt => ({
-    value: vt.id,
-    label: vt.type_name
-}))
-
-const isBarOrPie = computed(() => {
-    return ['bar', 'pie'].includes(selectedVisualizationType.value)
-})
-
-const isPeta = computed(() => {
-    return selectedVisualizationType.value === 'peta'
 })
 
 const addCategory = () => {
@@ -138,19 +164,17 @@ const handleMapFileChange = async (event) => {
     }
 }
 
-const handlePreview = () => {
-    // Validation
-    if (!form.riset_id || !form.topic_id || !form.visualization_type_id || !form.title || !form.interpretation){
+const generateVisualizationData = ({ skipPreview = false } = {}) => {
+    if (!form.riset_id || !form.topic_id || !form.visualization_type_id || !form.title || !form.interpretation) {
         alert('Mohon lengkapi semua field yang wajib diisi')
-        return
+        return false
     }
 
-    // Prepare chart data based on type
     if (isBarOrPie.value) {
         const validCategories = chartCategories.value.filter(c => c.category && c.value)
         if (validCategories.length === 0) {
             alert('Mohon isi minimal satu kategori dan nilai')
-            return
+            return false
         }
 
         const categories = validCategories.map(c => c.category)
@@ -163,26 +187,173 @@ const handlePreview = () => {
                 backgroundColor: generateColors(values.length)
             }]
         }
-        
-        // Prepare ApexCharts data
+
         prepareApexChart(categories, values)
     } else if (isPeta.value) {
         if (mapData.value.length === 0) {
             alert('Mohon upload file data peta terlebih dahulu')
-            return
+            return false
         }
         form.chart_data = { points: mapData.value }
+        chartOptions.value = {}
+    }
+
+    if (!skipPreview) {
+        showPreview.value = true
+        nextTick(() => {
+            if (isPeta.value) {
+                renderMap()
+            }
+        })
+    }
+
+    return true
+}
+
+const handlePreview = () => {
+    generateVisualizationData()
+}
+
+const requestSubmit = () => {
+    const ready = generateVisualizationData({ skipPreview: true })
+    if (!ready) return
+
+    confirmState.value = {
+        show: true,
+        title: isEditing.value ? 'Update Visualisasi' : 'Publish Visualisasi',
+        message: isEditing.value
+            ? 'Apakah Anda yakin ingin menyimpan perubahan pada visualisasi ini?'
+            : 'Apakah Anda yakin ingin mempublikasikan visualisasi ini?',
+        variant: 'primary',
+        confirmText: isEditing.value ? 'Update' : 'Publish'
+    }
+}
+
+const performSubmit = async () => {
+    if (isSubmitting.value) return
+
+    isSubmitting.value = true
+    try {
+        const payload = {
+            riset_id: form.riset_id,
+            topic_id: form.topic_id,
+            visualization_type_id: form.visualization_type_id,
+            title: form.title,
+            interpretation: form.interpretation,
+            chart_data: form.chart_data,
+            chart_options: chartOptions.value
+        }
+
+        if (isEditing.value) {
+            await axios.put(route('admin.dashboard.update', props.editingVisualization.id), payload)
+            statusState.value = {
+                show: true,
+                title: 'Update Berhasil!',
+                message: 'Perubahan telah tersimpan.',
+                variant: 'success'
+            }
+        } else {
+            await axios.post(route('admin.dashboard.publish'), payload)
+            statusState.value = {
+                show: true,
+                title: 'Unggah Berhasil!',
+                message: 'Visualisasi baru berhasil dipublikasikan.',
+                variant: 'success'
+            }
+            handleReset()
+        }
+    } catch (error) {
+        statusState.value = {
+            show: true,
+            title: 'Proses Gagal',
+            message: error.response?.data?.message || 'Terjadi kesalahan pada server.',
+            variant: 'danger'
+        }
+    } finally {
+        confirmState.value.show = false
+        isSubmitting.value = false
+    }
+}
+
+const handleReset = () => {
+    form.reset()
+    topics.value = []
+    chartCategories.value = []
+    mapData.value = []
+    mapFile.value = null
+    showPreview.value = false
+    selectedVisualizationType.value = null
+    chartOptions.value = {}
+    chartSeries.value = []
+
+    if (mapInstance.value) {
+        mapInstance.value.remove()
+        mapInstance.value = null
+    }
+
+    if (isEditing.value) {
+        nextTick(() => initializeEditingState())
+    }
+}
+
+const initializeEditingState = async () => {
+    if (!props.editingVisualization) return
+
+    isSettingUp.value = true
+    const editing = props.editingVisualization
+
+    form.riset_id = editing.riset_id ?? null
+    form.visualization_type_id = editing.visualization_type_id
+    form.title = editing.title
+    form.interpretation = editing.interpretation
+    form.chart_data = editing.chart_data
+    form.chart_options = editing.chart_options ?? null
+
+    if (editing.riset_id) {
+        await loadTopics(editing.riset_id)
+        form.topic_id = editing.topic_id
+    }
+
+    const vizType = props.visualizationTypes.find(vt => vt.id === editing.visualization_type_id)
+    selectedVisualizationType.value = vizType ? vizType.type_code : null
+
+    if (isBarOrPie.value) {
+        const labels = editing.chart_data?.labels || []
+        const dataset = editing.chart_data?.datasets?.[0]?.data || []
+        chartCategories.value = labels.map((label, idx) => ({
+            category: label,
+            value: dataset[idx] ?? ''
+        }))
+
+        if (chartCategories.value.length === 0) {
+            addCategory()
+        } else {
+            const numericValues = chartCategories.value.map(c => parseFloat(c.value) || 0)
+            prepareApexChart(labels, numericValues)
+        }
+    } else if (isPeta.value) {
+        mapData.value = editing.chart_data?.points || []
+        chartCategories.value = []
+    } else {
+        chartCategories.value = []
+        form.chart_data = editing.chart_data ?? {}
     }
 
     showPreview.value = true
-    
-    // Render preview after DOM update
     nextTick(() => {
         if (isPeta.value) {
             renderMap()
         }
     })
+
+    isSettingUp.value = false
 }
+
+onMounted(() => {
+    if (isEditing.value) {
+        initializeEditingState()
+    }
+})
 
 const prepareApexChart = (categories, values) => {
     if (selectedVisualizationType.value === 'bar') {
@@ -411,53 +582,10 @@ const generateColors = (count) => {
     ]
     return colors.slice(0, count)
 }
-
-const handleReset = () => {
-    form.reset()
-    topics.value = []
-    chartCategories.value = []
-    mapData.value = []
-    mapFile.value = null
-    showPreview.value = false
-    selectedVisualizationType.value = null
-    chartOptions.value = {}
-    chartSeries.value = []
-    
-    if (mapInstance.value) {
-        mapInstance.value.remove()
-        mapInstance.value = null
-    }
-}
-
-const handlePublish = async () => {
-    if (!confirm('Apakah Anda yakin ingin mempublikasikan visualisasi ini?')) {
-        return
-    }
-
-    try {
-        const response = await axios.post(route('admin.dashboard.publish'), {
-            riset_id: form.riset_id,
-            topic_id: form.topic_id,
-            visualization_type_id: form.visualization_type_id,
-            title: form.title,
-            interpretation: form.interpretation,
-            chart_data: form.chart_data,
-            chart_options: chartOptions.value,
-        })
-
-        if (response.data.success) {
-            alert('Visualisasi berhasil dipublikasikan!')
-            handleReset()
-        }
-    } catch (error) {
-        console.error('Publish failed:', error)
-        alert(error.response?.data?.message || 'Gagal mempublikasikan visualisasi')
-    }
-}
 </script>
 
 <template>
-    <Head title="Input Data Riset" />
+    <Head :title="isEditing ? 'Edit Data Riset' : 'Input Data Riset'" />
 
     <div class="min-h-screen bg-pkl-base-cream data-page">
         <div class="max-w-6xl mx-auto sm:p-4">
@@ -474,9 +602,11 @@ const handlePublish = async () => {
             <div class="bg-[var(--color-surface)] rounded-lg shadow-md p-6 border border-[var(--color-border)] mb-6">
 
                 <div class="mb-6">
-                    <h2 class="text-[20px] title-sub">Form Input Data</h2>
+                    <h2 class="text-[20px] title-sub">
+                        {{ isEditing ? 'Edit Data Visualisasi' : 'Form Input Data' }}
+                    </h2>
                     <p class="text-[16px] subtitle-sub">
-                        Kelola Data dan Interpretasi untuk Diseminasi
+                        {{ isEditing ? 'Perbarui data dan interpretasi visualisasi terpilih' : 'Kelola Data dan Interpretasi untuk Diseminasi' }}
                     </p>
                 </div>
 
@@ -681,9 +811,10 @@ const handlePublish = async () => {
 
                 <!-- PUBLISH -->
                 <button
-                    @click="handlePublish"
+                    @click="requestSubmit"
                     type="button"
                     class="publish-btn"
+                    :disabled="isSubmitting"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg"
                          fill="currentColor"
@@ -692,11 +823,28 @@ const handlePublish = async () => {
                         <path d="M3 16a1 1 0 001 1h12a1 1 0 001-1v-5a1 1 0 112 0v5a3 3 0 01-3 3H4a3 3 0 01-3-3v-5a1 1 0 112 0v5z"/>
                         <path d="M7 9l3-3 3 3m-3-3v9"/>
                     </svg>
-                    Publish
+                    {{ isEditing ? 'Update' : 'Publish' }}
                 </button>
 
             </div>
         </main>
+
+        <ConfirmDialog
+            :show="confirmState.show"
+            :title="confirmState.title"
+            :message="confirmState.message"
+            :confirm-text="confirmState.confirmText"
+            cancel-text="Batal"
+            :variant="confirmState.variant"
+            @cancel="confirmState.show = false"
+            @confirm="performSubmit" />
+
+        <StatusDialog
+            :show="statusState.show"
+            :title="statusState.title"
+            :message="statusState.message"
+            :variant="statusState.variant"
+            @close="statusState.show = false" />
     </div>
 </template>
 
@@ -748,6 +896,10 @@ button.publish-btn {
 }
 button.publish-btn:hover {
     background: #631D07 !important;
+}
+button.publish-btn:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
 }
 
 /* ------------------------------ */
