@@ -43,22 +43,17 @@ const chartOptions = computed(() => ({
     tooltip: { theme: 'light', style: { fontSize: '12px', fontFamily: 'TT Bells, sans-serif' } }
 }));
 
-const series = computed(() => props.chartData.datasets || []);
-
-const downloadChart = () => {
-    if (chartRef.value) {
-        chartRef.value.chart.dataURI().then(({ imgURI }) => {
-            const link = document.createElement('a');
-            link.href = imgURI;
-            link.download = `Chart-${props.title || 'Export'}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
+const series = computed(() => {
+    // Jika datasets adalah array dengan objek berisi data
+    if (Array.isArray(props.chartData.datasets) && props.chartData.datasets[0]?.data) {
+        return props.chartData.datasets;
     }
-};
-
-defineExpose({ downloadChart });
+    // Jika datasets langsung array nilai (fallback)
+    if (Array.isArray(props.chartData.datasets)) {
+        return [{ name: 'Nilai', data: props.chartData.datasets }];
+    }
+    return [];
+});
 </script>
 
 <template>

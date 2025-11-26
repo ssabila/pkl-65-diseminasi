@@ -83,11 +83,11 @@ watch(() => form.visualization_type_id, (newTypeId) => {
     mapFile.value = null
     showPreview.value = false
     
-    // Initialize with one empty row for bar/pie
-    if (['bar', 'pie'].includes(selectedVisualizationType.value)) {
+    // Initialize with one empty row for bar/pie charts
+    if (newTypeId && ['bar', 'pie'].includes(selectedVisualizationType.value)) {
         addCategory()
     }
-})
+}, { immediate: true })
 
 const risetOptions = props.risets.map(r => ({
     value: r.id,
@@ -107,7 +107,7 @@ const visualizationTypeOptions = props.visualizationTypes.map(vt => ({
 }))
 
 const isBarOrPie = computed(() => {
-    return ['bar', 'pie'].includes(selectedVisualizationType.value)
+    return selectedVisualizationType.value && ['bar', 'pie'].includes(selectedVisualizationType.value)
 })
 
 const isPeta = computed(() => {
@@ -553,6 +553,16 @@ const handlePublish = async () => {
                         placeholder="Masukkan judul visualisasi"
                         required 
                     />
+
+                    <!-- Debug info (remove after testing) -->
+                    <div v-if="form.visualization_type_id" class="p-4 bg-gray-100 rounded-lg mb-4">
+                        <p class="text-sm text-gray-600">
+                            <strong>Debug:</strong> Visualization Type ID: {{ form.visualization_type_id }}, 
+                            Type Code: {{ selectedVisualizationType }}, 
+                            Is Bar/Pie: {{ isBarOrPie }}, 
+                            Is Peta: {{ isPeta }}
+                        </p>
+                    </div>
 
                     <!-- Dynamic Form: Bar/Pie Chart -->
                     <div v-if="isBarOrPie" class="border-t pt-6">

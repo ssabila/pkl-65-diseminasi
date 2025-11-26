@@ -26,7 +26,7 @@ Route::get('/dokumen', [PageController::class, 'dokumen'])->name('dokumen');
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     // User Account
     Route::prefix('user')->name('user.')->group(function () {

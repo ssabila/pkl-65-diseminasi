@@ -40,10 +40,27 @@ const formatChartData = (vis) => {
     const rawData = vis.chart_data;
     const typeCode = vis.type?.type_code;
     try {
-        if (['pie-chart', 'donut-chart'].includes(typeCode)) {
-            if (rawData.labels && Array.isArray(rawData.series)) return { labels: rawData.labels, datasets: rawData.series };
-        } else {
-            if (rawData.categories && Array.isArray(rawData.series)) return { labels: rawData.categories, datasets: rawData.series };
+        // Data sudah dalam format yang benar dengan labels dan datasets
+        if (rawData.labels && Array.isArray(rawData.datasets)) {
+            return rawData;
+        }
+        
+        // Fallback untuk format lama dengan categories dan series
+        if (['bar', 'bar-chart', 'line', 'line-chart', 'area', 'area-chart'].includes(typeCode)) {
+            if (rawData.categories && Array.isArray(rawData.series)) {
+                return { labels: rawData.categories, datasets: rawData.series };
+            }
+        } else if (['pie', 'pie-chart', 'donut', 'donut-chart'].includes(typeCode)) {
+            if (rawData.labels && Array.isArray(rawData.datasets)) {
+                return { labels: rawData.labels, datasets: rawData.datasets };
+            }
+            // Fallback untuk format lama dengan series
+            if (rawData.labels && Array.isArray(rawData.series)) {
+                return { labels: rawData.labels, datasets: rawData.series };
+            }
+        } else if (typeCode === 'peta') {
+            // Untuk peta, data bisa berupa array koordinat dari upload Excel
+            return rawData;
         }
         
         return rawData;

@@ -58,7 +58,7 @@ const sendMagicLink = () => {
           <!-- Logo and title -->
           <div class="mb-1 md:mb-2">
             <div class="w-8 h-8 md:w-14 md:h-14 mx-auto bg-white rounded-full flex items-center justify-center shadow-lg mb-1 md:mb-2">
-              <img src="/images/assets/LOGO-PKL_REV8.png" class="w-6 h-6 md:w-9 md:h-9" alt="Logo PKL 65">
+              <img src="/images/assets/LOGO-PKL_REV8.png" class="w-6 h-6 md:w-12 md:h-12" alt="Logo PKL 65">
             </div>
             <h1 class="font-rakkas text-lg md:text-3xl font-bold text-red-600 tracking-wide">PKL 65</h1>
             <p class="text-red-600 text-xs md:text-base mt-0.5 md:mt-1 font-medium">Politeknik Statistika STIS<br />D.I. Yogyakarta</p>
@@ -129,7 +129,7 @@ const sendMagicLink = () => {
           <button
             type="submit"
             :disabled="form.processing"
-            class="w-full py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            class="w-full py-3 bg-[#EF874B] hover:bg-[#D94313] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             <span v-if="!form.processing">Login</span>
             <span v-else class="flex items-center justify-center">
