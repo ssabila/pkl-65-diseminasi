@@ -81,24 +81,6 @@ const statusState = ref({
     variant: 'success'
 })
 
-const risetOptions = computed(() => props.risets.map(r => ({
-    value: r.id,
-    label: r.name
-})))
-
-const topicOptions = computed(() => topics.value.map(t => ({
-    value: t.id,
-    label: t.name
-})))
-
-const visualizationTypeOptions = computed(() => props.visualizationTypes.map(vt => ({
-    value: vt.id,
-    label: vt.type_name
-})))
-
-const isBarOrPie = computed(() => ['bar', 'pie'].includes(selectedVisualizationType.value))
-const isPeta = computed(() => selectedVisualizationType.value === 'peta')
-
 const loadTopics = async (risetId) => {
     loadingTopics.value = true
     try {

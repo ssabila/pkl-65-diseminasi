@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
         // 1. Buat HANYA user admin
         $superuser = User::create([
             'name' => 'Admin', // Ganti nama jika mau
-            'email' => 'admin@admin.com', // Ganti email jika mau
+            'email' => 'ota@admin.com', // Ganti email jika mau
             'password' => bcrypt('password'), // Ganti password jika mau
             'riset_id' => $defaultRisetId,
         ]);

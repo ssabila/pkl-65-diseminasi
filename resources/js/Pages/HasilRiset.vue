@@ -1,6 +1,6 @@
 <script setup>
 import { Head } from '@inertiajs/vue3'
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import Sidebar from '@/Components/Sidebar.vue'
 import ApexBarChart from '@/Components/Charts/ApexBarChart.vue'
 import ApexDonutChart from '@/Components/Charts/ApexDonutChart.vue'
@@ -32,6 +32,50 @@ const chartComponents = {
 // Ref untuk download multiple charts
 const chartRefs = ref({});
 const setChartRef = (el, id) => { if (el) chartRefs.value[id] = el; };
+
+// Mobile sidebar state
+const isMobile = ref(false);
+const isSidebarOpen = ref(false);
+
+const checkMobile = () => {
+    isMobile.value = window.innerWidth < 768; // md breakpoint
+    if (!isMobile.value) {
+        isSidebarOpen.value = false; // Always show sidebar on desktop
+    }
+};
+
+const toggleSidebar = () => {
+    isSidebarOpen.value = !isSidebarOpen.value;
+};
+
+const closeSidebar = () => {
+    isSidebarOpen.value = false;
+};
+
+// Handle click outside sidebar on mobile
+const handleClickAway = (event) => {
+    if (!isMobile.value || !isSidebarOpen.value) return;
+    
+    const sidebar = event.target.closest('aside');
+    const hamburger = event.target.closest('button[aria-label="Toggle sidebar"]');
+    
+    if (hamburger) return;
+    
+    if (!sidebar) {
+        closeSidebar();
+    }
+};
+
+onMounted(() => {
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    document.addEventListener('click', handleClickAway);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', checkMobile);
+    document.removeEventListener('click', handleClickAway);
+});
 
 const getChartComponent = (typeCode) => chartComponents[typeCode] || null;
 
@@ -78,13 +122,44 @@ const triggerDownload = (id) => {
 
     <div class="flex flex-col md:flex-row min-h-screen w-full bg-[#FDFBF7] font-sans overflow-hidden text-gray-800">
         
+        <!-- Mobile Overlay -->
+        <div
+            v-if="isMobile && isSidebarOpen"
+            class="fixed inset-0 bg-black/30 z-40"
+            @click="closeSidebar"></div>
+            
+        <!-- Mobile Hamburger Button -->
+        <button
+            v-if="isMobile && !isSidebarOpen"
+            type="button"
+            class="fixed top-4 left-4 z-50 p-3 bg-pkl-base-orange text-white rounded-lg shadow-lg hover:bg-orange-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-300 md:hidden"
+            aria-label="Toggle sidebar"
+            @click.stop="toggleSidebar">
+            <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        
         <Sidebar 
             :riset-topics="risetTopics" 
             :selected-topic-id="selectedTopicId" 
-            active-page="hasil-riset" 
+            active-page="hasil-riset"
+            :class="[
+                'md:translate-x-0 md:static',
+                isMobile && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0'
+            ]"
+            @close="closeSidebar" 
         />
 
-        <main class="flex-1 p-6 md:p-10 h-screen overflow-y-auto relative scroll-smooth">
+        <main class="flex-1 p-6 md:p-10 h-screen overflow-y-auto relative scroll-smooth transition-all duration-300">
             <div class="absolute top-0 right-0 w-full h-full pointer-events-none opacity-30 mix-blend-multiply z-0 fixed">
                  <img src="/images/assets/pattern kuning 1.svg" class="absolute top-0 right-0 w-[600px] opacity-30" />
             </div>
