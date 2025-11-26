@@ -3,6 +3,7 @@
 namespace App\Models;
 
 
+use App\Models\Riset;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -30,6 +31,7 @@ class User extends Authenticatable implements Auditable
         'password_changed_at',
         'force_password_change',
         'disable_account',
+        'riset_id',
     ];
 
     protected $casts = [
@@ -78,6 +80,11 @@ class User extends Authenticatable implements Auditable
     }
 
 
+
+    public function riset()
+    {
+        return $this->belongsTo(Riset::class);
+    }
 
     public function loginHistory()
     {
