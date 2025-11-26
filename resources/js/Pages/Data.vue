@@ -80,10 +80,11 @@ watch(() => form.visualization_type_id, (newTypeId) => {
     mapFile.value = null
     showPreview.value = false
     
-    if (['bar', 'pie'].includes(selectedVisualizationType.value)) {
+    // Initialize with one empty row for bar/pie charts
+    if (newTypeId && ['bar', 'pie'].includes(selectedVisualizationType.value)) {
         addCategory()
     }
-})
+}, { immediate: true })
 
 const risetOptions = props.risets.map(r => ({
     value: r.id,
@@ -103,7 +104,7 @@ const visualizationTypeOptions = props.visualizationTypes.map(vt => ({
 }))
 
 const isBarOrPie = computed(() => {
-    return ['bar', 'pie'].includes(selectedVisualizationType.value)
+    return selectedVisualizationType.value && ['bar', 'pie'].includes(selectedVisualizationType.value)
 })
 
 const isPeta = computed(() => {

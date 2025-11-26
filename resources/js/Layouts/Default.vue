@@ -8,8 +8,18 @@ import NavSidebarDesktop from '@/Components/NavSidebarDesktop.vue'
 const page = usePage()
 const isSidebarOpen = ref(true) // Default terbuka
 const isLayoutReady = ref(false)
+const isMobile = ref(false)
 
-const isMobile = () => window.innerWidth < 1024
+const checkMobile = () => {
+    isMobile.value = window.innerWidth < 1024
+    // Auto close sidebar on mobile, keep open on desktop
+    if (!isMobile.value && !isSidebarOpen.value) {
+        const savedState = localStorage.getItem('sidebarOpen')
+        if (savedState === null || savedState === 'true') {
+            isSidebarOpen.value = true
+        }
+    }
+}
 
 const toggleSidebar = () => {
     console.log('Toggle sidebar - before:', isSidebarOpen.value)
@@ -25,7 +35,7 @@ const closeSidebar = () => {
 
 const handleClickAway = (event) => {
     // Hanya auto-close di mobile
-    if (!isMobile()) return
+    if (!isMobile.value) return
     
     const sidebar = document.querySelector('[data-sidebar]')
     const sidebarContent = document.querySelector('[data-sidebar-content]')
@@ -51,8 +61,10 @@ const handleKeyDown = (event) => {
 }
 
 onMounted(() => {
+    checkMobile()
     document.addEventListener('click', handleClickAway)
     document.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('resize', checkMobile)
 
     // Load saved state
     const savedState = localStorage.getItem('sidebarOpen')
@@ -60,7 +72,7 @@ onMounted(() => {
         isSidebarOpen.value = savedState === 'true'
     } else {
         // Default: terbuka di desktop, tertutup di mobile
-        isSidebarOpen.value = !isMobile()
+        isSidebarOpen.value = !isMobile.value
     }
     
     console.log('Initial sidebar state:', isSidebarOpen.value)
@@ -71,6 +83,7 @@ onMounted(() => {
 onUnmounted(() => {
     document.removeEventListener('click', handleClickAway)
     document.removeEventListener('keydown', handleKeyDown)
+    window.removeEventListener('resize', checkMobile)
 })
 
 // Watch perubahan sidebar state
@@ -87,9 +100,31 @@ watch(isSidebarOpen, (newVal) => {
 
         <!-- Overlay untuk mobile -->
         <div
-            v-if="isMobile() && isSidebarOpen"
-            class="fixed inset-0 bg-black/30 z-30"
+            v-if="isMobile && isSidebarOpen"
+            class="fixed inset-0 bg-black/30 z-40"
             @click="closeSidebar"></div>
+
+        <!-- Floating Hamburger Button (when sidebar is closed) -->
+        <button
+            v-if="!isSidebarOpen"
+            type="button"
+            class="fixed top-4 left-4 z-50 p-3 bg-pkl-base-orange text-white rounded-lg shadow-lg hover:bg-orange-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-300"
+            aria-label="Open sidebar"
+            @click.stop="toggleSidebar">
+            <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+
+
 
         <!-- Sidebar -->
         <NavSidebarDesktop
@@ -97,50 +132,22 @@ watch(isSidebarOpen, (newVal) => {
             role="navigation"
             aria-label="Main sidebar"
             :aria-expanded="isSidebarOpen.toString()"
-            class="fixed left-0 top-[70px] w-64 h-[calc(100vh-70px)] transition-transform duration-300 z-[60]"
-            :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-64'"
-            @close="closeSidebar" />
+            :class="[
+                'fixed w-64 h-screen transition-transform duration-300 z-[60]',
+                'left-0 top-0',
+                isSidebarOpen ? 'translate-x-0' : '-translate-x-64'
+            ]"
+            @close="closeSidebar"
+            @toggle="toggleSidebar" />
 
         <!-- MAIN WRAPPER -->
         <div class="flex flex-col min-h-screen">
-            <!-- NAVBAR ATAS -->
-            <header
-                role="banner"
-                class="fixed top-0 left-0 right-0 w-full bg-[var(--color-surface)] z-[55] h-[70px] shadow-xs border-b border-[var(--color-border)]">
-                <nav
-                    class="flex h-full items-center justify-between px-4"
-                    role="navigation"
-                    aria-label="Primary navigation">
-                    
-                    <!-- LEFT: Hamburger Button - SELALU TAMPIL -->
-                    <button
-                        type="button"
-                        class="p-2 rounded-md text-[var(--color-text)] hover:bg-[var(--color-surface-muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        aria-label="Toggle sidebar"
-                        :aria-expanded="isSidebarOpen.toString()"
-                        @click.stop="toggleSidebar">
-                        <svg
-                            class="w-6 h-6"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-
-                    <!-- RIGHT: Profile Menu -->
-                    <NavProfile />
-                </nav>
-            </header>
-
-            <!-- Main Content - PERBAIKAN: tidak pakai !isMobile() -->
+            <!-- Main Content -->
             <main
-                class="flex-1 pt-[70px] transition-all duration-300"
-                :class="isSidebarOpen ? 'lg:ml-64' : 'ml-0'"
+                :class="[
+                    'flex-1 transition-all duration-300',
+                    isSidebarOpen ? 'ml-64' : 'ml-0'
+                ]"
                 role="main"
                 aria-label="Main content">
                 <slot />
