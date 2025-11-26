@@ -2,27 +2,22 @@
 
 namespace App\Models;
 
- 
+
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
-use Laravel\Scout\Searchable;
 use OwenIt\Auditing\Contracts\Auditable;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable implements Auditable
 {
-    use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
-    use HasUlids;
+    use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
     use \OwenIt\Auditing\Auditable;
     use HasRoles;
-    use Searchable;
+
 
     protected $guarded = ['id'];
 
@@ -48,19 +43,6 @@ class User extends Authenticatable implements Auditable
     ];
 
     protected $appends = ['created_at_formatted'];
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($user) {
-            $user->user_slug = 'user-' . Str::random(12);
-            if (!$user->password) {
-                $user->password = null;
-            }
-        });
-    }
-
 
     public function formatDateStyle(?Carbon $date = null): string
     {
@@ -96,26 +78,6 @@ class User extends Authenticatable implements Auditable
     }
 
 
-    public function isPasswordExpired(): bool
-    {
-        if (!$this->password_expiry_at) {
-            return false;
-        }
-
-        return $this->password_expiry_at->isPast();
-    }
-
-
-    public function daysUntilPasswordExpiry(): int
-    {
-        if (!$this->password_expiry_at) {
-            return 0;
-        }
-
-        $expiryDate = Carbon::createFromTimestamp($this->password_expiry_at);
-        return max(0, now()->diffInDays($expiryDate));
-    }
-
 
     public function loginHistory()
     {
@@ -144,27 +106,5 @@ class User extends Authenticatable implements Auditable
     public function canBeDeleted(): bool
     {
         return !$this->isSuperUser();
-    }
-
-
-    public function canChangeRole(): bool
-    {
-        return !$this->isSuperUser();
-    }
-
-
-    public function canChangeAccountStatus(): bool
-    {
-        return !$this->isSuperUser();
-    }
-
-
-    public function toSearchableArray(): array
-    {
-        return array_merge($this->toArray(), [
-            'id' => (string) $this->id,
-            'created_at' => $this->created_at->timestamp,
-            'collection_name' => 'users',
-        ]);
     }
 }
