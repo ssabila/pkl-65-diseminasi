@@ -54,6 +54,10 @@ const formattedChartData = computed(() => {
                 return { labels: rawData.categories, datasets: rawData.series };
             }
         } else if (['pie', 'pie-chart', 'donut', 'donut-chart'].includes(typeCode)) {
+            if (rawData.labels && Array.isArray(rawData.datasets)) {
+                return { labels: rawData.labels, datasets: rawData.datasets };
+            }
+            // Fallback untuk format lama dengan series
             if (rawData.labels && Array.isArray(rawData.series)) {
                 return { labels: rawData.labels, datasets: rawData.series };
             }

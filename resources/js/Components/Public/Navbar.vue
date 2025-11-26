@@ -20,12 +20,6 @@ const isActive = (url) => {
   return currentUrl.value.startsWith(url);
 };
 
-// Fungsi untuk navigasi ke hasil riset dengan memaksa HTTP
-const goToHasilRiset = () => {
-  // Memaksa menggunakan HTTP dan port 8000
-  window.location.href = 'http://localhost:8000/hasil-riset';
-};
-
 // Fungsi untuk menutup dropdown ketika klik di luar
 const handleClickOutside = (event) => {
   const dropdown = event.target.closest('.relative');
@@ -79,8 +73,7 @@ onUnmounted(() => {
             Beranda
           </Link>
           <a 
-            href="#"
-            @click.prevent="goToHasilRiset"
+            href="http://localhost:8000/hasil-riset"
             :class="[
               'text-base font-semibold transition-colors duration-150',
               isActive('/hasil-riset') ? 'text-white' : 'text-white/80 hover:text-white'

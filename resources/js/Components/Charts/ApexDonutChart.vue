@@ -75,7 +75,17 @@ const chartOptions = computed(() => ({
     }
 }));
 
-const series = computed(() => props.chartData.datasets || []);
+const series = computed(() => {
+    // Jika datasets adalah array langsung (format baru)
+    if (Array.isArray(props.chartData.datasets) && typeof props.chartData.datasets[0] === 'number') {
+        return props.chartData.datasets;
+    }
+    // Jika datasets adalah array object (format lama)
+    if (Array.isArray(props.chartData.datasets) && props.chartData.datasets[0]?.data) {
+        return props.chartData.datasets[0].data;
+    }
+    return [];
+});
 </script>
 
 <template>

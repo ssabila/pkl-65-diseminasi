@@ -83,11 +83,11 @@ watch(() => form.visualization_type_id, (newTypeId) => {
     mapFile.value = null
     showPreview.value = false
     
-    // Initialize with one empty row for bar/pie
-    if (['bar', 'pie'].includes(selectedVisualizationType.value)) {
+    // Initialize with one empty row for charts that need category/value input
+    if (newTypeId && ['bar-chart', 'pie-chart', 'donut-chart', 'line-chart', 'area-chart'].includes(selectedVisualizationType.value)) {
         addCategory()
     }
-})
+}, { immediate: true })
 
 const risetOptions = props.risets.map(r => ({
     value: r.id,
@@ -107,7 +107,7 @@ const visualizationTypeOptions = props.visualizationTypes.map(vt => ({
 }))
 
 const isBarOrPie = computed(() => {
-    return ['bar', 'pie'].includes(selectedVisualizationType.value)
+    return selectedVisualizationType.value && ['bar-chart', 'pie-chart', 'donut-chart', 'line-chart', 'area-chart'].includes(selectedVisualizationType.value)
 })
 
 const isPeta = computed(() => {
@@ -174,12 +174,20 @@ const handlePreview = () => {
         const categories = validCategories.map(c => c.category)
         const values = validCategories.map(c => parseFloat(c.value) || 0)
 
-        form.chart_data = {
-            labels: categories,
-            datasets: [{
-                data: values,
-                backgroundColor: generateColors(values.length)
-            }]
+        // Format berbeda untuk pie/donut vs line/area/bar
+        if (['pie-chart', 'donut-chart'].includes(selectedVisualizationType.value)) {
+            form.chart_data = {
+                labels: categories,
+                datasets: values  // Langsung array nilai untuk pie/donut
+            }
+        } else {
+            form.chart_data = {
+                labels: categories,
+                datasets: [{
+                    name: 'Nilai',
+                    data: values
+                }]
+            }
         }
         
         // Prepare ApexCharts data
@@ -205,7 +213,7 @@ const handlePreview = () => {
 }
 
 const prepareApexChart = (categories, values) => {
-    if (selectedVisualizationType.value === 'bar') {
+    if (selectedVisualizationType.value === 'bar-chart') {
         chartSeries.value = [{
             name: 'Nilai',
             data: values
@@ -272,7 +280,7 @@ const prepareApexChart = (categories, values) => {
                     }
                 }
             },
-            colors: ['#008FFB'],
+            colors: ['#ef874b'],
             fill: {
                 type: 'gradient',
                 gradient: {
@@ -289,14 +297,20 @@ const prepareApexChart = (categories, values) => {
             tooltip: {
                 enabled: true,
                 theme: 'light',
-                y: {
-                    formatter: function (val) {
-                        return val.toFixed(2)
-                    }
+                custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                    const categoryName = categories[dataPointIndex] || 'Kategori';
+                    const value = series[seriesIndex][dataPointIndex];
+                    
+                    return `
+                        <div class="px-3 py-2 bg-white shadow-lg rounded-lg border">
+                            <div class="font-semibold text-gray-800">${categoryName}</div>
+                            <div class="text-sm text-gray-600">Nilai: <span class="font-bold text-[#ef874b]">${value}</span></div>
+                        </div>
+                    `;
                 }
             }
         }
-    } else if (selectedVisualizationType.value === 'pie') {
+    } else if (selectedVisualizationType.value === 'pie-chart') {
         chartSeries.value = values
         
         chartOptions.value = {
@@ -344,10 +358,19 @@ const prepareApexChart = (categories, values) => {
             tooltip: {
                 enabled: true,
                 theme: 'light',
-                y: {
-                    formatter: function (val) {
-                        return val.toFixed(2)
-                    }
+                custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                    const categoryName = categories[seriesIndex] || 'Kategori';
+                    const value = series[seriesIndex];
+                    const total = series.reduce((sum, val) => sum + val, 0);
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    
+                    return `
+                        <div class="px-3 py-2 bg-white shadow-lg rounded-lg border">
+                            <div class="font-semibold text-gray-800">${categoryName}</div>
+                            <div class="text-sm text-gray-600">Nilai: <span class="font-bold text-[#ef874b]">${value}</span></div>
+                            <div class="text-xs text-gray-500">${percentage}% dari total</div>
+                        </div>
+                    `;
                 }
             },
             responsive: [{
@@ -361,6 +384,265 @@ const prepareApexChart = (categories, values) => {
                     }
                 }
             }]
+        }
+    } else if (selectedVisualizationType.value === 'donut-chart') {
+        chartSeries.value = values
+        
+        chartOptions.value = {
+            chart: {
+                type: 'donut',
+                height: 400,
+                toolbar: {
+                    show: true
+                },
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 800,
+                }
+            },
+            labels: categories,
+            colors: generateColors(values.length),
+            legend: {
+                position: 'bottom',
+                fontSize: '14px',
+                formatter: function(seriesName, opts) {
+                    return seriesName + ": " + opts.w.globals.series[opts.seriesIndex]
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function (val, opts) {
+                    const name = opts.w.globals.labels[opts.seriesIndex]
+                    return [name, val.toFixed(1) + '%']
+                },
+                style: {
+                    fontSize: '12px',
+                }
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true,
+                                showAlways: false,
+                                label: 'Total',
+                                fontSize: '22px',
+                                fontWeight: 600,
+                                color: '#373d3f',
+                                formatter: function (w) {
+                                    return w.globals.seriesTotals.reduce((a, b) => {
+                                        return a + b
+                                    }, 0)
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            tooltip: {
+                enabled: true,
+                theme: 'light',
+                custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                    const categoryName = categories[seriesIndex] || 'Kategori';
+                    const value = series[seriesIndex];
+                    const total = series.reduce((sum, val) => sum + val, 0);
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    
+                    return `
+                        <div class="px-3 py-2 bg-white shadow-lg rounded-lg border">
+                            <div class="font-semibold text-gray-800">${categoryName}</div>
+                            <div class="text-sm text-gray-600">Nilai: <span class="font-bold text-[#ef874b]">${value}</span></div>
+                            <div class="text-xs text-gray-500">${percentage}% dari total</div>
+                        </div>
+                    `;
+                }
+            },
+            responsive: [{
+                breakpoint: 480,
+                options: {
+                    chart: {
+                        width: 300
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }]
+        }
+    } else if (selectedVisualizationType.value === 'line-chart') {
+        chartSeries.value = [{
+            name: 'Nilai',
+            data: values
+        }]
+        
+        chartOptions.value = {
+            chart: {
+                type: 'line',
+                height: 400,
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: true,
+                        selection: false,
+                        zoom: false,
+                        zoomin: false,
+                        zoomout: false,
+                        pan: false,
+                        reset: false
+                    }
+                },
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 800,
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function (val) {
+                    return val.toFixed(0)
+                },
+                style: {
+                    fontSize: '12px',
+                    colors: ["#304758"]
+                }
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 3
+            },
+            xaxis: {
+                categories: categories,
+                labels: {
+                    style: {
+                        fontSize: '12px'
+                    }
+                }
+            },
+            yaxis: {
+                title: {
+                    text: 'Nilai'
+                },
+                labels: {
+                    formatter: function (val) {
+                        return val.toFixed(0)
+                    }
+                }
+            },
+            colors: ['#ef874b'],
+            markers: {
+                size: 6,
+                colors: ['#ef874b'],
+                strokeColors: '#fff',
+                strokeWidth: 2,
+                hover: {
+                    size: 8,
+                }
+            },
+            tooltip: {
+                enabled: true,
+                theme: 'light',
+                custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                    const categoryName = categories[dataPointIndex] || 'Kategori';
+                    const value = series[seriesIndex][dataPointIndex];
+                    
+                    return `
+                        <div class="px-3 py-2 bg-white shadow-lg rounded-lg border">
+                            <div class="font-semibold text-gray-800">${categoryName}</div>
+                            <div class="text-sm text-gray-600">Nilai: <span class="font-bold text-[#ef874b]">${value}</span></div>
+                        </div>
+                    `;
+                }
+            }
+        }
+    } else if (selectedVisualizationType.value === 'area-chart') {
+        chartSeries.value = [{
+            name: 'Nilai',
+            data: values
+        }]
+        
+        chartOptions.value = {
+            chart: {
+                type: 'area',
+                height: 400,
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: true,
+                        selection: false,
+                        zoom: false,
+                        zoomin: false,
+                        zoomout: false,
+                        pan: false,
+                        reset: false
+                    }
+                },
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 800,
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function (val) {
+                    return val.toFixed(0)
+                },
+                style: {
+                    fontSize: '12px',
+                    colors: ["#304758"]
+                }
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 2
+            },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.7,
+                    opacityTo: 0.9,
+                    stops: [0, 90, 100]
+                }
+            },
+            xaxis: {
+                categories: categories,
+                labels: {
+                    style: {
+                        fontSize: '12px'
+                    }
+                }
+            },
+            yaxis: {
+                title: {
+                    text: 'Nilai'
+                },
+                labels: {
+                    formatter: function (val) {
+                        return val.toFixed(0)
+                    }
+                }
+            },
+            colors: ['#ef874b'],
+            tooltip: {
+                enabled: true,
+                theme: 'light',
+                custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                    const categoryName = categories[dataPointIndex] || 'Kategori';
+                    const value = series[seriesIndex][dataPointIndex];
+                    
+                    return `
+                        <div class="px-3 py-2 bg-white shadow-lg rounded-lg border">
+                            <div class="font-semibold text-gray-800">${categoryName}</div>
+                            <div class="text-sm text-gray-600">Nilai: <span class="font-bold text-[#ef874b]">${value}</span></div>
+                        </div>
+                    `;
+                }
+            }
         }
     }
 }
@@ -425,11 +707,14 @@ const renderMap = () => {
 }
 
 const generateColors = (count) => {
-    const colors = [
-        '#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0',
-        '#546E7A', '#26a69a', '#D10CE8', '#F9A3A4', '#90EE7E'
-    ]
-    return colors.slice(0, count)
+    // Template colors matching the design system
+    const pklColors = ['#ef874b', '#50829b', '#748d63', '#fcda7b', '#8174a0', '#f69a5c']
+    // Repeat colors if more than available
+    const colors = []
+    for (let i = 0; i < count; i++) {
+        colors.push(pklColors[i % pklColors.length])
+    }
+    return colors
 }
 
 const handleReset = () => {
@@ -549,9 +834,9 @@ const handlePublish = async () => {
                         required 
                     />
 
-                    <!-- Dynamic Form: Bar/Pie Chart -->
+                    <!-- Dynamic Form: Chart Data Input -->
                     <div v-if="isBarOrPie" class="border-t pt-6">
-                        <h3 class="text-lg font-semibold mb-4">Input Data Kategori</h3>
+                        <h3 class="text-lg font-semibold mb-4">Input Data Kategori dan Nilai</h3>
                         <div class="space-y-3">
                             <div 
                                 v-for="(category, index) in chartCategories" 
