@@ -32,7 +32,7 @@ const colors = {
 
 <template>
     <section 
-        class="relative py-8 px-6 overflow-hidden flex flex-col"
+        class="relative py-4 px-6 overflow-hidden flex flex-col -mt-6"
         :style="{ backgroundColor: colors.bgCream }" 
     >
         
