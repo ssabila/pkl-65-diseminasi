@@ -6,6 +6,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Laravel\Fortify\Fortify;
+use Illuminate\Http\JsonResponse;
 use App\Actions\Fortify\CreateNewUser;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -15,6 +16,7 @@ use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use Illuminate\Support\Facades\RateLimiter;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -23,7 +25,17 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Bind custom LoginResponse untuk redirect ke dashboard setelah login
+        $this->app->singleton(LoginResponseContract::class, function () {
+            return new class implements LoginResponseContract {
+                public function toResponse($request)
+                {
+                    return $request->wantsJson()
+                        ? new JsonResponse('', 204)
+                        : redirect()->intended(RouteServiceProvider::HOME);
+                }
+            };
+        });
     }
 
     /**

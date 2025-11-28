@@ -7,7 +7,6 @@ import Footer from '@/Shared/Public/Footer.vue'
 const sidebarStorageKey = 'sidebarOpen'
 const isMobile = () => window.innerWidth < 768
 const isSidebarOpen = ref(false)
-const isDark = ref(document.documentElement.classList.contains('dark'))
 const themeState = ref(getCurrentThemeState())
 
 const toggleSidebar = () => {
@@ -42,26 +41,6 @@ const handleKeyDown = event => {
     }
 }
 
-const toggleDarkMode = () => {
-    themeState.value = cycleTheme()
-}
-
-const setupThemeObserver = () => {
-    const observer = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-            if (mutation.attributeName === 'class') {
-                isDark.value = document.documentElement.classList.contains('dark')
-            }
-        })
-    })
-
-    observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['class']
-    })
-
-    return observer
-}
 
 onMounted(() => {
     document.addEventListener('click', handleClickAway)
@@ -121,12 +100,8 @@ onMounted(() => {
                             aria-label="Go to homepage">
                             <img
                                 src="/images/logo.png"
-                                class="h-10 w-auto block dark:hidden"
+                                class="h-10 w-auto block "
                                 alt="Logo" />
-                            <img
-                                src="/images/logo-dark.png"
-                                class="h-10 w-auto hidden dark:block"
-                                alt="Logo Dark" />
                         </Link>
 
                         <!-- Mobile Menu Toggle -->
@@ -219,7 +194,7 @@ onMounted(() => {
                 :class="['pt-16', isSidebarOpen ? 'md:ml-64 xl:mr-64' : 'md:ml-0 xl:mr-64']">
                 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <article
-                        class="py-8 prose prose-gray dark:prose-invert prose-headings:scroll-mt-20 max-w-none">
+                        class="py-8 prose prose-gray prose-headings:scroll-mt-20 max-w-none">
                         <slot />
                     </article>
                 </div>

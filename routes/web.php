@@ -26,7 +26,7 @@ Route::get('/dokumen', [PageController::class, 'dokumen'])->name('dokumen');
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     // User Account
     Route::prefix('user')->name('user.')->group(function () {
@@ -43,6 +43,11 @@ Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
     | Admin Routes (Super Admin only)
     |--------------------------------------------------------------------------
     */
+    Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/history', [\App\Http\Controllers\Admin\HistoryController::class, 'index'])
+        ->name('admin.history');
+    });
+
     Route::middleware(['role:Super Admin'])->group(function () {
 
         // Dashboard (root dashboard)
@@ -54,7 +59,6 @@ Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
         |--------------------------------------------------------------------------
         */
         Route::prefix('admin')->name('admin.')->group(function () {
-
 
             /*
             |--------------------------------------------------------------
@@ -70,21 +74,29 @@ Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
             Route::post('/dashboard/publish', [DashboardController::class, 'publish'])
                 ->name('dashboard.publish');
 
+            Route::get('/dashboard/{visualization}/edit', [DashboardController::class, 'edit'])
+                ->name('dashboard.edit');
+
+            Route::put('/dashboard/{visualization}', [DashboardController::class, 'update'])
+                ->name('dashboard.update');
+
+            Route::delete('/dashboard/{visualization}', [DashboardController::class, 'destroy'])
+                ->name('dashboard.delete');
+
             /*
             |--------------------------------------------------------------
-            | Data Page (INI YANG KAMU MINTA)
+            | Data Page
             |--------------------------------------------------------------
             */
             Route::get('/data', [DataController::class, 'index'])->name('data');
 
-            /*
-            |--------------------------------------------------------------
-            | TODO: CRUD Diseminasi
-            |--------------------------------------------------------------
-            */
-            // Route::resource('riset', App\Http\Controllers\RisetController::class);
-            // Route::resource('topik', App\Http\Controllers\TopicController::class);
-            // Route::resource('visualisasi', App\Http\Controllers\VisualizationController::class);
+
+            // routes/web.php atau routes/admin.php
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+    Route::delete('/dashboard/{id}', [DashboardController::class, 'destroy'])->name('dashboard.delete');
+    Route::get('/dashboard/{id}/edit', [DashboardController::class, 'edit'])->name('dashboard.edit');
+});
 
         });
     });

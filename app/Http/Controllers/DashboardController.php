@@ -7,32 +7,139 @@ use App\Models\Topic;
 use App\Models\Visualization;
 use App\Models\VisualizationType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Storage;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $risets = Riset::where('is_published', true)
-            ->select('id', 'name', 'slug')
-            ->orderBy('name')
-            ->get();
+        $userRisetId = auth()->user()?->riset_id;
+
+        $visualizationsQuery = Visualization::with(['topic.riset', 'type'])
+            ->latest('updated_at');
+
+        if ($userRisetId) {
+            $visualizationsQuery->whereHas('topic', function ($query) use ($userRisetId) {
+                $query->where('riset_id', $userRisetId);
+            });
+        }
+
+        $visualizations = $visualizationsQuery
+            ->get()
+            ->map(function ($visualization) {
+                return [
+                    'id' => $visualization->id,
+                    'title' => $visualization->title,
+                    'interpretation' => Str::limit(strip_tags($visualization->interpretation ?? ''), 140),
+                    'riset_name' => $visualization->topic?->riset?->name ?? '-',
+                    'topic_name' => $visualization->topic?->name ?? '-',
+                    'type_name' => $visualization->type?->type_name ?? '-',
+                    'type_code' => $visualization->type?->type_code,
+                    'created_at' => optional($visualization->created_at)->format('d M Y'),
+                    'updated_at' => optional($visualization->updated_at)->format('d M Y'),
+                ];
+            })
+            ->values();
+
+        $totalDiseminasi = $visualizations->count();
+        $totalUpdated = Visualization::whereColumn('updated_at', '>', 'created_at')
+            ->when($userRisetId, function ($query) use ($userRisetId) {
+                $query->whereHas('topic', function ($topicQuery) use ($userRisetId) {
+                    $topicQuery->where('riset_id', $userRisetId);
+                });
+            })
+            ->count();
+
+        $totalDeleted = Visualization::onlyTrashed()
+            ->when($userRisetId, function ($query) use ($userRisetId) {
+                $query->whereHas('topic', function ($topicQuery) use ($userRisetId) {
+                    $topicQuery->where('riset_id', $userRisetId);
+                });
+            })
+            ->count();
+
+        return Inertia::render('Dashboard', [
+            'totalDiseminasi' => $totalDiseminasi,
+            'totalUpdated' => $totalUpdated,
+            'totalDeleted' => $totalDeleted,
+            'visualizations' => $visualizations,
+        ]);
+    }
+
+    public function edit(Visualization $visualization)
+    {
+        $this->ensureVisualizationAccess($visualization);
+
+        $visualization->load(['topic.riset', 'type']);
+
+        $risetsQuery = Riset::where('is_published', true)
+            ->select('id', 'name')
+            ->orderBy('name');
+
+        if ($assignedRisetId = auth()->user()?->riset_id) {
+            $risetsQuery->where('id', $assignedRisetId);
+        }
 
         $visualizationTypes = VisualizationType::select('id', 'type_code', 'type_name')
             ->orderBy('type_name')
             ->get();
 
-        return Inertia::render('Dashboard', [
-            'risets' => $risets,
+        return Inertia::render('Admin/Data', [
+            'risets' => $risetsQuery->get(),
             'visualizationTypes' => $visualizationTypes,
+            'editingVisualization' => [
+                'id' => $visualization->id,
+                'topic_id' => $visualization->topic_id,
+                'visualization_type_id' => $visualization->visualization_type_id,
+                'title' => $visualization->title,
+                'interpretation' => $visualization->interpretation,
+                'chart_data' => $visualization->chart_data,
+                'chart_options' => $visualization->chart_options,
+                'riset_id' => $visualization->topic?->riset?->id,
+                'topic_name' => $visualization->topic?->name,
+                'riset_name' => $visualization->topic?->riset?->name,
+                'type_code' => $visualization->type?->type_code,
+            ],
         ]);
     }
 
-    /**
-     * Get topics based on selected riset
-     */
+    public function update(Request $request, Visualization $visualization)
+    {
+        $validated = $request->validate([
+            'riset_id' => 'required|exists:risets,id',
+            'topic_id' => 'required|exists:topics,id',
+            'visualization_type_id' => 'required|exists:visualization_types,id',
+            'title' => 'required|string|max:255',
+            'interpretation' => 'required|string',
+            'chart_data' => 'required|array',
+            'chart_options' => 'nullable|array',
+        ]);
+
+        $this->ensureVisualizationAccess($visualization);
+        $this->ensureRisetAccess((int) $validated['riset_id']);
+
+        Topic::where('id', $validated['topic_id'])
+            ->where('riset_id', $validated['riset_id'])
+            ->firstOrFail();
+
+        $visualization->update([
+            'topic_id' => $validated['topic_id'],
+            'visualization_type_id' => $validated['visualization_type_id'],
+            'title' => $validated['title'],
+            'interpretation' => $validated['interpretation'],
+            'chart_data' => $validated['chart_data'],
+            'chart_options' => $validated['chart_options'] ?? null,
+            'is_published' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Visualisasi berhasil diperbarui',
+        ]);
+    }
+    
     public function getTopics(Request $request)
     {
         $request->validate([
@@ -51,9 +158,6 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * Upload and process CSV/Excel file for map
-     */
     public function uploadMapData(Request $request)
     {
         $request->validate([
@@ -74,7 +178,6 @@ class DashboardController extends Controller
             $rows = $data[0];
             $headers = array_map('strtolower', array_map('trim', $rows[0]));
             
-            // Check required columns
             $requiredColumns = ['latitude', 'longitude', 'density'];
             $missingColumns = array_diff($requiredColumns, $headers);
             
@@ -127,9 +230,6 @@ class DashboardController extends Controller
         }
     }
 
-    /**
-     * Publish/Store visualization
-     */
     public function publish(Request $request)
     {
         $validated = $request->validate([
@@ -142,6 +242,8 @@ class DashboardController extends Controller
             'chart_options' => 'nullable|array',
         ]);
 
+        $this->ensureRisetAccess((int) $validated['riset_id']);
+
         // Verify topic belongs to riset
         $topic = Topic::where('id', $validated['topic_id'])
             ->where('riset_id', $validated['riset_id'])
@@ -149,9 +251,6 @@ class DashboardController extends Controller
 
         // Get visualization type
         $vizType = VisualizationType::findOrFail($validated['visualization_type_id']);
-
-        // Generate title based on type
-        $title = $this->generateTitle($vizType->type_name, $topic->name);
 
         // Get the next order number for this topic
         $nextOrder = Visualization::where('topic_id', $validated['topic_id'])
@@ -164,7 +263,7 @@ class DashboardController extends Controller
             'interpretation' => $validated['interpretation'],
             'chart_data' => $validated['chart_data'],
             'chart_options' => $validated['chart_options'] ?? null,
-            'order' => $nextOrder,
+            'order' => $nextOrder ?? 1,
             'is_published' => true,
         ]);
 
@@ -176,5 +275,44 @@ class DashboardController extends Controller
                 'title' => $visualization->title,
             ]
         ]);
+    }
+
+    public function destroy(Visualization $visualization)
+    {
+        $this->ensureVisualizationAccess($visualization);
+
+        $visualization->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Visualisasi berhasil dihapus'
+        ]);
+    }
+
+    private function ensureVisualizationAccess(Visualization $visualization): void
+    {
+        $risetId = $visualization->topic?->riset_id;
+        if (!$risetId) {
+            abort(404);
+        }
+
+        $this->ensureRisetAccess($risetId);
+    }
+
+    private function ensureRisetAccess(int $risetId): void
+    {
+        $user = auth()->user();
+
+        if ($user && $user->riset_id && (int) $user->riset_id !== (int) $risetId) {
+            abort(403, 'Anda tidak memiliki akses ke riset ini.');
+        }
+    }
+
+    /**
+     * 🔧 TAMBAHKAN METHOD INI - Generate title for visualization
+     */
+    private function generateTitle($typeName, $topicName)
+    {
+        return ucfirst($typeName) . ' - ' . $topicName;
     }
 }

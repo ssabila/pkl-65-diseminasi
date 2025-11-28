@@ -2,25 +2,23 @@
 
 namespace App\Models;
 
- 
+
+use App\Models\Riset;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
-use Laravel\Scout\Searchable;
+use OwenIt\Auditing\Contracts\Auditable;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
-    use HasUlids;
+    use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use \OwenIt\Auditing\Auditable;
     use HasRoles;
-    use Searchable;
+
 
     protected $guarded = ['id'];
 
@@ -33,6 +31,7 @@ class User extends Authenticatable
         'password_changed_at',
         'force_password_change',
         'disable_account',
+        'riset_id',
     ];
 
     protected $casts = [
@@ -46,19 +45,6 @@ class User extends Authenticatable
     ];
 
     protected $appends = ['created_at_formatted'];
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($user) {
-            $user->user_slug = 'user-' . Str::random(12);
-            if (!$user->password) {
-                $user->password = null;
-            }
-        });
-    }
-
 
     public function formatDateStyle(?Carbon $date = null): string
     {
@@ -94,26 +80,11 @@ class User extends Authenticatable
     }
 
 
-    public function isPasswordExpired(): bool
+
+    public function riset()
     {
-        if (!$this->password_expiry_at) {
-            return false;
-        }
-
-        return $this->password_expiry_at->isPast();
+        return $this->belongsTo(Riset::class);
     }
-
-
-    public function daysUntilPasswordExpiry(): int
-    {
-        if (!$this->password_expiry_at) {
-            return 0;
-        }
-
-        $expiryDate = Carbon::createFromTimestamp($this->password_expiry_at);
-        return max(0, now()->diffInDays($expiryDate));
-    }
-
 
     public function loginHistory()
     {
@@ -142,27 +113,5 @@ class User extends Authenticatable
     public function canBeDeleted(): bool
     {
         return !$this->isSuperUser();
-    }
-
-
-    public function canChangeRole(): bool
-    {
-        return !$this->isSuperUser();
-    }
-
-
-    public function canChangeAccountStatus(): bool
-    {
-        return !$this->isSuperUser();
-    }
-
-
-    public function toSearchableArray(): array
-    {
-        return array_merge($this->toArray(), [
-            'id' => (string) $this->id,
-            'created_at' => $this->created_at->timestamp,
-            'collection_name' => 'users',
-        ]);
     }
 }

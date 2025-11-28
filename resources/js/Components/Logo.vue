@@ -71,7 +71,7 @@ onMounted(() => {
 
         <!-- Fallback -->
         <h1 v-else class="text-3xl font-extrabold text-gray-800 dark:text-white text-center">
-            {{ page.props.personalisation?.app_name || 'GuacPanel' }}
+            {{ page.props.personalisation?.app_name || 'PKL 65' }}
         </h1>
     </figure>
 </template>

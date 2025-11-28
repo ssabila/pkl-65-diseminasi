@@ -16,7 +16,6 @@ const chartOptions = computed(() => ({
         id: 'bar-chart',
         fontFamily: 'TT Bells, sans-serif',
         toolbar: { show: false }, // Hamburger OFF
-        // --- PERBAIKAN WARNA FONT (Dark Slate Blue) ---
         foreColor: '#1e293b', 
         zoom: { enabled: false }
     },
@@ -36,7 +35,6 @@ const chartOptions = computed(() => ({
         axisBorder: { show: false },
         axisTicks: { show: false },
         labels: {
-            // Pakai warna tema, bukan hitam
             style: { colors: '#1e293b', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 }
         }
     },
@@ -47,7 +45,7 @@ const chartOptions = computed(() => ({
     },
     grid: {
         show: true,
-        borderColor: '#e2e8f0', // Slate-200 (lebih soft dari abu biasa)
+        borderColor: '#e2e8f0',
         strokeDashArray: 0,
         position: 'back',
     },
@@ -61,7 +59,18 @@ const chartOptions = computed(() => ({
     },
     tooltip: {
         theme: 'light',
-        style: { fontSize: '12px', fontFamily: 'TT Bells, sans-serif' }
+        style: { fontSize: '12px', fontFamily: 'TT Bells, sans-serif' },
+        custom: function({ series, seriesIndex, dataPointIndex, w }) {
+            const categoryName = w.globals.labels[dataPointIndex];
+            const value = series[seriesIndex][dataPointIndex];
+            
+            return `
+                <div class="px-3 py-2 bg-white shadow-lg rounded-lg border">
+                    <div class="font-semibold text-gray-800">${categoryName}</div>
+                    <div class="text-sm text-gray-600">Nilai: <span class="font-bold text-[#ef874b]">${value}</span></div>
+                </div>
+            `;
+        }
     }
 }));
 
