@@ -9,6 +9,7 @@ class VisualizationType extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
     protected $fillable = ['type_code', 'type_name'];
 
     public function visualizations()

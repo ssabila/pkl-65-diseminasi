@@ -12,9 +12,13 @@ class VisualizationTypeSeeder extends Seeder
     public function run(): void
     {
         $types = [
-            ['type_code' => 'bar', 'type_name' => 'Bar Chart'],
-            ['type_code' => 'pie', 'type_name' => 'Pie Chart'],
-            ['type_code' => 'peta', 'type_name' => 'Peta'],
+            ['type_code' => 'bar-chart', 'type_name' => 'Bar Chart'],
+            ['type_code' => 'pie-chart', 'type_name' => 'Pie Chart'],
+            ['type_code' => 'donut-chart', 'type_name' => 'Donut Chart'],
+            ['type_code' => 'line-chart', 'type_name' => 'Line Chart'],
+            ['type_code' => 'area-chart', 'type_name' => 'Area Chart'],
+            ['type_code' => 'peta', 'type_name' => 'Peta Heatmap'],
+            ['type_code' => 'choropleth', 'type_name' => 'Peta Choropleth '],
         ];
 
         foreach ($types as $type) {

@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('system_notices', function (Blueprint $table) {
-            $table->ulid('id')->primary();
+            $table->id()->primary();
             $table->string('title');
             $table->text('content');
             $table->boolean('is_active')->default(true);
@@ -19,7 +19,7 @@ return new class extends Migration
             $table->dateTime('expires_at')->nullable();
 
             // PERBAIKAN: Menyesuaikan dengan tabel Users yang pakai ULID
-            $table->foreignUlid('created_by')->constrained('users')->cascadeOnDelete(); 
+            // $table->foreignUlid('created_by')->constrained('users')->cascadeOnDelete(); 
 
             $table->timestamps();
         });
