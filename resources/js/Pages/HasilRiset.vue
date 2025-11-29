@@ -26,7 +26,9 @@ const chartComponents = {
     'donut-chart': ApexDonutChart,
     'line': ApexLineChart,
     'line-chart': ApexLineChart,
-    'area-chart': ApexAreaChart
+    'area-chart': ApexAreaChart,
+    'peta': LeafletMap,
+    'choropleth': LeafletMap
 };
 
 // Ref untuk download multiple charts
@@ -81,8 +83,10 @@ const getChartComponent = (typeCode) => chartComponents[typeCode] || null;
 
 const formatChartData = (vis) => {
     if (!vis || !vis.chart_data) return null;
+    
     const rawData = vis.chart_data;
     const typeCode = vis.type?.type_code;
+    
     try {
         // Data sudah dalam format yang benar dengan labels dan datasets
         if (rawData.labels && Array.isArray(rawData.datasets)) {
@@ -103,8 +107,40 @@ const formatChartData = (vis) => {
                 return { labels: rawData.labels, datasets: rawData.series };
             }
         } else if (typeCode === 'peta') {
-            // Untuk peta, data bisa berupa array koordinat dari upload Excel
+            // Untuk peta heatmap, data berupa array koordinat dari upload Excel
+            if (rawData.points && Array.isArray(rawData.points)) {
+                return { heatmapData: rawData.points };
+            }
             return rawData;
+        } else if (typeCode === 'choropleth') {
+            // Handle choropleth data - pass directly if already in correct format
+            if (rawData.regions && rawData.selectedVariable && Array.isArray(rawData.regions)) {
+                // Load GeoJSON data asynchronously  
+                const loadGeojson = async () => {
+                    try {
+                        const response = await fetch('/geojson/yogyakarta.geojson');
+                        if (!response.ok) throw new Error('Failed to load GeoJSON');
+                        return await response.json();
+                    } catch (error) {
+                        console.error('Error loading GeoJSON:', error);
+                        return null;
+                    }
+                };
+                
+                const result = { 
+                    regions: rawData.regions,
+                    selectedVariable: rawData.selectedVariable,
+                    variables: rawData.variables || [],
+                    geojson: rawData.geojson || null,
+                    loadGeojson
+                };
+                
+                console.log('Choropleth data formatted:', result);
+                return result;
+            }
+            
+            console.log('Choropleth data invalid:', rawData);
+            return null;
         }
         
         return rawData;
@@ -161,7 +197,7 @@ const triggerDownload = (id) => {
 
         <main class="flex-1 p-6 md:p-10 h-screen overflow-y-auto relative scroll-smooth transition-all duration-300">
             <div class="absolute top-0 right-0 w-full h-full pointer-events-none opacity-30 mix-blend-multiply z-0 fixed">
-                 <img src="/images/assets/pattern kuning 1.svg" class="absolute top-0 right-0 w-[600px] opacity-30" />
+                 <img src="/images/assets/pattern kuning 1.png" class="absolute top-0 right-0 w-[600px] opacity-30" />
             </div>
 
             <div v-if="activeTopic" class="max-w-7xl mx-auto pb-20 relative z-10">
@@ -204,6 +240,11 @@ const triggerDownload = (id) => {
                             />
                             <div v-else class="flex flex-col items-center justify-center h-80 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 text-center">
                                 <p class="font-bold text-gray-400 text-sm uppercase tracking-wide">Data visualisasi tidak valid</p>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    Type: {{ vis.type?.type_code || 'undefined' }} | 
+                                    Component: {{ !!getChartComponent(vis.type?.type_code) ? 'Found' : 'Not Found' }} | 
+                                    Data: {{ !!formatChartData(vis) ? 'Valid' : 'Invalid' }}
+                                </p>
                             </div>
                         </div>
 

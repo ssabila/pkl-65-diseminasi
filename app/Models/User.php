@@ -13,7 +13,7 @@ use Laravel\Sanctum\HasApiTokens;
 use OwenIt\Auditing\Contracts\Auditable;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements Auditable
 {
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
     use \OwenIt\Auditing\Auditable;

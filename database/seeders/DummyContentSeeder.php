@@ -19,15 +19,14 @@ class DummyContentSeeder extends Seeder
         Topic::truncate();
         Riset::truncate();
         Document::truncate(); // Bersihkan tabel dokumen juga
-        DB::table('visualization_types')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // 2. SETUP TIPE CHART
-        $barChartId   = DB::table('visualization_types')->insertGetId(['type_code' => 'bar-chart', 'type_name' => 'Bar Chart']);
-        $pieChartId   = DB::table('visualization_types')->insertGetId(['type_code' => 'pie-chart', 'type_name' => 'Pie Chart']);
-        $donutChartId = DB::table('visualization_types')->insertGetId(['type_code' => 'donut-chart', 'type_name' => 'Donut Chart']);
-        $lineChartId  = DB::table('visualization_types')->insertGetId(['type_code' => 'line-chart', 'type_name' => 'Line Chart']);
-        $areaChartId  = DB::table('visualization_types')->insertGetId(['type_code' => 'area-chart', 'type_name' => 'Area Chart']);
+        // 2. GET EXISTING CHART TYPES (from VisualizationTypeSeeder)
+        $barChartId   = DB::table('visualization_types')->where('type_code', 'bar-chart')->value('id');
+        $pieChartId   = DB::table('visualization_types')->where('type_code', 'pie-chart')->value('id');
+        $donutChartId = DB::table('visualization_types')->where('type_code', 'donut-chart')->value('id');
+        $lineChartId  = DB::table('visualization_types')->where('type_code', 'line-chart')->value('id');
+        $areaChartId  = DB::table('visualization_types')->where('type_code', 'area-chart')->value('id');
 
         // =========================================================================
         // RISET I: KEPENDUDUKAN

@@ -55,7 +55,7 @@ const searchQuery = ref('')
 const dropdownPosition = ref('bottom')
 const selectRef = ref(null)
 const highlightedIndex = ref(-1)
-const inputId = computed(() => props.id || props.label.toLowerCase().replace(/\s+/g, '-'))
+const inputId = computed(() => props.id || (props.label ? props.label.toLowerCase().replace(/\s+/g, '-') : 'select-' + Math.random().toString(36).substr(2, 9)))
 
 const filteredOptions = computed(() => {
     const query = searchQuery.value.toLowerCase()

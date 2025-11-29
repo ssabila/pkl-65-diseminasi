@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Riset;
 use App\Models\Topic;
 use App\Models\Visualization;
 use App\Models\VisualizationType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
@@ -15,7 +17,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $userRisetId = auth()->user()?->riset_id;
+        $userRisetId = Auth::user()?->riset_id;
 
         $visualizationsQuery = Visualization::with(['topic.riset', 'type'])
             ->latest('updated_at');
@@ -78,7 +80,7 @@ class DashboardController extends Controller
             ->select('id', 'name')
             ->orderBy('name');
 
-        if ($assignedRisetId = auth()->user()?->riset_id) {
+        if ($assignedRisetId = Auth::user()?->riset_id) {
             $risetsQuery->where('id', $assignedRisetId);
         }
 
@@ -161,11 +163,13 @@ class DashboardController extends Controller
     public function uploadMapData(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,xlsx,xls|max:10240'
+            'file' => 'required|file|mimes:csv,xlsx,xls|max:10240',
+            'map_type' => 'required|in:heatmap,choropleth'
         ]);
 
         try {
             $file = $request->file('file');
+            $mapType = $request->input('map_type');
             $data = Excel::toArray([], $file);
             
             if (empty($data) || empty($data[0])) {
@@ -177,50 +181,12 @@ class DashboardController extends Controller
 
             $rows = $data[0];
             $headers = array_map('strtolower', array_map('trim', $rows[0]));
-            
-            $requiredColumns = ['latitude', 'longitude', 'density'];
-            $missingColumns = array_diff($requiredColumns, $headers);
-            
-            if (!empty($missingColumns)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'File harus memiliki kolom: latitude, longitude, density'
-                ], 422);
+
+            if ($mapType === 'heatmap') {
+                return $this->processHeatmapData($rows, $headers);
+            } else {
+                return $this->processchoroplethData($rows, $headers);
             }
-
-            $latIndex = array_search('latitude', $headers);
-            $lngIndex = array_search('longitude', $headers);
-            $densityIndex = array_search('density', $headers);
-
-            $mapData = [];
-            for ($i = 1; $i < count($rows); $i++) {
-                if (count($rows[$i]) > max($latIndex, $lngIndex, $densityIndex)) {
-                    $lat = floatval($rows[$i][$latIndex]);
-                    $lng = floatval($rows[$i][$lngIndex]);
-                    $density = floatval($rows[$i][$densityIndex]);
-
-                    if ($lat && $lng && $density) {
-                        $mapData[] = [
-                            'lat' => $lat,
-                            'lng' => $lng,
-                            'density' => $density
-                        ];
-                    }
-                }
-            }
-
-            if (empty($mapData)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Tidak ada data valid yang ditemukan'
-                ], 422);
-            }
-
-            return response()->json([
-                'success' => true,
-                'data' => $mapData,
-                'total_points' => count($mapData)
-            ]);
 
         } catch (\Exception $e) {
             return response()->json([
@@ -228,6 +194,190 @@ class DashboardController extends Controller
                 'message' => 'Gagal memproses file: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    private function processHeatmapData($rows, $headers)
+    {
+        $requiredColumns = ['latitude', 'longitude', 'density'];
+        $missingColumns = array_diff($requiredColumns, $headers);
+        
+        if (!empty($missingColumns)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File harus memiliki kolom: latitude, longitude, density'
+            ], 422);
+        }
+
+        $latIndex = array_search('latitude', $headers);
+        $lngIndex = array_search('longitude', $headers);
+        $densityIndex = array_search('density', $headers);
+
+        $mapData = [];
+        for ($i = 1; $i < count($rows); $i++) {
+            if (count($rows[$i]) > max($latIndex, $lngIndex, $densityIndex)) {
+                $lat = floatval($rows[$i][$latIndex]);
+                $lng = floatval($rows[$i][$lngIndex]);
+                $density = floatval($rows[$i][$densityIndex]);
+
+                if ($lat && $lng && $density) {
+                    $mapData[] = [
+                        'lat' => $lat,
+                        'lng' => $lng,
+                        'density' => $density
+                    ];
+                }
+            }
+        }
+
+        if (empty($mapData)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada data valid yang ditemukan'
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $mapData,
+            'total_points' => count($mapData)
+        ]);
+    }
+
+    private function processchoroplethData($rows, $headers)
+    {
+        // Load GeoJSON data
+        $geojsonPath = public_path('geojson/yogyakarta.geojson');
+        $geojsonData = null;
+        
+        if (file_exists($geojsonPath)) {
+            $geojsonContent = file_get_contents($geojsonPath);
+            $geojsonData = json_decode($geojsonContent, true);
+        }
+
+        // Required columns for choropleth: id, region_name/nama_daerah
+        $idIndex = null;
+        $regionNameIndex = null;
+
+        // Find ID column
+        foreach (['id', 'region_id', 'area_id'] as $idCol) {
+            if (in_array($idCol, $headers)) {
+                $idIndex = array_search($idCol, $headers);
+                break;
+            }
+        }
+
+        // Find region name column
+        foreach (['region_name', 'nama_daerah', 'daerah', 'wilayah', 'name'] as $nameCol) {
+            if (in_array($nameCol, $headers)) {
+                $regionNameIndex = array_search($nameCol, $headers);
+                break;
+            }
+        }
+
+        if ($idIndex === null || $regionNameIndex === null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File harus memiliki kolom ID dan nama daerah (region_name/nama_daerah)'
+            ], 422);
+        }
+
+        // Identify variable columns (exclude id, region_name, lat, lng)
+        $excludeColumns = ['id', 'region_id', 'area_id', 'region_name', 'nama_daerah', 'daerah', 'wilayah', 'name', 'latitude', 'longitude', 'lat', 'lng'];
+        $variableColumns = array_diff($headers, $excludeColumns);
+        $variableColumns = array_filter($variableColumns, function($col) {
+            return !empty(trim($col));
+        });
+
+        if (empty($variableColumns)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File harus memiliki minimal satu kolom variabel (selain ID dan nama daerah)'
+            ], 422);
+        }
+
+        $choroplethData = [];
+        for ($i = 1; $i < count($rows); $i++) {
+            if (count($rows[$i]) > max($idIndex, $regionNameIndex)) {
+                $regionId = trim($rows[$i][$idIndex]);
+                $regionName = trim($rows[$i][$regionNameIndex]);
+
+                if (!empty($regionId) && !empty($regionName)) {
+                    $variables = [];
+                    foreach ($variableColumns as $varCol) {
+                        $varIndex = array_search($varCol, $headers);
+                        if ($varIndex !== false && isset($rows[$i][$varIndex])) {
+                            $variables[$varCol] = $rows[$i][$varIndex];
+                        }
+                    }
+
+                    // Add optional lat/lng for better mapping
+                    $lat = null;
+                    $lng = null;
+                    if (in_array('latitude', $headers) && in_array('longitude', $headers)) {
+                        $latIdx = array_search('latitude', $headers);
+                        $lngIdx = array_search('longitude', $headers);
+                        $lat = isset($rows[$i][$latIdx]) ? floatval($rows[$i][$latIdx]) : null;
+                        $lng = isset($rows[$i][$lngIdx]) ? floatval($rows[$i][$lngIdx]) : null;
+                    }
+
+                    // Find matching GeoJSON feature
+                    $geoFeature = null;
+                    if ($geojsonData && isset($geojsonData['features'])) {
+                        foreach ($geojsonData['features'] as $feature) {
+                            if (isset($feature['properties']['name']) && 
+                                (strtolower($feature['properties']['name']) === strtolower($regionName) ||
+                                 $feature['properties']['id'] === $regionId)) {
+                                $geoFeature = $feature;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Flatten structure for easier frontend access
+                    $regionData = [
+                        'id' => $regionId,
+                        'nama_daerah' => $regionName,
+                        'lat' => $lat,
+                        'lng' => $lng,
+                        'geometry' => $geoFeature ? $geoFeature['geometry'] : null,
+                        'geojson_id' => $geoFeature ? $geoFeature['properties']['id'] : null
+                    ];
+                    
+                    // Add all variables directly to the region data
+                    foreach ($variables as $varName => $varValue) {
+                        $regionData[$varName] = $varValue;
+                    }
+                    
+                    $choroplethData[] = $regionData;
+                }
+            }
+        }
+
+        if (empty($choroplethData)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada data valid yang ditemukan'
+            ], 422);
+        }
+
+        // Prepare preview data (first 10 rows of CSV)
+        $previewHeaders = $headers;
+        $previewData = [];
+        for ($i = 1; $i < min(count($rows), 11); $i++) { // First 10 data rows
+            if (isset($rows[$i])) {
+                $previewData[] = $rows[$i];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $choroplethData,
+            'variables' => array_values($variableColumns),
+            'total_regions' => count($choroplethData),
+            'geojson' => $geojsonData,
+            'preview_headers' => $previewHeaders,
+            'preview_data' => $previewData
+        ]);
     }
 
     public function publish(Request $request)
@@ -301,7 +451,7 @@ class DashboardController extends Controller
 
     private function ensureRisetAccess(int $risetId): void
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if ($user && $user->riset_id && (int) $user->riset_id !== (int) $risetId) {
             abort(403, 'Anda tidak memiliki akses ke riset ini.');
