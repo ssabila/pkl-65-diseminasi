@@ -7,6 +7,14 @@ import ApexDonutChart from '@/Components/Charts/ApexDonutChart.vue'
 import ApexLineChart from '@/Components/Charts/ApexLineChart.vue'
 import ApexAreaChart from '@/Components/Charts/ApexAreaChart.vue'
 import LeafletMap from '@/Components/Charts/LeafletMap.vue'
+import ApexHistogramChart from '@/Components/Charts/ApexHistogramChart.vue'
+import ApexBoxPlotChart from '@/Components/Charts/ApexBoxPlotChart.vue'
+import ApexStackedBarChart from '@/Components/Charts/ApexStackedBarChart.vue'
+import VennDiagramChart from '@/Components/Charts/VennDiagramChart.vue'
+import ApexHeatmapChart from '@/Components/Charts/ApexHeatmapChart.vue'
+import ApexDensityChart from '@/Components/Charts/ApexDensityChart.vue'
+import ApexGroupedBarChart from '@/Components/Charts/ApexGroupedBarChart.vue'
+import ApexGroupedStackedBarChart from '@/Components/Charts/ApexGroupedStackedBarChart.vue'
 
 const props = defineProps({
     risetTopics: { type: Array, default: () => [] },
@@ -28,7 +36,15 @@ const chartComponents = {
     'line-chart': ApexLineChart,
     'area-chart': ApexAreaChart,
     'peta': LeafletMap,
-    'choropleth': LeafletMap
+    'choropleth': LeafletMap,
+    'histogram': ApexHistogramChart,
+    'box-plot': ApexBoxPlotChart,
+    'stacked-bar-chart': ApexStackedBarChart,
+    'venn-diagram': VennDiagramChart,
+    'heatmap-matrix': ApexHeatmapChart,
+    'density-plot': ApexDensityChart,
+    'grouped-bar-chart': ApexGroupedBarChart,
+    'grouped-stacked-bar-chart': ApexGroupedStackedBarChart
 };
 
 // Ref untuk download multiple charts
@@ -141,6 +157,42 @@ const formatChartData = (vis) => {
             
             console.log('Choropleth data invalid:', rawData);
             return null;
+        } else if (typeCode === 'histogram') {
+            // Histogram data format: { labels: ['0-10', '10-20', ...], datasets: [{name: 'Frekuensi', data: [5, 10, ...]}] }
+            if (rawData.labels && Array.isArray(rawData.datasets)) {
+                return rawData;
+            }
+            return null;
+        } else if (typeCode === 'box-plot') {
+            // BoxPlot data format: { labels: ['Group1', 'Group2'], datasets: [{name: 'Data', type: 'boxPlot', data: [{x: 'Group1', y: [min, q1, median, q3, max]}, ...]}] }
+            if (rawData.labels && Array.isArray(rawData.datasets)) {
+                return rawData;
+            }
+            return null;
+        } else if (['stacked-bar-chart', 'grouped-bar-chart', 'grouped-stacked-bar-chart'].includes(typeCode)) {
+            // Multiple series bar charts: { labels: ['Cat1', 'Cat2'], datasets: [{name: 'Series1', data: [...]}, {name: 'Series2', data: [...]}] }
+            if (rawData.labels && Array.isArray(rawData.datasets)) {
+                return rawData;
+            }
+            return null;
+        } else if (typeCode === 'venn-diagram') {
+            // Venn diagram format: { vennData: { sets: [{name: 'A', size: 100}], overlaps: [{sets: ['A', 'B'], size: 30}] } }
+            if (rawData.vennData) {
+                return rawData;
+            }
+            return null;
+        } else if (typeCode === 'heatmap-matrix') {
+            // Heatmap format: { categories: ['X1', 'X2'], datasets: [{name: 'Y1', data: [10, 20, ...]}, ...] }
+            if (rawData.categories && Array.isArray(rawData.datasets)) {
+                return rawData;
+            }
+            return null;
+        } else if (typeCode === 'density-plot') {
+            // Density plot format: { labels: [values], datasets: [{name: 'Density', data: [densities]}] }
+            if (rawData.labels && Array.isArray(rawData.datasets)) {
+                return rawData;
+            }
+            return null;
         }
         
         return rawData;
@@ -196,7 +248,7 @@ const triggerDownload = (id) => {
         />
 
         <main class="flex-1 p-6 md:p-10 h-screen overflow-y-auto relative scroll-smooth transition-all duration-300">
-            <div class="absolute top-0 right-0 w-full h-full pointer-events-none opacity-30 mix-blend-multiply z-0 fixed">
+            <div class="fixed top-0 right-0 w-full h-full pointer-events-none opacity-30 mix-blend-multiply z-0">
                  <img src="/images/assets/pattern kuning 1.png" class="absolute top-0 right-0 w-[600px] opacity-30" />
             </div>
 

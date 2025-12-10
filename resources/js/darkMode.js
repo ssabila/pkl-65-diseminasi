@@ -1,84 +1,28 @@
 function initializeTheme() {
-    const userPreference = localStorage.getItem('theme')
-
-    if (userPreference === 'dark') {
-        document.documentElement.classList.add('dark')
-        return 'dark'
-    } else if (userPreference === 'light') {
-        document.documentElement.classList.remove('dark')
-        return 'light'
-    } else {
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        if (systemPrefersDark) {
-            document.documentElement.classList.add('dark')
-            return 'system'
-        } else {
-            document.documentElement.classList.remove('dark')
-            return 'system'
-        }
-    }
+    // Force light mode only - dark mode disabled
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem('theme', 'light')
+    return 'light'
 }
 
 function getCurrentThemePreference() {
-    const userPreference = localStorage.getItem('theme')
-    if (userPreference === 'dark' || userPreference === 'light') {
-        return userPreference
-    }
-    return 'system'
+    // Always return light mode
+    return 'light'
 }
 
 function getEffectiveTheme() {
-    const preference = getCurrentThemePreference()
-    if (preference === 'system') {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    }
-    return preference
+    // Always return light mode
+    return 'light'
 }
 
 function setTheme(preference) {
-    switch (preference) {
-        case 'dark':
-            document.documentElement.classList.add('dark')
-            localStorage.setItem('theme', 'dark')
-            break
-        case 'light':
-            document.documentElement.classList.remove('dark')
-            localStorage.setItem('theme', 'light')
-            break
-        case 'system': {
-            localStorage.removeItem('theme')
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-            if (systemPrefersDark) {
-                document.documentElement.classList.add('dark')
-            } else {
-                document.documentElement.classList.remove('dark')
-            }
-            break
-        }
-    }
+    // Force light mode only
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem('theme', 'light')
 }
 
 function setupThemeListener() {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ({ matches }) => {
-        const currentPreference = getCurrentThemePreference()
-
-        if (currentPreference === 'system') {
-            if (matches) {
-                document.documentElement.classList.add('dark')
-            } else {
-                document.documentElement.classList.remove('dark')
-            }
-
-            window.dispatchEvent(
-                new CustomEvent('themeChanged', {
-                    detail: {
-                        preference: 'system',
-                        effectiveTheme: matches ? 'dark' : 'light'
-                    }
-                })
-            )
-        }
-    })
+    // Theme listener disabled - light mode only
 }
 
 function getNextTheme(current) {
