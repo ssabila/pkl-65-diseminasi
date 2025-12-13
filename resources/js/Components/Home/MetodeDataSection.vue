@@ -1,315 +1,161 @@
-<template>
-  <section class="metode-section">
-    <!-- Header Section -->
-    <div class="header-container">
-      <img src="/images/assets/22.png" alt="Wayang Icon" class="wayang-icon" />
-      <img src="/images/assets/metodologi-data.svg" alt="Metode Pengumpulan Data" class="section-title-image" />
-    </div>
-
-
-    <!-- Wawancara Section -->
-    <div class="subsection">
-      <div class="subsection-header-with-line">
-        <img src="/images/assets/bunga1.png" alt="Icon" class="bullet-icon" />
-        <div class="vertical-line-connector"></div>
-      </div>
-      <div class="subsection-content">
-        <h3 class="subsection-title">Wawancara</h3>
-        <p class="subsection-text">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor. Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor.
-        </p>
-      </div>
-    </div>
-
-    <!-- Alur Pengumpulan Data Section -->
-    <div class="subsection">
-      <div class="subsection-header-with-line">
-        <img src="/images/assets/bunga1.png" alt="Icon" class="bullet-icon" />
-      </div>
-      <div class="subsection-content">
-        <h3 class="subsection-title">Alur Pengumpulan Data</h3>
-      </div>
-
-      <!-- 5 Steps -->
-      <div class="steps-container">
-        <div class="step-wrapper">
-          <div class="step-item">
-            <div class="step-circle">1</div>
-            <p class="step-label">Persiapan</p>
-          </div>
-          <div class="step-arrow">→</div>
-        </div>
-
-        <div class="step-wrapper">
-          <div class="step-item">
-            <div class="step-circle">2</div>
-            <p class="step-label">Pelaksanaan</p>
-          </div>
-          <div class="step-arrow">→</div>
-        </div>
-
-        <div class="step-wrapper">
-          <div class="step-item">
-            <div class="step-circle">3</div>
-            <p class="step-label">Pengolahan</p>
-          </div>
-          <div class="step-arrow">→</div>
-        </div>
-
-        <div class="step-wrapper">
-          <div class="step-item">
-            <div class="step-circle">4</div>
-            <p class="step-label">Analisis</p>
-          </div>
-          <div class="step-arrow">→</div>
-        </div>
-
-        <div class="step-wrapper">
-          <div class="step-item">
-            <div class="step-circle">5</div>
-            <p class="step-label">Diseminasi</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Ornamen Batik Bawah -->
-    <div class="ornamen-bawah">
-      <img 
-        src="/images/Group 11 (1).png" 
-        alt="Ornamen Batik" 
-        class="batik-pattern"
-        @error="handleImageError"
-      />
-    </div>
-  </section>
-</template>
-
-<script>
-export default {
-  name: 'MetodeDataSection',
-  methods: {
-    handleImageError(event) {
-      console.error('Image failed to load:', event.target.src);
-      // Try alternative paths
-      const alternatives = [
-        '/images/Group%2011%20(1).png',
-        './images/Group 11 (1).png',
-        '@/assets/images/Group 11 (1).png',
-        '/Group 11 (1).png'
-      ];
-      
-      const currentSrc = event.target.src;
-      const nextIndex = alternatives.findIndex(alt => currentSrc.includes(alt)) + 1;
-      
-      if (nextIndex < alternatives.length) {
-        event.target.src = alternatives[nextIndex];
-      }
+<script setup>
+const content = {
+    wawancara: {
+        title: 'Metode Wawancara',
+        desc: 'Pengumpulan data dilakukan melalui wawancara tatap muka (face-to-face) menggunakan kuesioner terstruktur (CAPI) untuk menjamin validitas data langsung dari responden.'
+    },
+    alur: {
+        title: 'Alur Pengumpulan',
+        steps: [
+            { id: 1, label: 'Persiapan', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
+            { id: 2, label: 'Lapangan', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z' },
+            { id: 3, label: 'Pengolahan', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+            { id: 4, label: 'Analisis', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+            { id: 5, label: 'Diseminasi', icon: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' }
+        ]
     }
-  }
-}
+};
+
+const assets = {
+    wayang: '/images/assets/22.png',
+    titleText: '/images/assets/metodologi-data.svg',
+    flowerIcon: '/images/assets/bunga1.png',
+    batikPattern: '/images/Group 11 (1).png' 
+};
+
+const colors = {
+    bgCream: '#FFFBDF',
+    textDark: '#D94313',
+    primaryOrange: '#EF874B',
+    white: '#FFFFFF'
+};
 </script>
 
+<template>
+    <section 
+        class="relative py-20 lg:py-28 px-6 overflow-hidden"
+        :style="{ backgroundColor: colors.bgCream }"
+    >
+        <div class="container mx-auto relative z-20 max-w-7xl">
+            
+            <div class="flex flex-col items-center justify-center mb-16 text-center"
+                 data-aos="fade-down"
+                 data-aos-duration="1000">
+                <div class="flex items-end gap-4 mb-2">
+                    <img :src="assets.wayang" alt="Wayang Icon" 
+                        class="w-16 h-16 md:w-20 md:h-20 drop-shadow-lg animate-bounce-slow" />
+                    <h2 class="text-4xl md:text-5xl font-headline font-bold mb-2" :style="{ color: colors.textDark }">
+                        Metode Pengumpulan Data
+                    </h2>
+                </div>
+                <div class="h-1 w-32 rounded-full" :style="{ backgroundColor: colors.primaryOrange }"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch">
+                
+                <div class="lg:col-span-4 flex"
+                     data-aos="fade-right"
+                     data-aos-delay="200"
+                     data-aos-duration="1000">
+                    <div class="w-full bg-white/60 rounded-3xl p-8 border border-orange-100 shadow-lg hover:shadow-xl transition-shadow duration-300 relative overflow-hidden group">
+                        <div class="absolute -right-10 -top-10 w-32 h-32 bg-orange-100 rounded-full opacity-50 transition-transform group-hover:scale-150 duration-500"></div>
+                        
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-4 mb-6">
+                                <div class="p-3 rounded-xl bg-orange-100 text-orange-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-2xl font-headline font-bold" :style="{ color: colors.textDark }">
+                                    {{ content.wawancara.title }}
+                                </h3>
+                            </div>
+                            
+                            <p class="text-base font-sans leading-relaxed text-gray-700 text-justify">
+                                {{ content.wawancara.desc }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8 flex flex-col justify-center"
+                     data-aos="fade-left"
+                     data-aos-delay="400"
+                     data-aos-duration="1000">
+                    <div class="bg-white/40 rounded-3xl p-8 border border-orange-50 shadow-md">
+                        <h3 class="text-2xl font-headline font-bold mb-10 text-center lg:text-left ml-2" :style="{ color: colors.textDark }">
+                            {{ content.alur.title }}
+                        </h3>
+
+                        <div class="relative px-2">
+                            
+                            <div class="hidden lg:block absolute top-8 left-10 right-10 h-1 bg-orange-200 z-0"
+                                 data-aos="fade-in" data-aos-delay="600"></div>
+                            
+                            <div class="lg:hidden absolute left-8 top-8 bottom-8 w-1 bg-orange-200 z-0"
+                                 data-aos="fade-in" data-aos-delay="600"></div>
+
+                            <div class="flex flex-col lg:flex-row justify-between gap-8 lg:gap-0 relative z-10">
+                                
+                                <div v-for="(step, index) in content.alur.steps" :key="step.id" 
+                                     class="flex lg:flex-col items-center gap-6 lg:gap-4 group cursor-default"
+                                     data-aos="zoom-in"
+                                     :data-aos-delay="600 + (index * 150)">
+                                    
+                                    <div class="w-16 h-16 shrink-0 rounded-full flex items-center justify-center shadow-md transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 border-4 border-[#FFFBDF]"
+                                         :style="{ backgroundColor: colors.primaryOrange }">
+                                        <div class="relative w-full h-full flex items-center justify-center">
+                                            <span class="text-2xl font-bold text-white font-headline group-hover:opacity-0 transition-opacity duration-300 absolute">{{ step.id }}</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="step.icon" />
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-left lg:text-center pt-2">
+                                        <p class="text-lg font-bold transition-colors duration-300 group-hover:text-orange-600"
+                                           :style="{ color: colors.textDark }">
+                                            {{ step.label }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="absolute bottom-0 left-0 w-full h-16 lg:h-24 z-10 opacity-30 pointer-events-none"
+             :style="{ 
+                backgroundImage: `url('${assets.batikPattern}')`,
+                backgroundRepeat: 'repeat-x',
+                backgroundSize: 'contain',
+                backgroundPosition: 'bottom'
+             }">
+        </div>
+
+    </section>
+</template>
+
 <style scoped>
-.metode-section {
-  background-color: #FFF5E6;
-  padding: 80px 120px 100px 120px;
-  position: relative;
-  overflow: hidden;
-  padding-bottom: 120px;
+.font-headline {
+    font-family: 'Georgia', 'Times New Roman', Times, serif;
+}
+.font-sans {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Header */
-.header-container {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 60px;
+/* Animasi Bounce Halus */
+@keyframes bounceSlow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
 }
-
-.wayang-icon {
-  width: 60px;
-  height: 60px;
-}
-
-.section-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 48px;
-  font-weight: 700;
-  color: #D97757;
-  margin: 0;
-}
-
-/* Subsection */
-.subsection {
-  margin-bottom: 50px;
-  position: relative;
-}
-
-.subsection-header-with-line {
-  position: absolute;
-  left: 0;
-  top: 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.vertical-line-connector {
-  width: 2px;
-  height: 145px;
-  background-color: #333;
-  margin-top: 0;
-}
-
-.subsection-content {
-  margin-left: 50px;
-}
-
-.bullet-icon {
-  width: 25px;
-  height: 25px;
-  flex-shrink: 0;
-}
-
-.subsection-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 36px;
-  font-weight: 600;
-  color: #D97757;
-  margin: 0 0 15px 0;
-}
-
-.subsection-text {
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px;
-  line-height: 1.8;
-  color: #333;
-  margin: 0;
-}
-
-/* Steps Container */
-.steps-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-top: 40px;
-  padding: 0 20px;
-  margin-bottom: 80px;
-}
-
-.step-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-}
-
-.step-wrapper:last-child {
-  gap: 0;
-}
-
-.step-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-}
-
-.step-circle {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-color: #6B8E6F;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Poppins', sans-serif;
-  font-size: 32px;
-  font-weight: 600;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.step-arrow {
-  font-size: 28px;
-  color: #333;
-  font-weight: 400;
-  margin-top: -50px;
-}
-
-.step-label {
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  color: #D97757;
-  margin: 0;
-  text-align: center;
-}
-
-/* Ornamen Bawah */
-.ornamen-bawah {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  height: 50px;
-  z-index: 10;
-}
-
-.batik-pattern {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .metode-section {
-    padding: 60px 80px 80px 80px;
-  }
-
-  .steps-container {
-    flex-wrap: wrap;
-    gap: 30px;
-  }
-
-  .step-arrow {
-    display: none;
-  }
-}
-
-@media (max-width: 768px) {
-  .metode-section {
-    padding: 40px 30px 60px 30px;
-  }
-
-  .section-title {
-    font-size: 32px;
-  }
-
-  .subsection-title {
-    font-size: 28px;
-  }
-
-  .wayang-icon {
-    width: 45px;
-    height: 45px;
-  }
-
-  .step-circle {
-    width: 60px;
-    height: 60px;
-    font-size: 24px;
-  }
-
-  .vertical-line-connector {
-    height: 80px;
-  }
-
-  .subsection-content {
-    margin-left: 40px;
-  }
+.animate-bounce-slow {
+    animation: bounceSlow 3s ease-in-out infinite;
 }
 </style>

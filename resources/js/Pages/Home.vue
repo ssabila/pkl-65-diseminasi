@@ -2,6 +2,9 @@
 import { Head } from '@inertiajs/vue3';
 import PKL65Layout from '@/Layouts/PKL65Layout.vue';
 
+// Import SideNav (Scroll Indicator)
+import SideNav from '@/Components/Home/SideNav.vue';
+
 // Husna :
 import HeroSection from '@/Components/Home/HeroSection.vue';
 import LatarBelakangSection from '@/Components/Home/LatarBelakangSection.vue';
@@ -22,14 +25,16 @@ defineOptions({ layout: PKL65Layout });
 <template>
    <Head title="Beranda" />
 
-   <HeroSection />
-   <LatarBelakangSection />
-   <TujuanSection />
+   <SideNav />
 
-   <RisetSection />
-   <CakupanSection />
-   <MetodeSampelSection />
+   <HeroSection id="hero" />
+   <LatarBelakangSection id="latar-belakang" />
+   <TujuanSection id="tujuan" />
 
-   <MetodeDataSection />
-   <HasilSection />
+   <RisetSection id="riset" />
+   <CakupanSection id="cakupan" />
+   <MetodeSampelSection id="metode-sampel" />
+
+   <MetodeDataSection id="metode-data" />
+   <HasilSection id="hasil" />
 </template>

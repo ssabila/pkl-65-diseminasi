@@ -134,6 +134,10 @@
     --font-sub: "Yodnam", sans-serif;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 /* Animated Background Keyframes */
 @keyframes slowRotate {
     from {
