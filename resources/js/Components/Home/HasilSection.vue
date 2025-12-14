@@ -37,6 +37,7 @@ const conclusionPoints = {
 
 const assets = {
     wayang: '/images/assets/gunungan3.png',
+    headerText: '/images/assets/hasil-penelitian.png',
     candi: '/images/assets/landmark-candi-tiga.svg'
 };
 
@@ -54,50 +55,39 @@ const colors = {
         :style="{ backgroundColor: colors.primaryOrange }"
     >
         
-        <div class="absolute -right-20 -bottom-10 z-0 pointer-events-none opacity-20 lg:opacity-30"
-             data-aos="fade-left"
-             data-aos-duration="1500"
-             data-aos-offset="0">
+        <div class="absolute -right-20 -bottom-10 z-0 pointer-events-none opacity-20 lg:opacity-30">
             <img :src="assets.candi" alt="Candi Decor" 
                 class="w-[300px] md:w-[500px] lg:w-[700px] h-auto object-contain" />
         </div>
 
         <div class="container mx-auto relative z-10 max-w-7xl">
             
-            <div class="flex flex-col items-center lg:items-start mb-16 text-center lg:text-left"
-                 data-aos="fade-down"
-                 data-aos-duration="1000">
-                
+            <div class="flex flex-col items-center lg:items-start mb-16 text-center lg:text-left">
                 <div class="flex items-center gap-4 mb-6">
-                    <img :src="assets.wayang" alt="Wayang Icon" 
-                         class="w-14 h-14 lg:w-20 lg:h-20 drop-shadow-md animate-pulse-slow" />
+                    <img :src="assets.wayang" alt="Wayang Icon" class="w-14 h-14 lg:w-20 lg:h-20 drop-shadow-md animate-pulse-slow" />
                     <h2 class="text-4xl md:text-5xl font-headline font-bold text-white drop-shadow-sm">
                         Hasil & Kesimpulan
                     </h2>
                 </div>
                 
-                <p class="text-white/90 text-base md:text-lg max-w-2xl font-sans leading-relaxed"
-                   data-aos="fade-up" data-aos-delay="200">
+                <p class="text-white/90 text-base md:text-lg max-w-2xl font-sans leading-relaxed">
                     Berikut adalah ringkasan temuan strategis dari analisis data survei yang telah dilakukan terhadap pekerja Gig Economy di D.I. Yogyakarta.
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-                <div v-for="(card, index) in researchCards" :key="card.id" 
-                     class="group relative bg-white/10 backdrop-blur-sm border-l-4 border-[#FFFBDF] p-8 hover:bg-white/20 transition-all duration-300 hover:-translate-y-2 rounded-r-xl"
-                     data-aos="fade-up"
-                     :data-aos-delay="index * 200"
-                     data-aos-duration="1000">
+                <div v-for="card in researchCards" :key="card.id" 
+                     class="group relative bg-white/10 backdrop-blur-sm border-l-4 border-[#FFFBDF] p-8 hover:bg-white/20 transition-all duration-300 hover:-translate-y-2 rounded-r-xl">
                     
                     <div class="text-5xl font-headline font-bold text-white/30 mb-4 group-hover:text-white/50 transition-colors">
                         {{ card.id }}
                     </div>
                     
-                    <h3 class="text-2xl font-headline font-bold text-white mb-4 h-16 flex items-center">
+                    <h3 class="text-2xl font-headline font-bold text-white mb-4">
                         {{ card.title }}
                     </h3>
                     
-                    <p class="text-white/90 font-sans text-sm leading-relaxed mb-8 min-h-[80px]">
+                    <p class="text-white/90 font-sans text-sm leading-relaxed mb-8 min-h-[60px]">
                         {{ card.desc }}
                     </p>
 
@@ -108,22 +98,18 @@ const colors = {
                 </div>
             </div>
 
-            <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 md:p-12 border border-white/20 shadow-xl relative overflow-hidden"
-                 data-aos="zoom-in"
-                 data-aos-duration="1000"
-                 data-aos-delay="200">
+            <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 md:p-12 border border-white/20 shadow-xl relative overflow-hidden">
                 
                 <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
 
-                <h2 class="text-3xl font-headline font-bold text-white text-center mb-12 relative z-10"
-                    data-aos="fade-down" data-aos-delay="400">
+                <h2 class="text-3xl font-headline font-bold text-white text-center mb-12 relative z-10">
                     Kesimpulan Umum
                 </h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
                     
-                    <div data-aos="fade-right" data-aos-delay="600">
-                        <div class="flex items-center gap-3 mb-6 border-b border-white/20 pb-4">
+                    <div>
+                        <div class="flex items-center gap-3 mb-6">
                             <span class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white">✓</span>
                             <h3 class="text-xl font-bold text-white font-headline">Temuan Kunci</h3>
                         </div>
@@ -136,8 +122,8 @@ const colors = {
                         </ul>
                     </div>
 
-                    <div data-aos="fade-left" data-aos-delay="800">
-                        <div class="flex items-center gap-3 mb-6 border-b border-white/20 pb-4">
+                    <div>
+                        <div class="flex items-center gap-3 mb-6">
                             <span class="w-8 h-8 rounded-full bg-[#FFFBDF]/20 flex items-center justify-center text-[#FFFBDF]">✦</span>
                             <h3 class="text-xl font-bold text-[#FFFBDF] font-headline">Rekomendasi Kebijakan</h3>
                         </div>
