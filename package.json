@@ -31,6 +31,7 @@
         "@vitejs/plugin-vue": "^5.1.2",
         "@vue-leaflet/vue-leaflet": "^0.10.1",
         "algoliasearch": "^5.30.0",
+        "aos": "^2.3.4",
         "apexcharts": "^4.7.0",
         "dotenv": "^16.4.5",
         "filepond": "^4.32.7",

@@ -46,44 +46,49 @@ onUnmounted(() => {
 <template>
   <nav class="w-full sticky top-0 z-50 py-4 font-sans px-4 md:px-0">
     
-    <div class="max-w-7xl mx-auto bg-gradient-to-r from-[#E87A3E] to-[#F5A65B] shadow-lg transition-all duration-300"
+    <div class="max-w-7xl mx-auto bg-[#E87A3E] border border-orange-600/20 shadow-xl transition-all duration-300"
          :class="isMobileMenuOpen ? 'rounded-3xl' : 'rounded-full'">
       
       <div class="flex justify-between items-center min-h-[4rem] px-6">
         
         <div class="flex items-center space-x-4 shrink-0">
-          <Link href="/" class="flex items-center space-x-3">
+          <Link href="/" class="flex items-center space-x-3 group">
             <img 
-              class="h-10 w-10 rounded-full bg-white p-1" 
+              class="h-10 w-10 rounded-full bg-white p-0.5 shadow-sm group-hover:scale-105 transition-transform" 
               src="/images/assets/LOGO-PKL_REV8.png" 
               alt="Logo PKL 65"
             >
             <div class="flex flex-col">
-              <span class="text-white font-bold text-sm md:text-lg leading-tight">
+              <span class="text-white font-bold text-sm md:text-lg leading-tight tracking-wide">
                 Website Hasil PKL 65
               </span>
-              <span class="text-white/90 text-[10px] md:text-xs">
+              <span class="text-orange-100 text-[10px] md:text-xs font-medium">
                 Tahun Ajaran 2025/2026
               </span>
             </div>
           </Link>
         </div>
 
-        <div class="hidden md:flex items-center space-x-8">
+        <div class="hidden md:flex items-center space-x-2">
           <Link 
             href="/" 
+            class="px-5 py-2 rounded-full text-sm font-bold transition-all duration-200"
             :class="[
-              'text-base font-semibold transition-colors duration-150',
-              isActive('/') ? 'text-white' : 'text-white/80 hover:text-white'
+              isActive('/') 
+                ? 'bg-white text-[#E87A3E] shadow-sm' // Aktif: Putih Solid (Tegas)
+                : 'text-white hover:bg-black/10'       // Tidak Aktif: Transparan
             ]"
           >
             Beranda
           </Link>
+
           <a 
             href="http://localhost:8000/hasil-riset"
+            class="px-5 py-2 rounded-full text-sm font-bold transition-all duration-200"
             :class="[
-              'text-base font-semibold transition-colors duration-150',
-              isActive('/hasil-riset') ? 'text-white' : 'text-white/80 hover:text-white'
+              isActive('/hasil-riset') 
+                ? 'bg-white text-[#E87A3E] shadow-sm' 
+                : 'text-white hover:bg-black/10'
             ]"
           >
             Hasil Riset
@@ -95,48 +100,34 @@ onUnmounted(() => {
           <div v-if="isLoggedIn" class="relative relative-profile">
             <button 
               @click="showDropdown = !showDropdown"
-              class="inline-flex items-center px-3 py-2 md:px-6 md:py-2.5 text-sm font-semibold rounded-full text-[#E87A3E] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all shadow-md"
+              class="inline-flex items-center px-3 py-2 md:px-5 md:py-2 text-sm font-bold rounded-full text-[#E87A3E] bg-white hover:bg-gray-50 transition-all shadow-md"
             >
               <svg class="w-4 h-4 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <span class="hidden md:inline">{{ user.name }}</span>
-              <svg class="w-4 h-4 ml-2 hidden md:block" :class="{ 'rotate-180': showDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 ml-2 hidden md:block transition-transform duration-200" :class="{ 'rotate-180': showDropdown }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             
-            <div v-if="showDropdown" class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-              <div class="px-4 py-2 md:hidden border-b border-gray-100 mb-1">
-                <p class="text-xs text-gray-500">Login sebagai</p>
+            <div v-if="showDropdown" class="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 origin-top-right">
+              <div class="px-4 py-3 md:hidden border-b border-gray-100 mb-1">
+                <p class="text-xs text-gray-500 font-medium">Login sebagai</p>
                 <p class="text-sm font-bold text-gray-800 truncate">{{ user.name }}</p>
               </div>
 
-              <Link 
-                :href="route('user.index')"
-                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                @click="showDropdown = false"
-              >
+              <Link :href="route('user.index')" class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-orange-50 hover:text-[#E87A3E] transition-colors" @click="showDropdown = false">
                 Profile
               </Link>
               
-              <Link 
-                :href="route('dashboard')"
-                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                @click="showDropdown = false"
-              >
+              <Link :href="route('dashboard')" class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-orange-50 hover:text-[#E87A3E] transition-colors" @click="showDropdown = false">
                 Dashboard Administrator
               </Link>
               
-              <hr class="my-2 border-gray-200">
+              <hr class="my-2 border-gray-100">
               
-              <Link 
-                :href="route('logout')"
-                method="post"
-                as="button"
-                class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
-                @click="showDropdown = false"
-              >
+              <Link :href="route('logout')" method="post" as="button" class="flex items-center px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors w-full text-left" @click="showDropdown = false">
                 Logout
               </Link>
             </div>
@@ -145,37 +136,30 @@ onUnmounted(() => {
           <Link 
             v-else
             href="/login" 
-            class="inline-flex items-center px-4 py-2 md:px-6 md:py-2.5 text-sm font-semibold rounded-full text-[#E87A3E] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-all shadow-md"
+            class="inline-flex items-center px-6 py-2 text-sm font-bold rounded-full text-[#E87A3E] bg-white hover:bg-gray-50 hover:shadow-lg transition-all shadow-md"
           >
             Login
           </Link>
 
           <button 
             @click="isMobileMenuOpen = !isMobileMenuOpen"
-            class="md:hidden inline-flex items-center justify-center p-2 rounded-full text-white hover:bg-white/20 focus:outline-none transition-colors"
+            class="md:hidden inline-flex items-center justify-center p-2 rounded-full text-white hover:bg-black/10 focus:outline-none transition-colors"
           >
             <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-              <path 
-                :class="{'hidden': isMobileMenuOpen, 'inline-flex': !isMobileMenuOpen }" 
-                stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" 
-              />
-              <path 
-                :class="{'hidden': !isMobileMenuOpen, 'inline-flex': isMobileMenuOpen }" 
-                stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" 
-              />
+              <path :class="{'hidden': isMobileMenuOpen, 'inline-flex': !isMobileMenuOpen }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              <path :class="{'hidden': !isMobileMenuOpen, 'inline-flex': isMobileMenuOpen }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
 
         </div>
       </div>
 
-      <!-- Mobile Menu -->
-      <div v-show="isMobileMenuOpen" class="md:hidden px-6 pb-6 pt-2 space-y-3 border-t border-white/20 mt-2">
+      <div v-show="isMobileMenuOpen" class="md:hidden px-4 pb-4 pt-2 space-y-2 border-t border-white/20 mt-2">
         <Link 
           href="/" 
           @click="isMobileMenuOpen = false"
-          class="block px-4 py-3 rounded-lg text-base font-medium transition-colors"
-          :class="isActive('/') ? 'bg-white/20 text-white' : 'text-white/90 hover:bg-white/10 hover:text-white'"
+          class="block px-4 py-3 rounded-xl text-base font-bold transition-colors"
+          :class="isActive('/') ? 'bg-white text-[#E87A3E]' : 'text-white hover:bg-black/10'"
         >
           <div class="flex items-center gap-3">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,8 +171,8 @@ onUnmounted(() => {
         <a 
           href="#"
           @click.prevent="goToHasilRiset(); isMobileMenuOpen = false;"
-          class="block px-4 py-3 rounded-lg text-base font-medium transition-colors"
-          :class="isActive('/hasil-riset') ? 'bg-white/20 text-white' : 'text-white/90 hover:bg-white/10 hover:text-white'"
+          class="block px-4 py-3 rounded-xl text-base font-bold transition-colors"
+          :class="isActive('/hasil-riset') ? 'bg-white text-[#E87A3E]' : 'text-white hover:bg-black/10'"
         >
           <div class="flex items-center gap-3">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
