@@ -98,7 +98,7 @@ const handleLogin = () => {
                 <input
                     v-model="form.email"
                     type="text"
-                    placeholder="amel@gmail.com"
+                    placeholder="email@gmail.com"
                     class="w-full pl-11 pr-4 py-2.5 text-sm bg-white border-2 border-orange-100 rounded-xl focus:border-[#EF874B] focus:ring-0 transition-all placeholder-gray-300 text-gray-700 font-medium"
                 />
               </div>
