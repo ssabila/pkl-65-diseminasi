@@ -22,7 +22,7 @@ const props = defineProps({
 
         <main class="flex-1 p-6 md:p-12 h-screen overflow-y-auto scroll-smooth relative">
             <div class="absolute top-0 right-0 w-full h-full pointer-events-none opacity-30 mix-blend-multiply z-0 fixed">
-                <img src="/images/assets/pattern kuning 1.svg" class="absolute top-0 right-0 w-[600px] opacity-30" />
+                <img src="/images/assets/pattern kuning 1.png" class="absolute top-0 right-0 w-[600px] opacity-30" />
             </div>
 
             <div class="max-w-6xl mx-auto pb-20 relative z-10">

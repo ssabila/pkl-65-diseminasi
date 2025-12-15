@@ -7,7 +7,6 @@ import Footer from '@/Shared/Public/Footer.vue'
 const sidebarStorageKey = 'sidebarOpen'
 const isMobile = () => window.innerWidth < 768
 const isSidebarOpen = ref(false)
-const themeState = ref(getCurrentThemeState())
 
 const toggleSidebar = () => {
     isSidebarOpen.value = !isSidebarOpen.value
@@ -49,10 +48,7 @@ onMounted(() => {
     const savedSidebarState = localStorage.getItem(sidebarStorageKey)
     isSidebarOpen.value = savedSidebarState ? savedSidebarState === 'true' : !isMobile()
 
-    const observer = setupThemeObserver()
-
     onUnmounted(() => {
-        observer.disconnect()
         document.removeEventListener('click', handleClickAway)
         document.removeEventListener('keydown', handleKeyDown)
     })
@@ -130,52 +126,7 @@ onMounted(() => {
                     <section
                         class="flex flex-1 items-center justify-end gap-4"
                         aria-label="Site controls">
-                        <!-- Theme Toggle Button -->
-                        <button
-                            type="button"
-                            class="rounded-lg p-2 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all cursor-pointer"
-                            aria-label="Toggle color theme"
-                            @click="toggleDarkMode">
-                            <svg
-                                v-if="themeState.nextThemeIcon === 'sun'"
-                                class="w-5 h-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                aria-hidden="true">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-                            </svg>
-                            <svg
-                                v-else-if="themeState.nextThemeIcon === 'moon'"
-                                class="w-5 h-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                aria-hidden="true">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-                            </svg>
-                            <svg
-                                v-else
-                                class="w-5 h-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                aria-hidden="true">
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
-                            </svg>
-                        </button>
+                        <!-- Theme Toggle Disabled - Light Mode Only -->
 
                         <Link
                             href="/login"

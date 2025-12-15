@@ -37,6 +37,9 @@ const showPreview = ref(false)
 const chartCategories = ref([])
 const mapFile = ref(null)
 const mapData = ref([])
+const choroplethData = ref([])
+const choroplethVariables = ref([])
+const selectedVariable = ref('')
 const uploadingMap = ref(false)
 const selectedVisualizationType = ref(null)
 const chartOptions = ref({})
@@ -75,13 +78,18 @@ watch(() => form.visualization_type_id, (newTypeId) => {
     const vizType = props.visualizationTypes.find(vt => vt.id === newTypeId)
     selectedVisualizationType.value = vizType ? vizType.type_code : null
     
+    if (isSettingUp.value) return
+    
     chartCategories.value = []
     mapData.value = []
+    chloroplethData.value = []
+    chloroplethVariables.value = []
+    selectedVariable.value = ''
     mapFile.value = null
     showPreview.value = false
     
-    // Initialize with one empty row for bar/pie charts
-    if (newTypeId && ['bar', 'pie'].includes(selectedVisualizationType.value)) {
+    // Initialize with one empty row for charts that need category/value input
+    if (newTypeId && ['bar-chart', 'pie-chart', 'donut-chart', 'line-chart', 'area-chart'].includes(selectedVisualizationType.value)) {
         addCategory()
     }
 }, { immediate: true })
@@ -111,6 +119,10 @@ const isPeta = computed(() => {
     return selectedVisualizationType.value === 'peta'
 })
 
+const isChoropleth = computed(() => {
+    return selectedVisualizationType.value === 'choropleth'
+})
+
 const addCategory = () => {
     chartCategories.value.push({ category: '', value: '' })
 }
@@ -126,6 +138,13 @@ const handleMapFileChange = async (event) => {
     uploadingMap.value = true
     const formData = new FormData()
     formData.append('file', file)
+    
+    // Add map type parameter to distinguish between heatmap and choropleth
+    if (isChoropleth.value) {
+        formData.append('map_type', 'choropleth')
+    } else {
+        formData.append('map_type', 'heatmap')
+    }
 
     try {
         const response = await axios.post(route('admin.dashboard.upload-map'), formData, {
@@ -133,10 +152,21 @@ const handleMapFileChange = async (event) => {
         })
 
         if (response.data.success) {
-            mapData.value = response.data.data
-            notificationTitle.value = 'Upload Berhasil!'
-            notificationMessage.value = `Berhasil memuat ${response.data.total_points} titik data`
-            showSuccessNotif.value = true
+            if (isChoropleth.value) {
+                choroplethData.value = response.data.data
+                choroplethVariables.value = response.data.variables || []
+                if (choroplethVariables.value.length > 0) {
+                    selectedVariable.value = choroplethVariables.value[0]
+                }
+                notificationTitle.value = 'Upload Berhasil!'
+                notificationMessage.value = `Berhasil memuat ${response.data.total_regions} data daerah dengan ${response.data.variables.length} variabel`
+                showSuccessNotif.value = true
+            } else {
+                mapData.value = response.data.data
+                notificationTitle.value = 'Upload Berhasil!'
+                notificationMessage.value = `Berhasil memuat ${response.data.total_points} titik data`
+                showSuccessNotif.value = true
+            }
         }
     } catch (error) {
         console.error('Upload failed:', error)
@@ -144,6 +174,9 @@ const handleMapFileChange = async (event) => {
         notificationMessage.value = error.response?.data?.message || 'Gagal mengupload file'
         showErrorNotif.value = true
         mapData.value = []
+        choroplethData.value = []
+        choroplethVariables.value = []
+        selectedVariable.value = ''
     } finally {
         uploadingMap.value = false
     }
@@ -187,6 +220,18 @@ const handlePreview = () => {
             return
         }
         form.chart_data = { points: mapData.value }
+    } else if (isChoropleth.value) {
+        if (choroplethData.value.length === 0 || !selectedVariable.value) {
+            notificationTitle.value = 'Data Choropleth Kosong'
+            notificationMessage.value = 'Mohon upload file data choropleth dan pilih variabel terlebih dahulu'
+            showErrorNotif.value = true
+            return
+        }
+        form.chart_data = { 
+            regions: choroplethData.value, 
+            selectedVariable: selectedVariable.value,
+            variables: choroplethVariables.value
+        }
     }
 
     showPreview.value = true
@@ -194,6 +239,8 @@ const handlePreview = () => {
     nextTick(() => {
         if (isPeta.value) {
             renderMap()
+        } else if (isChoropleth.value) {
+            renderChoroplethMap()
         }
     })
 }
@@ -351,10 +398,101 @@ const renderMap = () => {
     })
 }
 
+const renderChoroplethMap = () => {
+    nextTick(() => {
+        const mapElement = document.getElementById('previewMap')
+        if (!mapElement || choroplethData.value.length === 0 || !selectedVariable.value) return
+
+        if (mapInstance.value) {
+            mapInstance.value.remove()
+            mapInstance.value = null
+        }
+
+        const map = L.map('previewMap').setView([-2.5, 118], 5)
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map)
+
+        // Get values for selected variable to determine color scale
+        const values = choroplethData.value
+            .map(region => parseFloat(region.variables[selectedVariable.value]) || 0)
+            .filter(val => !isNaN(val))
+        
+        if (values.length === 0) return
+
+        const minValue = Math.min(...values)
+        const maxValue = Math.max(...values)
+        const range = maxValue - minValue
+
+        // Color scale function
+        const getColor = (value) => {
+            if (range === 0) return '#FED976'
+            const intensity = (value - minValue) / range
+            if (intensity > 0.8) return '#800026'
+            if (intensity > 0.6) return '#BD0026'
+            if (intensity > 0.4) return '#E31A1C'
+            if (intensity > 0.2) return '#FC4E2A'
+            if (intensity > 0.1) return '#FD8D3C'
+            return '#FED976'
+        }
+
+        // Add markers/polygons for each region (simplified representation)
+        choroplethData.value.forEach(region => {
+            const value = parseFloat(region.variables[selectedVariable.value]) || 0
+            const color = getColor(value)
+            
+            // Create a simple circle marker as placeholder for actual polygon data
+            // In a real implementation, you would load actual GeoJSON boundaries
+            const lat = region.lat || (Math.random() * 10 - 7) // Random lat if not provided
+            const lng = region.lng || (Math.random() * 20 + 95) // Random lng if not provided
+            
+            L.circleMarker([lat, lng], {
+                radius: 15,
+                fillColor: color,
+                color: '#000',
+                weight: 1,
+                opacity: 0.8,
+                fillOpacity: 0.7
+            })
+            .bindPopup(`
+                <div class="p-2">
+                    <div class="font-semibold">${region.region_name}</div>
+                    <div class="text-sm text-gray-600">${selectedVariable.value}: <span class="font-bold">${value}</span></div>
+                </div>
+            `)
+            .addTo(map)
+        })
+
+        // Add legend
+        const legend = L.control({ position: 'bottomright' })
+        legend.onAdd = function() {
+            const div = L.DomUtil.create('div', 'legend')
+            div.innerHTML = `
+                <div class="bg-white p-3 rounded shadow-lg border" style="min-width: 120px;">
+                    <div class="font-semibold mb-2">${selectedVariable.value}</div>
+                    <div class="text-xs space-y-1">
+                        <div><span class="inline-block w-4 h-3" style="background-color: #800026"></span> ${maxValue.toFixed(1)}</div>
+                        <div><span class="inline-block w-4 h-3" style="background-color: #E31A1C"></span> ${(minValue + range * 0.5).toFixed(1)}</div>
+                        <div><span class="inline-block w-4 h-3" style="background-color: #FED976"></span> ${minValue.toFixed(1)}</div>
+                    </div>
+                </div>
+            `
+            return div
+        }
+        legend.addTo(map)
+
+        mapInstance.value = map
+    })
+}
+
 const handleReset = () => {
     form.reset()
     chartCategories.value = []
     mapData.value = []
+    chloroplethData.value = []
+    chloroplethVariables.value = []
+    selectedVariable.value = ''
     mapFile.value = null
     showPreview.value = false
     selectedVisualizationType.value = null
@@ -549,6 +687,47 @@ const handlePublish = async () => {
                                 </div>
                             </div>
 
+                            <!-- Dynamic Form: Choropleth -->
+                            <div v-if="isChoropleth" class="border-t border-[var(--color-border)] pt-6">
+                                <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4">Upload Data Peta Choropleth</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-[var(--color-text)] mb-2">
+                                            File Excel/CSV
+                                            <span class="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="file"
+                                            accept=".csv,.xlsx,.xls"
+                                            @change="handleMapFileChange"
+                                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                                        />
+                                        <p class="mt-2 text-sm text-[var(--color-text-muted)]">
+                                            Format: ID, Nama Daerah, Variabel1, Variabel2, ...
+                                        </p>
+                                    </div>
+                                    
+                                    <div v-if="uploadingMap" class="text-sm text-[var(--color-text-muted)]">
+                                        Memproses file...
+                                    </div>
+                                    
+                                    <div v-if="chloroplethData.length > 0" class="text-sm text-green-600 font-medium">
+                                        ✓ {{ chloroplethData.length }} data daerah berhasil dimuat
+                                    </div>
+                                    
+                                    <!-- Variable Selection -->
+                                    <div v-if="chloroplethVariables.length > 0">
+                                        <FormSelect 
+                                            label="Pilih Variabel untuk Visualisasi" 
+                                            v-model="selectedVariable"
+                                            :options="chloroplethVariables.map(v => ({ value: v, label: v }))"
+                                            placeholder="Pilih Variabel"
+                                            required 
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Interpretasi -->
                             <FormTextarea
                                 label="Interpretasi"
@@ -604,11 +783,14 @@ const handlePublish = async () => {
                         </div>
 
                         <!-- Map Preview -->
-                        <div v-if="isPeta" class="mb-6">
+                        <div v-if="isPeta || isChoropleth" class="mb-6">
                             <div 
                                 id="previewMap" 
                                 class="w-full h-[500px] border rounded-lg"
                             ></div>
+                            <div v-if="isChoropleth && selectedVariable" class="mt-2 text-sm text-gray-600">
+                                Menampilkan variabel: <span class="font-semibold">{{ selectedVariable }}</span>
+                            </div>
                         </div>
 
                         <!-- Interpretation -->

@@ -7,6 +7,14 @@ import ApexDonutChart from '@/Components/Charts/ApexDonutChart.vue'
 import ApexLineChart from '@/Components/Charts/ApexLineChart.vue'
 import ApexAreaChart from '@/Components/Charts/ApexAreaChart.vue'
 import LeafletMap from '@/Components/Charts/LeafletMap.vue'
+import ApexHistogramChart from '@/Components/Charts/ApexHistogramChart.vue'
+import ApexBoxPlotChart from '@/Components/Charts/ApexBoxPlotChart.vue'
+import ApexStackedBarChart from '@/Components/Charts/ApexStackedBarChart.vue'
+import VennDiagramChart from '@/Components/Charts/VennDiagramChart.vue'
+import ApexHeatmapChart from '@/Components/Charts/ApexHeatmapChart.vue'
+import ApexDensityChart from '@/Components/Charts/ApexDensityChart.vue'
+import ApexGroupedBarChart from '@/Components/Charts/ApexGroupedBarChart.vue'
+import ApexGroupedStackedBarChart from '@/Components/Charts/ApexGroupedStackedBarChart.vue'
 
 const props = defineProps({
     risetTopics: { type: Array, default: () => [] },
@@ -26,7 +34,17 @@ const chartComponents = {
     'donut-chart': ApexDonutChart,
     'line': ApexLineChart,
     'line-chart': ApexLineChart,
-    'area-chart': ApexAreaChart
+    'area-chart': ApexAreaChart,
+    'peta': LeafletMap,
+    'choropleth': LeafletMap,
+    'histogram': ApexHistogramChart,
+    'box-plot': ApexBoxPlotChart,
+    'stacked-bar-chart': ApexStackedBarChart,
+    'venn-diagram': VennDiagramChart,
+    'heatmap-matrix': ApexHeatmapChart,
+    'density-plot': ApexDensityChart,
+    'grouped-bar-chart': ApexGroupedBarChart,
+    'grouped-stacked-bar-chart': ApexGroupedStackedBarChart
 };
 
 // Ref untuk download multiple charts
@@ -81,8 +99,10 @@ const getChartComponent = (typeCode) => chartComponents[typeCode] || null;
 
 const formatChartData = (vis) => {
     if (!vis || !vis.chart_data) return null;
+    
     const rawData = vis.chart_data;
     const typeCode = vis.type?.type_code;
+    
     try {
         // Data sudah dalam format yang benar dengan labels dan datasets
         if (rawData.labels && Array.isArray(rawData.datasets)) {
@@ -103,8 +123,76 @@ const formatChartData = (vis) => {
                 return { labels: rawData.labels, datasets: rawData.series };
             }
         } else if (typeCode === 'peta') {
-            // Untuk peta, data bisa berupa array koordinat dari upload Excel
+            // Untuk peta heatmap, data berupa array koordinat dari upload Excel
+            if (rawData.points && Array.isArray(rawData.points)) {
+                return { heatmapData: rawData.points };
+            }
             return rawData;
+        } else if (typeCode === 'choropleth') {
+            // Handle choropleth data - pass directly if already in correct format
+            if (rawData.regions && rawData.selectedVariable && Array.isArray(rawData.regions)) {
+                // Load GeoJSON data asynchronously  
+                const loadGeojson = async () => {
+                    try {
+                        const response = await fetch('/geojson/yogyakarta.geojson');
+                        if (!response.ok) throw new Error('Failed to load GeoJSON');
+                        return await response.json();
+                    } catch (error) {
+                        console.error('Error loading GeoJSON:', error);
+                        return null;
+                    }
+                };
+                
+                const result = { 
+                    regions: rawData.regions,
+                    selectedVariable: rawData.selectedVariable,
+                    variables: rawData.variables || [],
+                    geojson: rawData.geojson || null,
+                    loadGeojson
+                };
+                
+                console.log('Choropleth data formatted:', result);
+                return result;
+            }
+            
+            console.log('Choropleth data invalid:', rawData);
+            return null;
+        } else if (typeCode === 'histogram') {
+            // Histogram data format: { labels: ['0-10', '10-20', ...], datasets: [{name: 'Frekuensi', data: [5, 10, ...]}] }
+            if (rawData.labels && Array.isArray(rawData.datasets)) {
+                return rawData;
+            }
+            return null;
+        } else if (typeCode === 'box-plot') {
+            // BoxPlot data format: { labels: ['Group1', 'Group2'], datasets: [{name: 'Data', type: 'boxPlot', data: [{x: 'Group1', y: [min, q1, median, q3, max]}, ...]}] }
+            if (rawData.labels && Array.isArray(rawData.datasets)) {
+                return rawData;
+            }
+            return null;
+        } else if (['stacked-bar-chart', 'grouped-bar-chart', 'grouped-stacked-bar-chart'].includes(typeCode)) {
+            // Multiple series bar charts: { labels: ['Cat1', 'Cat2'], datasets: [{name: 'Series1', data: [...]}, {name: 'Series2', data: [...]}] }
+            if (rawData.labels && Array.isArray(rawData.datasets)) {
+                return rawData;
+            }
+            return null;
+        } else if (typeCode === 'venn-diagram') {
+            // Venn diagram format: { vennData: { sets: [{name: 'A', size: 100}], overlaps: [{sets: ['A', 'B'], size: 30}] } }
+            if (rawData.vennData) {
+                return rawData;
+            }
+            return null;
+        } else if (typeCode === 'heatmap-matrix') {
+            // Heatmap format: { categories: ['X1', 'X2'], datasets: [{name: 'Y1', data: [10, 20, ...]}, ...] }
+            if (rawData.categories && Array.isArray(rawData.datasets)) {
+                return rawData;
+            }
+            return null;
+        } else if (typeCode === 'density-plot') {
+            // Density plot format: { labels: [values], datasets: [{name: 'Density', data: [densities]}] }
+            if (rawData.labels && Array.isArray(rawData.datasets)) {
+                return rawData;
+            }
+            return null;
         }
         
         return rawData;
@@ -160,8 +248,8 @@ const triggerDownload = (id) => {
         />
 
         <main class="flex-1 p-6 md:p-10 h-screen overflow-y-auto relative scroll-smooth transition-all duration-300">
-            <div class="absolute top-0 right-0 w-full h-full pointer-events-none opacity-30 mix-blend-multiply z-0 fixed">
-                 <img src="/images/assets/pattern kuning 1.svg" class="absolute top-0 right-0 w-[600px] opacity-30" />
+            <div class="fixed top-0 right-0 w-full h-full pointer-events-none opacity-30 mix-blend-multiply z-0">
+                 <img src="/images/assets/pattern kuning 1.png" class="absolute top-0 right-0 w-[600px] opacity-30" />
             </div>
 
             <div v-if="activeTopic" class="max-w-7xl mx-auto pb-20 relative z-10">
@@ -204,6 +292,11 @@ const triggerDownload = (id) => {
                             />
                             <div v-else class="flex flex-col items-center justify-center h-80 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 text-center">
                                 <p class="font-bold text-gray-400 text-sm uppercase tracking-wide">Data visualisasi tidak valid</p>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    Type: {{ vis.type?.type_code || 'undefined' }} | 
+                                    Component: {{ !!getChartComponent(vis.type?.type_code) ? 'Found' : 'Not Found' }} | 
+                                    Data: {{ !!formatChartData(vis) ? 'Valid' : 'Invalid' }}
+                                </p>
                             </div>
                         </div>
 
