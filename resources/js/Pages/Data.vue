@@ -37,8 +37,8 @@ const showPreview = ref(false)
 const chartCategories = ref([])
 const mapFile = ref(null)
 const mapData = ref([])
-const chloroplethData = ref([])
-const chloroplethVariables = ref([])
+const choroplethData = ref([])
+const choroplethVariables = ref([])
 const selectedVariable = ref('')
 const uploadingMap = ref(false)
 const selectedVisualizationType = ref(null)
@@ -119,8 +119,8 @@ const isPeta = computed(() => {
     return selectedVisualizationType.value === 'peta'
 })
 
-const isChloropleth = computed(() => {
-    return selectedVisualizationType.value === 'chloropleth'
+const isChoropleth = computed(() => {
+    return selectedVisualizationType.value === 'choropleth'
 })
 
 const addCategory = () => {
@@ -139,9 +139,9 @@ const handleMapFileChange = async (event) => {
     const formData = new FormData()
     formData.append('file', file)
     
-    // Add map type parameter to distinguish between heatmap and chloropleth
-    if (isChloropleth.value) {
-        formData.append('map_type', 'chloropleth')
+    // Add map type parameter to distinguish between heatmap and choropleth
+    if (isChoropleth.value) {
+        formData.append('map_type', 'choropleth')
     } else {
         formData.append('map_type', 'heatmap')
     }
@@ -152,11 +152,11 @@ const handleMapFileChange = async (event) => {
         })
 
         if (response.data.success) {
-            if (isChloropleth.value) {
-                chloroplethData.value = response.data.data
-                chloroplethVariables.value = response.data.variables || []
-                if (chloroplethVariables.value.length > 0) {
-                    selectedVariable.value = chloroplethVariables.value[0]
+            if (isChoropleth.value) {
+                choroplethData.value = response.data.data
+                choroplethVariables.value = response.data.variables || []
+                if (choroplethVariables.value.length > 0) {
+                    selectedVariable.value = choroplethVariables.value[0]
                 }
                 notificationTitle.value = 'Upload Berhasil!'
                 notificationMessage.value = `Berhasil memuat ${response.data.total_regions} data daerah dengan ${response.data.variables.length} variabel`
@@ -174,8 +174,8 @@ const handleMapFileChange = async (event) => {
         notificationMessage.value = error.response?.data?.message || 'Gagal mengupload file'
         showErrorNotif.value = true
         mapData.value = []
-        chloroplethData.value = []
-        chloroplethVariables.value = []
+        choroplethData.value = []
+        choroplethVariables.value = []
         selectedVariable.value = ''
     } finally {
         uploadingMap.value = false
@@ -220,17 +220,17 @@ const handlePreview = () => {
             return
         }
         form.chart_data = { points: mapData.value }
-    } else if (isChloropleth.value) {
-        if (chloroplethData.value.length === 0 || !selectedVariable.value) {
-            notificationTitle.value = 'Data Chloropleth Kosong'
-            notificationMessage.value = 'Mohon upload file data chloropleth dan pilih variabel terlebih dahulu'
+    } else if (isChoropleth.value) {
+        if (choroplethData.value.length === 0 || !selectedVariable.value) {
+            notificationTitle.value = 'Data Choropleth Kosong'
+            notificationMessage.value = 'Mohon upload file data choropleth dan pilih variabel terlebih dahulu'
             showErrorNotif.value = true
             return
         }
         form.chart_data = { 
-            regions: chloroplethData.value, 
+            regions: choroplethData.value, 
             selectedVariable: selectedVariable.value,
-            variables: chloroplethVariables.value
+            variables: choroplethVariables.value
         }
     }
 
@@ -239,8 +239,8 @@ const handlePreview = () => {
     nextTick(() => {
         if (isPeta.value) {
             renderMap()
-        } else if (isChloropleth.value) {
-            renderChloroplethMap()
+        } else if (isChoropleth.value) {
+            renderChoroplethMap()
         }
     })
 }
@@ -398,10 +398,10 @@ const renderMap = () => {
     })
 }
 
-const renderChloroplethMap = () => {
+const renderChoroplethMap = () => {
     nextTick(() => {
         const mapElement = document.getElementById('previewMap')
-        if (!mapElement || chloroplethData.value.length === 0 || !selectedVariable.value) return
+        if (!mapElement || choroplethData.value.length === 0 || !selectedVariable.value) return
 
         if (mapInstance.value) {
             mapInstance.value.remove()
@@ -415,7 +415,7 @@ const renderChloroplethMap = () => {
         }).addTo(map)
 
         // Get values for selected variable to determine color scale
-        const values = chloroplethData.value
+        const values = choroplethData.value
             .map(region => parseFloat(region.variables[selectedVariable.value]) || 0)
             .filter(val => !isNaN(val))
         
@@ -438,7 +438,7 @@ const renderChloroplethMap = () => {
         }
 
         // Add markers/polygons for each region (simplified representation)
-        chloroplethData.value.forEach(region => {
+        choroplethData.value.forEach(region => {
             const value = parseFloat(region.variables[selectedVariable.value]) || 0
             const color = getColor(value)
             
@@ -687,9 +687,9 @@ const handlePublish = async () => {
                                 </div>
                             </div>
 
-                            <!-- Dynamic Form: Chloropleth -->
-                            <div v-if="isChloropleth" class="border-t border-[var(--color-border)] pt-6">
-                                <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4">Upload Data Peta Chloropleth</h3>
+                            <!-- Dynamic Form: Choropleth -->
+                            <div v-if="isChoropleth" class="border-t border-[var(--color-border)] pt-6">
+                                <h3 class="text-lg font-semibold text-[var(--color-text)] mb-4">Upload Data Peta Choropleth</h3>
                                 <div class="space-y-4">
                                     <div>
                                         <label class="block text-sm font-medium text-[var(--color-text)] mb-2">
@@ -783,12 +783,12 @@ const handlePublish = async () => {
                         </div>
 
                         <!-- Map Preview -->
-                        <div v-if="isPeta || isChloropleth" class="mb-6">
+                        <div v-if="isPeta || isChoropleth" class="mb-6">
                             <div 
                                 id="previewMap" 
                                 class="w-full h-[500px] border rounded-lg"
                             ></div>
-                            <div v-if="isChloropleth && selectedVariable" class="mt-2 text-sm text-gray-600">
+                            <div v-if="isChoropleth && selectedVariable" class="mt-2 text-sm text-gray-600">
                                 Menampilkan variabel: <span class="font-semibold">{{ selectedVariable }}</span>
                             </div>
                         </div>

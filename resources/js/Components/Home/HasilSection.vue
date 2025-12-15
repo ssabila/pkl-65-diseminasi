@@ -1,383 +1,162 @@
-<template>
-  <section class="hasil-section">
-    <div class="content-wrapper">
-      <!-- Header Section -->
-      <div class="header-container">
-        <img src="/images/assets/gunungan3.png" alt="Wayang Icon" class="wayang-icon" />
-        <img src="/images/assets/hasil-penelitian.png" alt="Hasil Penelitian" class="header-image" />
-      </div>
+<script setup>
+const researchCards = [
+    {
+        id: '01',
+        title: 'Karakteristik Pekerja',
+        desc: 'Mayoritas pekerja gig didominasi oleh generasi Z dan Milenial dengan motivasi utama fleksibilitas waktu.',
+        link: '#'
+    },
+    {
+        id: '02',
+        title: 'Tingkat Pendapatan',
+        desc: 'Rata-rata pendapatan bersih pekerja gig sektor transportasi masih berada di bawah UMP D.I. Yogyakarta.',
+        link: '#'
+    },
+    {
+        id: '03',
+        title: 'Perlindungan Sosial',
+        desc: 'Hanya 15% pekerja gig yang memiliki jaminan sosial ketenagakerjaan aktif secara mandiri.',
+        link: '#'
+    }
+];
 
-      <!-- Description -->
-      <p class="description">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Berikut adalah rangkuman hasil penelitian dari tiga riset utama.
-      </p>
+const conclusionPoints = {
+    main: [
+        'Sektor Gig Economy menjadi penyangga penting ekonomi DIY.',
+        'Fleksibilitas adalah daya tarik utama, namun kerentanan ekonomi tinggi.',
+        'Perlu adanya regulasi khusus yang mengatur standar kerja mitra.',
+        'Literasi keuangan digital pekerja gig sudah cukup baik.'
+    ],
+    recommendation: [
+        'Pemerintah perlu mendorong skema subsidi jaminan sosial (BPU).',
+        'Platform digital wajib transparansi dalam skema insentif.',
+        'Pembentukan serikat pekerja gig untuk posisi tawar yang lebih kuat.',
+        'Pelatihan vokasi untuk peningkatan skill pekerja.'
+    ]
+};
 
-      <!-- Three Research Cards -->
-      <div class="research-cards">
-        <!-- Card 01 -->
-        <div class="card">
-          <div class="card-number">01</div>
-          <h3 class="card-title">Riset 1: Temuan</h3>
-          <p class="card-text">
-            Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt.
-          </p>
-          <button class="detail-button">Lihat Detail</button>
-        </div>
+const assets = {
+    wayang: '/images/assets/gunungan3.png',
+    headerText: '/images/assets/hasil-penelitian.png',
+    candi: '/images/assets/landmark-candi-tiga.svg'
+};
 
-        <!-- Card 02 -->
-        <div class="card">
-          <div class="card-number">02</div>
-          <h3 class="card-title">Riset 2: Temuan</h3>
-          <p class="card-text">
-            Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip.
-          </p>
-          <button class="detail-button">Lihat Detail</button>
-        </div>
-
-        <!-- Card 03 -->
-        <div class="card">
-          <div class="card-number">03</div>
-          <h3 class="card-title">Riset 5: Temuan</h3>
-          <p class="card-text">
-            Duis aute irure dolor in reprehenderit voluptate velit esse cillum dolore.
-          </p>
-          <button class="detail-button">Lihat Detail →</button>
-        </div>
-      </div>
-
-      <!-- Kesimpulan Section -->
-      <div class="kesimpulan-container">
-        <h2 class="kesimpulan-title">Kesimpulan Umum</h2>
-
-        <div class="kesimpulan-content">
-          <!-- Left Column -->
-          <div class="column">
-            <div class="point-item">
-              <span class="check-icon">✓</span>
-              <div class="point-text">
-                <h4>Poin Utama</h4>
-              </div>
-            </div>
-
-            <div class="point-item">
-              <span class="check-icon">✓</span>
-              <p class="point-text">Lorem ipsum dolor sit amet consectetur adipiscing elit</p>
-            </div>
-
-            <div class="point-item">
-              <span class="check-icon">✓</span>
-              <p class="point-text">Sed do eiusmod tempor incididunt ut labore dolore</p>
-            </div>
-
-            <div class="point-item">
-              <span class="check-icon">✓</span>
-              <p class="point-text">Quis nostrud exercitation ullamco laboris nisi</p>
-            </div>
-          </div>
-
-          <!-- Right Column -->
-          <div class="column">
-            <div class="point-item">
-              <span class="star-icon">✦</span>
-              <div class="point-text">
-                <h4>Rekomendasi</h4>
-              </div>
-            </div>
-
-            <div class="point-item">
-              <span class="check-icon">✓</span>
-              <p class="point-text">Excepteur sint occaecat cupidatat non proident</p>
-            </div>
-
-            <div class="point-item">
-              <span class="check-icon">✓</span>
-              <p class="point-text">Culpa qui officia deserunt mollit anim id est</p>
-            </div>
-
-            <div class="point-item">
-              <span class="check-icon">✓</span>
-              <p class="point-text">Sed ut perspiciatis unde omnis iste natus</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Background Ornamen Candi -->
-    <div class="ornamen-candi">
-      <img src="/images/assets/landmark-candi-tiga.svg" alt="Ornamen Candi" class="candi-image" />
-    </div>
-  </section>
-</template>
-
-<script>
-export default {
-  name: 'HasilSection'
-}
+const colors = {
+    primaryOrange: '#EF874B',
+    bgCream: '#FFFBDF',
+    textWhite: '#FFFFFF',
+    textOrange: '#D94313'
+};
 </script>
 
+<template>
+    <section 
+        class="relative py-20 lg:py-28 px-6 overflow-hidden flex flex-col z-10"
+        :style="{ backgroundColor: colors.primaryOrange }"
+    >
+        
+        <div class="absolute -right-20 -bottom-10 z-0 pointer-events-none opacity-20 lg:opacity-30">
+            <img :src="assets.candi" alt="Candi Decor" 
+                class="w-[300px] md:w-[500px] lg:w-[700px] h-auto object-contain" />
+        </div>
+
+        <div class="container mx-auto relative z-10 max-w-7xl">
+            
+            <div class="flex flex-col items-center lg:items-start mb-16 text-center lg:text-left">
+                <div class="flex items-center gap-4 mb-6">
+                    <img :src="assets.wayang" alt="Wayang Icon" class="w-14 h-14 lg:w-20 lg:h-20 drop-shadow-md animate-pulse-slow" />
+                    <h2 class="text-4xl md:text-5xl font-headline font-bold text-white drop-shadow-sm">
+                        Hasil & Kesimpulan
+                    </h2>
+                </div>
+                
+                <p class="text-white/90 text-base md:text-lg max-w-2xl font-sans leading-relaxed">
+                    Berikut adalah ringkasan temuan strategis dari analisis data survei yang telah dilakukan terhadap pekerja Gig Economy di D.I. Yogyakarta.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+                <div v-for="card in researchCards" :key="card.id" 
+                     class="group relative bg-white/10 backdrop-blur-sm border-l-4 border-[#FFFBDF] p-8 hover:bg-white/20 transition-all duration-300 hover:-translate-y-2 rounded-r-xl">
+                    
+                    <div class="text-5xl font-headline font-bold text-white/30 mb-4 group-hover:text-white/50 transition-colors">
+                        {{ card.id }}
+                    </div>
+                    
+                    <h3 class="text-2xl font-headline font-bold text-white mb-4">
+                        {{ card.title }}
+                    </h3>
+                    
+                    <p class="text-white/90 font-sans text-sm leading-relaxed mb-8 min-h-[60px]">
+                        {{ card.desc }}
+                    </p>
+
+                    <button class="flex items-center gap-2 text-[#FFFBDF] font-bold text-sm uppercase tracking-wider group-hover:gap-4 transition-all duration-300">
+                        Lihat Detail
+                        <span class="text-lg">→</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white/10 backdrop-blur-md rounded-3xl p-8 md:p-12 border border-white/20 shadow-xl relative overflow-hidden">
+                
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+
+                <h2 class="text-3xl font-headline font-bold text-white text-center mb-12 relative z-10">
+                    Kesimpulan Umum
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
+                    
+                    <div>
+                        <div class="flex items-center gap-3 mb-6">
+                            <span class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white">✓</span>
+                            <h3 class="text-xl font-bold text-white font-headline">Temuan Kunci</h3>
+                        </div>
+                        <ul class="space-y-4">
+                            <li v-for="(point, idx) in conclusionPoints.main" :key="idx" 
+                                class="flex gap-4 text-white/90 font-sans text-sm md:text-base items-start">
+                                <div class="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#FFFBDF] shrink-0"></div>
+                                <span>{{ point }}</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-3 mb-6">
+                            <span class="w-8 h-8 rounded-full bg-[#FFFBDF]/20 flex items-center justify-center text-[#FFFBDF]">✦</span>
+                            <h3 class="text-xl font-bold text-[#FFFBDF] font-headline">Rekomendasi Kebijakan</h3>
+                        </div>
+                        <ul class="space-y-4">
+                            <li v-for="(point, idx) in conclusionPoints.recommendation" :key="idx" 
+                                class="flex gap-4 text-white/90 font-sans text-sm md:text-base items-start">
+                                <div class="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#FFFBDF] shrink-0"></div>
+                                <span>{{ point }}</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+</template>
+
 <style scoped>
-.hasil-section {
-  background: #EF874B;
-  padding: 80px 120px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-start;
-  gap: 40px;
+.font-headline {
+    font-family: 'Georgia', 'Times New Roman', Times, serif;
+}
+.font-sans {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-.content-wrapper {
-  flex: 1;
-  position: relative;
-  z-index: 2;
+/* Animasi Denyut Halus untuk Wayang */
+@keyframes pulseSlow {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.9; }
 }
-
-/* Ornamen Candi Background */
-.ornamen-candi {
-  position: relative;
-  width: 450px;
-  height: auto;
-  flex-shrink: 0;
-  z-index: 1;
-  align-self: flex-end;
-  margin-bottom: -80px;
-  margin-right: -300px;
-}
-
-.candi-image {
-  width: 100%;
-  height: auto;
-  opacity: 0.9;
-}
-
-/* Header */
-.header-container {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 2;
-}
-
-.header-image {
-  height: 60px;
-  width: auto;
-}
-
-.wayang-icon {
-  width: 60px;
-  height: 60px;
-}
-
-/* Description */
-.description {
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px;
-  line-height: 1.8;
-  color: white;
-  margin-bottom: 40px;
-  max-width: 600px;
-  position: relative;
-  z-index: 2;
-}
-
-/* Research Cards */
-.research-cards {
-  display: flex;
-  gap: 30px;
-  margin-bottom: 60px;
-  position: relative;
-  z-index: 2;
-}
-
-.card {
-  background-color: transparent;
-  border-left: 4px solid #FFFBDF;
-  padding: 30px 25px;
-  flex: 1;
-  border-radius: 0;
-}
-
-.card-number {
-  font-family: 'Playfair Display', serif;
-  font-size: 48px;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 15px;
-}
-
-.card-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
-  font-weight: 600;
-  color: white;
-  margin: 0 0 15px 0;
-}
-
-.card-text {
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  color: white;
-  margin-bottom: 20px;
-}
-
-.detail-button {
-  background-color: white;
-  color: #D97757;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.detail-button:hover {
-  background-color: #f0f0f0;
-  transform: translateY(-2px);
-}
-
-/* Kesimpulan Section */
-.kesimpulan-container {
-  background-color: rgba(255, 200, 150, 0.25);
-  backdrop-filter: blur(5px);
-  padding: 40px 50px;
-  border-radius: 20px;
-  position: relative;
-  z-index: 2;
-}
-
-.kesimpulan-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 36px;
-  font-weight: 700;
-  color: white;
-  text-align: center;
-  margin: 0 0 40px 0;
-}
-
-.kesimpulan-content {
-  display: flex;
-  gap: 60px;
-}
-
-.column {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.point-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
-}
-
-.check-icon,
-.star-icon {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  margin-top: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: white;
-  font-weight: bold;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  padding: 4px;
-}
-
-.point-text {
-  flex: 1;
-}
-
-.point-text h4 {
-  font-family: 'Poppins', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
-  margin: 0 0 5px 0;
-}
-
-.point-text p {
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  color: white;
-  margin: 0;
-}
-
-.point-item > p.point-text {
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  color: white;
-  margin: 0;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .hasil-section {
-    padding: 60px 80px;
-    flex-direction: column;
-  }
-
-  .ornamen-candi {
-    width: 350px;
-    margin-bottom: -60px;
-    margin-right: -80px;
-    align-self: flex-end;
-  }
-
-  .research-cards {
-    flex-direction: column;
-  }
-
-  .kesimpulan-content {
-    flex-direction: column;
-    gap: 30px;
-  }
-}
-
-@media (max-width: 768px) {
-  .hasil-section {
-    padding: 40px 30px;
-  }
-
-  .header-image {
-    height: 45px;
-  }
-
-  .wayang-icon {
-    width: 45px;
-    height: 45px;
-  }
-
-  .card-number {
-    font-size: 36px;
-  }
-
-  .card-title {
-    font-size: 18px;
-  }
-
-  .kesimpulan-title {
-    font-size: 28px;
-  }
-
-  .ornamen-candi {
-    width: 250px;
-    margin-bottom: -40px;
-    margin-right: -30px;
-  }
+.animate-pulse-slow {
+    animation: pulseSlow 3s ease-in-out infinite;
 }
 </style>

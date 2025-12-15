@@ -46,12 +46,13 @@ const chartOptions = computed(() => ({
 }));
 
 const series = computed(() => {
-    // Jika datasets adalah array langsung (format baru)
+    // Jika datasets adalah array langsung dari angka (format baru untuk pie/donut)
     if (Array.isArray(props.chartData.datasets) && typeof props.chartData.datasets[0] === 'number') {
         return props.chartData.datasets;
     }
-    // Jika datasets adalah array object (format lama)
+    // Jika datasets adalah array object dengan property data (format konsisten dengan bar/line)
     if (Array.isArray(props.chartData.datasets) && props.chartData.datasets[0]?.data) {
+        // Untuk pie/donut, kita ambil data dari dataset pertama saja
         return props.chartData.datasets[0].data;
     }
     return [];
