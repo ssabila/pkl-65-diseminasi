@@ -1,4 +1,8 @@
 <script setup>
+import { onMounted } from 'vue';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+
 // Data Riset
 const risetsStatis = [
     {
@@ -32,6 +36,15 @@ const colors = {
     textRed: '#D94313',
     bgCream: '#FFFBDF',
 };
+
+onMounted(() => {
+    AOS.init({
+        duration: 800, // Kecepatan transisi snappy
+        once: false,   // Berulang saat scroll bawah
+        mirror: true,  // Berulang saat scroll atas
+        easing: 'ease-out-back',
+    });
+});
 </script>
 
 <template>
@@ -61,52 +74,48 @@ const colors = {
 
         <img :src="assets.wayangKiri" alt="Wayang Kiri" 
             class="hidden lg:block absolute z-50 pointer-events-none"
-            style="width: 300px; height: auto; bottom: -20px; left: -50px;" 
+            style="width: 280px; height: auto; bottom: -20px; left: -40px;" 
             data-aos="fade-right"
-            data-aos-duration="1000"
             data-aos-delay="200" />
 
         <img :src="assets.wayangKanan" alt="Wayang Kanan" 
             class="hidden lg:block absolute z-50 pointer-events-none"
-            style="width: 300px; height: auto; bottom: -20px; right: -50px;"
+            style="width: 280px; height: auto; bottom: -20px; right: -40px;"
             data-aos="fade-left"
-            data-aos-duration="1000"
             data-aos-delay="200" />
 
         <div class="container mx-auto relative z-40">
 
-            <h2 class="text-3xl md:text-4xl font-headline text-center text-white mb-12 drop-shadow-md"
-                data-aos="fade-down"
-                data-aos-duration="800">
-                Riset Unggulan PKL 65
+            <h2 class="text-4xl md:text-5xl font-headline text-center text-white mb-16 drop-shadow-lg"
+                data-aos="fade-down">
+                Riset Utama PKL 65
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
 
                 <div v-for="(riset, index) in risetsStatis" :key="riset.id"
-                    class="group rounded-2xl shadow-lg p-8 text-center flex flex-col relative transition-all duration-300 hover:-translate-y-3 hover:shadow-2xl overflow-hidden"
+                    class="group rounded-[2rem] shadow-xl p-8 text-center flex flex-col relative transition-all duration-300 hover:-translate-y-3 hover:shadow-2xl overflow-hidden border-b-8 border-orange-600/20"
                     :style="{ backgroundColor: colors.bgCream }"
                     data-aos="flip-up"
-                    :data-aos-delay="index * 150"
-                    data-aos-duration="800">
+                    :data-aos-delay="index * 100">
                     
                     <img :src="assets.ornamenCard" 
-                        class="absolute top-4 left-4 w-16 md:w-24 opacity-40 transition-transform duration-700 group-hover:rotate-45" />
+                        class="absolute top-4 left-4 w-16 opacity-30 transition-transform duration-700 group-hover:rotate-45" />
                     <img :src="assets.ornamenCard" 
-                        class="absolute top-4 right-4 w-16 md:w-24 opacity-40 transform -scale-x-100 transition-transform duration-700 group-hover:-rotate-45" />
+                        class="absolute top-4 right-4 w-16 opacity-30 transform -scale-x-100 transition-transform duration-700 group-hover:-rotate-45" />
 
-                    <h3 class="text-2xl font-headline font-bold mt-6 mb-4 relative z-10" 
+                    <h3 class="text-2xl font-headline font-bold mt-8 mb-4 relative z-10 uppercase tracking-wide" 
                         :style="{ color: colors.textRed }">
                         {{ riset.judul }}
                     </h3>
 
-                    <p class="text-gray-700 mb-8 text-sm md:text-base grow leading-relaxed relative z-10">
+                    <p class="text-gray-700 mb-8 text-sm md:text-base grow leading-relaxed relative z-10 font-sans font-medium">
                         {{ riset.deskripsi_singkat }}
                     </p>
 
                     <div class="mt-auto relative z-10">
                         <a href="#"
-                            class="inline-block font-semibold py-2.5 px-8 rounded-lg border-2 transition-all duration-300 ease-in-out text-sm shadow-sm hover:shadow-md"
+                            class="inline-block font-bold py-3 px-10 rounded-xl border-2 transition-all duration-300 ease-in-out text-xs uppercase tracking-widest shadow-sm hover:shadow-md"
                             :style="{ 
                                 color: colors.textRed, 
                                 borderColor: colors.textRed, 
@@ -127,5 +136,14 @@ const colors = {
 <style scoped>
 .font-headline {
     font-family: 'Georgia', 'Times New Roman', Times, serif;
+}
+.font-sans {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Biar kartu gak kaku pas flip */
+.group {
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
 }
 </style>
