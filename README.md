@@ -420,11 +420,6 @@ Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk detail lebih lanjut.
 
 ---
 
-## 📄 License
-
-Project ini dilisensikan di bawah **MIT License** - lihat file [LICENSE.md](LICENSE.md) untuk detail.
-
----
 
 ## 🆘 Troubleshooting
 
