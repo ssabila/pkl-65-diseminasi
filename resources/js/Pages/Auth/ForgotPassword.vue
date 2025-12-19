@@ -19,53 +19,73 @@ const submit = () => {
 <template>
     <Head title="Lupa Password" />
 
-    <!-- BACKGROUND (Static Image) -->
-    <div class="min-h-screen bg-auth flex items-center justify-center py-6 px-4 relative overflow-hidden">
+    <!-- BACKGROUND WITH COLORFUL FLOWERS (same as Login) -->
+    <div class="min-h-screen bg-[#FFFBDF] flex items-center justify-center py-6 relative overflow-hidden">
       
-      <!-- CARD Wrapper - Smaller Single Column -->
-      <div class="w-full max-w-sm relative z-10">
+      <!-- Floating Colorful Flowers Background (same as Login) -->
+      <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <!-- Bunga besar - sudut kiri atas -->
+        <img src="/images/assets/bunga2.png" class="absolute -top-8 -left-8 w-40 opacity-70 animate-spin-slow" style="filter: hue-rotate(0deg);" alt="" />
         
-        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <!-- Bunga kanan atas - warna oranye -->
+        <img src="/images/assets/bunga2.png" class="absolute top-[5%] right-[5%] w-32 opacity-60 animate-float" style="filter: hue-rotate(25deg) saturate(1.2);" alt="" />
+        
+        <!-- Bunga kecil kanan tengah - warna oranye terang -->
+        <img src="/images/assets/bunga2.png" class="absolute top-[35%] right-[3%] w-24 opacity-65 animate-spin-reverse" style="filter: hue-rotate(20deg) saturate(1.3);" alt="" />
+        
+        <!-- Bunga tengah atas -->
+        <img src="/images/assets/bunga2.png" class="absolute top-[8%] left-[30%] w-20 opacity-45 animate-float" style="filter: hue-rotate(0deg);" alt="" />
+        
+        <!-- Bunga besar kiri bawah - warna kuning -->
+        <img src="/images/assets/bunga2.png" class="absolute bottom-[10%] -left-6 w-36 opacity-60 animate-spin-slow" style="filter: hue-rotate(40deg) saturate(1.2);" alt="" />
+        
+        <!-- Bunga kanan bawah - warna coral -->
+        <img src="/images/assets/bunga2.png" class="absolute -bottom-10 right-[15%] w-44 opacity-55 animate-float-delay" style="filter: hue-rotate(10deg);" alt="" />
+        
+        <!-- Bunga kecil bawah tengah -->
+        <img src="/images/assets/bunga2.png" class="absolute bottom-[5%] left-[40%] w-16 opacity-50 animate-spin-reverse" style="filter: hue-rotate(35deg) saturate(1.1);" alt="" />
+        
+        <!-- Bunga tambahan -->
+        <img src="/images/assets/bunga2.png" class="absolute top-[55%] left-[8%] w-18 opacity-40 animate-float" style="filter: hue-rotate(15deg);" alt="" />
+      </div>
+      
+      <!-- WRAPPER KONTEN -->
+      <div class="relative z-10 w-full max-w-4xl mx-4">
+        
+        <!-- CARD (same layout as Login) -->
+        <div class="flex flex-col md:flex-row bg-white rounded-2xl shadow-xl overflow-hidden">
 
-          <!-- HEADER SECTION (Consistent with Login) -->
-          <div class="bg-gradient-to-br from-[#EF874B] to-[#F9A825] pt-8 pb-6 px-6 text-center relative overflow-hidden">
-            
-            <!-- Decorative Bubbles (Subtle) -->
-            <div class="absolute -top-6 -right-6 w-32 h-32 bg-white/20 rounded-full blur-2xl animate-pulse"></div>
-            <div class="absolute top-10 -left-8 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
-            <div class="absolute bottom-4 right-10 w-12 h-12 bg-white/10 rounded-full blur-lg"></div>
-            <div class="absolute -bottom-8 left-1/2 -translate-x-1/2 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
+          <!-- LEFT SECTION - MASCOT (same as Login) -->
+          <div class="md:w-[55%] bg-[#FCDA7B] flex flex-col items-center justify-center p-8 relative overflow-hidden">
 
-            <!-- CONTENT LAYER -->
-            <div class="relative z-10 flex flex-col items-center">
-              
-              <!-- 1. MASCOT (Top - Static/HD) -->
-              <img 
-                src="/images/assets/mascot-pkl.svg" 
-                class="w-32 h-auto drop-shadow-xl mb-3 object-contain" 
-                alt="Mascot PKL 65" 
-              />
+            <!-- BATIK DALAM CARD -->
+            <div class="absolute inset-0 bg-[url('/images/assets/pattern-batik.svg')] bg-no-repeat bg-center bg-[length:200%] opacity-20"></div>
 
-              <!-- 2. BADGE (Pill Shape) -->
-              <div class="bg-white rounded-full px-5 py-2 shadow-lg flex items-center gap-2 mb-2">
-                 <img src="/images/assets/LOGO-PKL_REV8.png" class="w-6 h-6" alt="Logo PKL" />
-                 <span class="font-rakkas text-[#EF874B] text-xl leading-none tracking-wide">PKL 65</span>
+            <div class="relative z-10 text-center">
+              <div class="w-14 h-14 mx-auto bg-white rounded-full flex items-center justify-center shadow mb-2">
+                <img src="/images/assets/LOGO-PKL_REV8.png" class="w-10 h-10" alt="Logo PKL">
               </div>
 
-              <!-- 3. SUBTITLE TEXT -->
-              <p class="text-white text-sm font-semibold tracking-wide drop-shadow-sm opacity-90">
-                  Politeknik Statistika STIS
+              <h1 class="font-rakkas text-2xl text-red-600">PKL 65</h1>
+              <p class="text-red-600 text-sm mb-4">
+                Politeknik Statistika STIS<br />D.I. Yogyakarta
               </p>
+
+              <!-- Mascot dengan animasi naik turun -->
+              <img
+                src="/images/assets/mascot-pkl.svg"
+                class="w-52 mx-auto drop-shadow-lg animate-bounce-gentle"
+                alt="Mascot"
+              />
             </div>
           </div>
 
-          <!-- FORM SECTION -->
-          <div class="p-8 bg-white relative">
-            
-            <h1 class="text-xl font-bold text-[#7A2509] mb-4 text-center font-serif">
+          <!-- RIGHT SECTION - FORM LUPA PASSWORD -->
+          <div class="md:w-[45%] p-8 flex flex-col justify-center">
+            <h1 class="text-xl font-bold text-red-600 mb-2 text-center">
               Lupa Password
             </h1>
-            <p class="text-gray-500 text-xs mb-6 text-center px-2 leading-relaxed">
+            <p class="text-gray-600 text-sm mb-5 text-center">
               Masukkan email Anda untuk menerima link reset password
             </p>
 
@@ -73,50 +93,40 @@ const submit = () => {
 
               <div
                 v-if="form.errors.email"
-                class="mb-4 p-3 bg-red-100 text-red-600 text-xs rounded-lg text-center"
+                class="mb-4 p-3 bg-red-100 text-orange-700 text-sm rounded-lg"
               >
                 {{ form.errors.email }}
               </div>
 
               <!-- EMAIL -->
-              <div class="mb-6">
-                <label class="block text-xs font-bold text-[#EF874B] mb-2 pl-1">
+              <div class="mb-5">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">
                   Email
                 </label>
-                <div class="relative group">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#EF874B] transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                    </span>
-                    <input
-                      v-model="form.email"
-                      type="email"
-                      placeholder="amel@gmail.com"
-                      class="w-full pl-11 pr-4 py-2.5 text-sm bg-white border-2 border-orange-100 rounded-xl focus:border-[#EF874B] focus:ring-0 transition-all placeholder-gray-300 text-gray-700 font-medium"
-                      required
-                    />
-                </div>
+                <input
+                  v-model="form.email"
+                  type="email"
+                  placeholder="Masukkan email Anda"
+                  class="w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-orange-400"
+                  required
+                />
               </div>
 
               <!-- BUTTON -->
               <button
                 type="submit"
                 :disabled="form.processing"
-                class="w-full py-3 bg-[#EF874B] hover:bg-[#D94313] text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 shadow-lg hover:shadow-orange-200 transform hover:-translate-y-0.5 active:translate-y-0"
+                class="w-full py-3 bg-[#EF874B] hover:bg-[#D94313] text-white font-semibold rounded-xl transition-all disabled:opacity-50"
               >
                 {{ form.processing ? 'Mohon tunggu...' : 'Kirim Link Reset' }}
               </button>
             </form>
 
-            <div class="mt-8 text-center border-t border-gray-100 pt-6">
+            <div class="mt-6 text-center">
               <Link
                 :href="route('login')"
-                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-gray-200 text-xs font-semibold text-gray-500 hover:text-[#EF874B] hover:border-[#EF874B] hover:bg-orange-50 transition-all duration-300 group"
+                class="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-[#EF874B] text-[#EF874B] rounded-full font-medium hover:bg-[#EF874B] hover:text-white transition-all duration-200 group"
               >
-                <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
                 Kembali ke Login
               </Link>
             </div>
