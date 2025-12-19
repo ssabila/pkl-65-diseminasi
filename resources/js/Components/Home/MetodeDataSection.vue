@@ -1,4 +1,8 @@
 <script setup>
+import { onMounted } from 'vue';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+
 const content = {
     wawancara: {
         title: 'Metode Wawancara',
@@ -29,6 +33,15 @@ const colors = {
     primaryOrange: '#EF874B',
     white: '#FFFFFF'
 };
+
+onMounted(() => {
+    AOS.init({
+        duration: 700, // Kecepatan snappy
+        once: false,   // Berulang saat scroll bawah
+        mirror: true,  // Berulang saat scroll atas
+        easing: 'ease-out',
+    });
+});
 </script>
 
 <template>
@@ -38,41 +51,44 @@ const colors = {
     >
         <div class="container mx-auto relative z-20 max-w-7xl">
             
-            <div class="flex flex-col items-center justify-center mb-16 text-center"
-                 data-aos="fade-down"
-                 data-aos-duration="1000">
-                <div class="flex items-end gap-4 mb-2">
-                    <img :src="assets.wayang" alt="Wayang Icon" 
-                        class="w-16 h-16 md:w-20 md:h-20 drop-shadow-lg animate-bounce-slow" />
-                    <h2 class="text-4xl md:text-5xl font-headline font-bold mb-2" :style="{ color: colors.textDark }">
+            <div class="flex flex-col items-center mb-16 text-center"
+                 data-aos="fade-down">
+                
+                <div class="flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-8 mb-6">
+                    <div class="relative shrink-0">
+                        <img :src="assets.wayang" alt="Wayang Icon" 
+                            class="w-16 h-auto md:w-24 lg:w-20 object-contain drop-shadow-xl animate-bounce-slow" />
+                    </div>
+
+                    <h2 class="text-4xl md:text-5xl lg:text-6xl font-headline font-bold leading-tight" :style="{ color: colors.textDark }">
                         Metode Pengumpulan Data
                     </h2>
                 </div>
-                <div class="h-1 w-32 rounded-full" :style="{ backgroundColor: colors.primaryOrange }"></div>
+
+                <div class="h-1.5 w-40 rounded-full" :style="{ backgroundColor: colors.primaryOrange }"></div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch">
                 
                 <div class="lg:col-span-4 flex"
                      data-aos="fade-right"
-                     data-aos-delay="200"
-                     data-aos-duration="1000">
-                    <div class="w-full bg-white/60 rounded-3xl p-8 border border-orange-100 shadow-lg hover:shadow-xl transition-shadow duration-300 relative overflow-hidden group">
+                     data-aos-delay="200">
+                    <div class="w-full bg-white/70 backdrop-blur-sm rounded-[2rem] p-8 border border-orange-100 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
                         <div class="absolute -right-10 -top-10 w-32 h-32 bg-orange-100 rounded-full opacity-50 transition-transform group-hover:scale-150 duration-500"></div>
                         
                         <div class="relative z-10">
                             <div class="flex items-center gap-4 mb-6">
-                                <div class="p-3 rounded-xl bg-orange-100 text-orange-600">
+                                <div class="p-3 rounded-xl bg-orange-100 text-orange-600 shadow-sm">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                     </svg>
                                 </div>
-                                <h3 class="text-2xl font-headline font-bold" :style="{ color: colors.textDark }">
+                                <h3 class="text-2xl lg:text-3xl font-headline font-bold" :style="{ color: colors.textDark }">
                                     {{ content.wawancara.title }}
                                 </h3>
                             </div>
                             
-                            <p class="text-base font-sans leading-relaxed text-gray-700 text-justify">
+                            <p class="text-base md:text-lg font-sans leading-relaxed text-gray-700 text-justify">
                                 {{ content.wawancara.desc }}
                             </p>
                         </div>
@@ -81,29 +97,23 @@ const colors = {
 
                 <div class="lg:col-span-8 flex flex-col justify-center"
                      data-aos="fade-left"
-                     data-aos-delay="400"
-                     data-aos-duration="1000">
-                    <div class="bg-white/40 rounded-3xl p-8 border border-orange-50 shadow-md">
-                        <h3 class="text-2xl font-headline font-bold mb-10 text-center lg:text-left ml-2" :style="{ color: colors.textDark }">
+                     data-aos-delay="400">
+                    <div class="bg-white/50 backdrop-blur-sm rounded-[2rem] p-8 md:p-10 border border-orange-50 shadow-md">
+                        <h3 class="text-2xl lg:text-3xl font-headline font-bold mb-10 text-center lg:text-left" :style="{ color: colors.textDark }">
                             {{ content.alur.title }}
                         </h3>
 
                         <div class="relative px-2">
-                            
-                            <div class="hidden lg:block absolute top-8 left-10 right-10 h-1 bg-orange-200 z-0"
-                                 data-aos="fade-in" data-aos-delay="600"></div>
-                            
-                            <div class="lg:hidden absolute left-8 top-8 bottom-8 w-1 bg-orange-200 z-0"
-                                 data-aos="fade-in" data-aos-delay="600"></div>
+                            <div class="hidden lg:block absolute top-8 left-10 right-10 h-1 bg-orange-200 z-0"></div>
+                            <div class="lg:hidden absolute left-8 top-8 bottom-8 w-1 bg-orange-200 z-0"></div>
 
                             <div class="flex flex-col lg:flex-row justify-between gap-8 lg:gap-0 relative z-10">
-                                
                                 <div v-for="(step, index) in content.alur.steps" :key="step.id" 
                                      class="flex lg:flex-col items-center gap-6 lg:gap-4 group cursor-default"
                                      data-aos="zoom-in"
-                                     :data-aos-delay="600 + (index * 150)">
+                                     :data-aos-delay="500 + (index * 100)">
                                     
-                                    <div class="w-16 h-16 shrink-0 rounded-full flex items-center justify-center shadow-md transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 border-4 border-[#FFFBDF]"
+                                    <div class="w-16 h-16 shrink-0 rounded-full flex items-center justify-center shadow-md transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 border-4 border-white"
                                          :style="{ backgroundColor: colors.primaryOrange }">
                                         <div class="relative w-full h-full flex items-center justify-center">
                                             <span class="text-2xl font-bold text-white font-headline group-hover:opacity-0 transition-opacity duration-300 absolute">{{ step.id }}</span>
@@ -113,14 +123,13 @@ const colors = {
                                         </div>
                                     </div>
 
-                                    <div class="text-left lg:text-center pt-2">
-                                        <p class="text-lg font-bold transition-colors duration-300 group-hover:text-orange-600"
+                                    <div class="text-left lg:text-center pt-1">
+                                        <p class="text-base lg:text-lg font-bold transition-colors duration-300 group-hover:text-orange-600"
                                            :style="{ color: colors.textDark }">
                                             {{ step.label }}
                                         </p>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
@@ -130,13 +139,13 @@ const colors = {
 
         </div>
 
-        <div class="absolute bottom-0 left-0 w-full h-16 lg:h-24 z-10 opacity-30 pointer-events-none"
+        <div class="absolute bottom-0 left-0 w-full h-16 lg:h-20 z-10 opacity-30 pointer-events-none"
              :style="{ 
                 backgroundImage: `url('${assets.batikPattern}')`,
                 backgroundRepeat: 'repeat-x',
                 backgroundSize: 'contain',
                 backgroundPosition: 'bottom'
-             }">
+            }">
         </div>
 
     </section>
@@ -150,12 +159,16 @@ const colors = {
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Animasi Bounce Halus */
+/* Animasi Bounce Halus untuk Gunungan */
 @keyframes bounceSlow {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-8px); }
 }
 .animate-bounce-slow {
     animation: bounceSlow 3s ease-in-out infinite;
+}
+
+section {
+    transition: background-color 0.5s ease;
 }
 </style>
