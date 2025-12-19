@@ -44,6 +44,10 @@ const props = defineProps({
     editingVisualization: {
         type: Object,
         default: null
+    },
+    accessError: {
+        type: String,
+        default: null
     }
 })
 
@@ -193,7 +197,8 @@ watch(() => form.visualization_type_id, (newTypeId) => {
     const vizType = props.visualizationTypes.find(vt => vt.id === newTypeId)
     selectedVisualizationType.value = vizType ? vizType.type_code : null
 
-    if (isSettingUp.value) return
+    // Skip reset if we're in setup mode or if we're loading existing data
+    if (isSettingUp.value || (props.editingVisualization && form.chart_data)) return
 
     chartCategories.value = []
     multiSeriesData.value = []
@@ -1087,22 +1092,8 @@ const requestSubmit = () => {
         // Histogram validation will be done below
     } else if (isGroupedStackedBar.value) {
         // Grouped Stacked Bar validation will be done below  
-    } else if (isMultiSeries.value || isBoxPlot.value || isVennDiagram.value || isHeatmapMatrix.value || isDensityPlot.value) {
-        // Validate JSON data
-        if (!form.chart_data_json) {
-            notificationTitle.value = 'Data Tidak Lengkap'
-            notificationMessage.value = 'Mohon isi data JSON untuk grafik ini'
-            showErrorNotif.value = true
-            return
-        }
-        try {
-            JSON.parse(form.chart_data_json)
-        } catch (e) {
-            notificationTitle.value = 'Format JSON Salah'
-            notificationMessage.value = 'Format JSON tidak valid. Mohon periksa kembali.'
-            showErrorNotif.value = true
-            return
-        }
+    } else if (isBoxPlot.value || isVennDiagram.value || isHeatmapMatrix.value || isDensityPlot.value) {
+        // These will be validated below with proper data validation
     }
 
     // Prepare data similar to handlePreview but don't show preview
@@ -1624,6 +1615,24 @@ const initializeEditingState = async () => {
             addVennSet()
         }
         chartCategories.value = []
+    } else if (isHistogram.value) {
+        // Load histogram data
+        const rawData = editing.chart_data?.rawData
+        if (rawData && Array.isArray(rawData) && rawData.length > 0) {
+            histogramRawData.value = rawData.join(', ')
+            histogramBinMethod.value = editing.chart_data?.binMethod || 'manual'
+            histogramBinCount.value = editing.chart_data?.binCount || 10
+        }
+        chartCategories.value = []
+    } else if (isGroupedStackedBar.value) {
+        // Load grouped stacked bar data
+        const rawData = editing.chart_data?.rawGroupedData
+        if (rawData && rawData.length > 0) {
+            groupedStackedData.value = rawData
+        } else {
+            addGroupedStackedGroup()
+        }
+        chartCategories.value = []
     } else if (isHeatmapMatrix.value) {
         // Load heatmap data
         const labels = editing.chart_data?.labels || []
@@ -1653,6 +1662,24 @@ const initializeEditingState = async () => {
         if (chartCategories.value.length === 0) {
             addCategory()
         }
+    } else if (isPopulationPyramid.value) {
+        // Load population pyramid data
+        const labels = editing.chart_data?.labels || []
+        const datasets = editing.chart_data?.datasets || []
+        
+        const leftDataset = datasets[0] || {}
+        const rightDataset = datasets[1] || {}
+        
+        populationPyramidData.value = labels.map((label, idx) => ({
+            ageGroup: label,
+            leftValue: leftDataset.data?.[idx] ?? '',
+            rightValue: rightDataset.data?.[idx] ?? ''
+        }))
+
+        if (populationPyramidData.value.length === 0) {
+            addPopulationPyramidRow()
+        }
+        chartCategories.value = []
     } else {
         chartCategories.value = []
         form.chart_data = editing.chart_data ?? {}
@@ -1671,7 +1698,17 @@ const initializeEditingState = async () => {
 }
 
 onMounted(() => {
-    if (isEditing.value) {
+    // Check if there's an access error
+    if (props.accessError) {
+        notificationTitle.value = 'Akses Ditolak'
+        notificationMessage.value = props.accessError
+        showErrorNotif.value = true
+        
+        // Redirect to dashboard after 3 seconds
+        setTimeout(() => {
+            window.location.href = route('dashboard')
+        }, 3000)
+    } else if (isEditing.value) {
         initializeEditingState()
     }
 })

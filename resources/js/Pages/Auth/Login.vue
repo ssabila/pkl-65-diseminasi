@@ -28,11 +28,35 @@ const handleLogin = () => {
 <template>
   <Head title="Login" />
 
-  <!-- BACKGROUND WITH LARGE BATIK PATTERN -->
+  <!-- BACKGROUND WITH COLORFUL FLOWERS -->
   <div class="min-h-screen bg-[#FFFBDF] flex items-center justify-center py-6 relative overflow-hidden">
     
-    <!-- Large Batik Pattern Background -->
-    <div class="absolute inset-0 pointer-events-none batik-kawung"></div>
+    <!-- Floating Colorful Flowers Background -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+      <!-- Bunga besar - sudut kiri atas -->
+      <img src="/images/assets/bunga2.png" class="absolute -top-8 -left-8 w-40 opacity-70 animate-spin-slow" style="filter: hue-rotate(0deg);" alt="" />
+      
+      <!-- Bunga kanan atas - warna oranye -->
+      <img src="/images/assets/bunga2.png" class="absolute top-[5%] right-[5%] w-32 opacity-60 animate-float" style="filter: hue-rotate(25deg) saturate(1.2);" alt="" />
+      
+      <!-- Bunga kecil kanan tengah - warna oranye terang -->
+      <img src="/images/assets/bunga2.png" class="absolute top-[35%] right-[3%] w-24 opacity-65 animate-spin-reverse" style="filter: hue-rotate(20deg) saturate(1.3);" alt="" />
+      
+      <!-- Bunga tengah atas -->
+      <img src="/images/assets/bunga2.png" class="absolute top-[8%] left-[30%] w-20 opacity-45 animate-float" style="filter: hue-rotate(0deg);" alt="" />
+      
+      <!-- Bunga besar kiri bawah - warna kuning -->
+      <img src="/images/assets/bunga2.png" class="absolute bottom-[10%] -left-6 w-36 opacity-60 animate-spin-slow" style="filter: hue-rotate(40deg) saturate(1.2);" alt="" />
+      
+      <!-- Bunga kanan bawah - warna coral -->
+      <img src="/images/assets/bunga2.png" class="absolute -bottom-10 right-[15%] w-44 opacity-55 animate-float-delay" style="filter: hue-rotate(10deg);" alt="" />
+      
+      <!-- Bunga kecil bawah tengah -->
+      <img src="/images/assets/bunga2.png" class="absolute bottom-[5%] left-[40%] w-16 opacity-50 animate-spin-reverse" style="filter: hue-rotate(35deg) saturate(1.1);" alt="" />
+      
+      <!-- Bunga tambahan -->
+      <img src="/images/assets/bunga2.png" class="absolute top-[55%] left-[8%] w-18 opacity-40 animate-float" style="filter: hue-rotate(15deg);" alt="" />
+    </div>
     
     <!-- WRAPPER KONTEN -->
     <div class="relative z-10 w-full max-w-4xl mx-4">
@@ -159,14 +183,3 @@ const handleLogin = () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-  .batik-kawung {
-  background-image: url('/images/assets/pattern-kawung.svg');
-  background-size: 1080px 1080px;
-  background-repeat: repeat;
-  background-position: top center;
-  opacity: 0.3;
-}
-
-</style>

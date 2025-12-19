@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Riset;
 use App\Models\VisualizationType;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class DataController extends Controller
@@ -17,7 +18,7 @@ class DataController extends Controller
             ->select('id', 'name')
             ->orderBy('name');
 
-        if ($assignedRisetId = auth()->user()?->riset_id) {
+        if ($assignedRisetId = Auth::user()?->riset_id) {
             $risetsQuery->where('id', $assignedRisetId);
         }
 
@@ -25,6 +26,7 @@ class DataController extends Controller
             'risets' => $risetsQuery->get(),
             'visualizationTypes' => VisualizationType::select('id', 'type_code', 'type_name')->orderBy('type_name')->get(),
             'editingVisualization' => null,
+            'accessError' => null,
         ]);
     }
 }
