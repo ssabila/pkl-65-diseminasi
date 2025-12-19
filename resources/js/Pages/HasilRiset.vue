@@ -34,133 +34,66 @@ const pklColors = ['#ef874b', '#50829b', '#748d63', '#fcda7b', '#8174a0', '#f69a
 
 // --- Component Mapping ---
 const chartComponents = {
-    'bar': ApexBarChart, 'bar-chart': ApexBarChart,
-    'pie': ApexDonutChart, 'pie-chart': ApexDonutChart, 'donut': ApexDonutChart, 'donut-chart': ApexDonutChart,
-    'line': ApexLineChart, 'line-chart': ApexLineChart,
-    'area': ApexAreaChart, 'area-chart': ApexAreaChart,
-    'map': LeafletMap, 'peta': LeafletMap,
-    'stacked-bar': ApexStackedBarChart, 'stacked-bar-100': ApexStackedBar100Chart,
-    'grouped-bar': ApexGroupedBarChart, 'grouped-stacked-bar': ApexGroupedStackedBarChart,
+    // Simple charts
+    'bar': ApexBarChart, 
+    'bar-chart': ApexBarChart,
+    'pie': ApexDonutChart, 
+    'pie-chart': ApexDonutChart, 
+    'donut': ApexDonutChart, 
+    'donut-chart': ApexDonutChart,
+    'line': ApexLineChart, 
+    'line-chart': ApexLineChart,
+    'area': ApexAreaChart, 
+    'area-chart': ApexAreaChart,
+    
+    // Map types
+    'map': LeafletMap, 
+    'peta': LeafletMap,
+    'choropleth': LeafletMap,
+    
+    // Stacked and grouped bars
+    'stacked-bar': ApexStackedBarChart, 
+    'stacked-bar-chart': ApexStackedBarChart,
+    'stacked-bar-100': ApexStackedBar100Chart,
+    '100-stacked-bar-chart': ApexStackedBar100Chart,
+    'grouped-bar': ApexGroupedBarChart, 
+    'grouped-bar-chart': ApexGroupedBarChart,
+    'grouped-stacked-bar': ApexGroupedStackedBarChart,
+    'grouped-stacked-bar-chart': ApexGroupedStackedBarChart,
     'clustered-bar': ApexClusteredBarChart,
-    'boxplot': ApexBoxPlotChart, 'heatmap': ApexHeatmapChart,
-    'histogram': ApexHistogramChart, 'density': ApexDensityChart,
-    'pyramid': ApexPopulationPyramidChart, 'venn': VennDiagramChart
+    'clustered-bar-chart': ApexClusteredBarChart,
+    
+    // Statistical charts
+    'box-plot': ApexBoxPlotChart,
+    'boxplot': ApexBoxPlotChart,
+    'heatmap': ApexHeatmapChart,
+    'heatmap-matrix': ApexHeatmapChart,
+    'histogram': ApexHistogramChart,
+    'density': ApexDensityChart,
+    'density-plot': ApexDensityChart,
+    
+    // Special charts
+    'pyramid': ApexPopulationPyramidChart,
+    'population-pyramid': ApexPopulationPyramidChart,
+    'venn': VennDiagramChart,
+    'venn-diagram': VennDiagramChart
 };
-
-// --- Sample Data dengan KATEGORI ---
-const sampleVisualizations = [
-    {
-        id: 'demo-pyramid',
-        title: 'Piramida Penduduk',
-        category: 'Demografi', // Kategori Baru
-        type: { type_code: 'pyramid', type_name: 'Population Pyramid' },
-        chart_data: {
-            labels: ['17-20', '21-25', '26-30', '31-35', '36-40', '41-45', '46+'],
-            datasets: [
-                { name: 'Laki-laki', data: [10, 25, 35, 30, 20, 15, 10] },
-                { name: 'Perempuan', data: [15, 30, 40, 25, 15, 10, 5] }
-            ]
-        },
-        interpretation: 'Mayoritas responden berada pada rentang usia produktif (26-30 tahun).'
-    },
-    {
-        id: 'demo-venn',
-        title: 'Irisan Aplikasi',
-        category: 'Demografi',
-        type: { type_code: 'venn', type_name: 'Venn Diagram' },
-        chart_data: {
-            vennData: {
-                sets: [{ name: 'A', size: 100 }, { name: 'B', size: 90 }],
-                overlaps: [{ sets: ['A', 'B'], size: 40 }]
-            }
-        },
-        interpretation: 'Terdapat irisan penggunaan aplikasi yang signifikan antar platform.'
-    },
-    {
-        id: 'demo-grouped-stacked',
-        title: 'Pendapatan Mitra',
-        category: 'Ekonomi', // Kategori Baru
-        type: { type_code: 'grouped-stacked-bar', type_name: 'Grouped Stacked Bar' },
-        chart_data: {
-            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-            subgroups: ['Lama', 'Baru'],
-            stacks: ['Bonus', 'Pokok'],
-            yAxisTitle: 'Juta Rupiah',
-            datasets: [
-                { name: 'Lama - Bonus', group: 'Lama', data: [10, 15, 12, 18] },
-                { name: 'Lama - Pokok', group: 'Lama', data: [50, 55, 52, 58] },
-                { name: 'Baru - Bonus', group: 'Baru', data: [5, 8, 10, 12] },
-                { name: 'Baru - Pokok', group: 'Baru', data: [30, 35, 40, 45] }
-            ]
-        },
-        interpretation: 'Pendapatan mitra lama cenderung lebih stabil dibanding mitra baru.'
-    },
-    {
-        id: 'demo-boxplot',
-        title: 'Sebaran Pendapatan',
-        category: 'Ekonomi',
-        type: { type_code: 'boxplot', type_name: 'Box Plot' },
-        chart_data: {
-            labels: ['Ojol', 'Kurir', 'Food'],
-            datasets: [{ type: 'boxPlot', data: [{ x: 'Ojol', y: [50, 80, 100, 150, 200] }, { x: 'Kurir', y: [70, 90, 120, 160, 220] }, { x: 'Food', y: [40, 60, 90, 130, 180] }] }]
-        },
-        interpretation: 'Variabilitas pendapatan tertinggi ditemukan pada sektor kurir logistik.'
-    },
-    {
-        id: 'demo-heatmap',
-        title: 'Jam Sibuk',
-        category: 'Pola Kerja', // Kategori Baru
-        type: { type_code: 'heatmap', type_name: 'Heatmap' },
-        chart_data: {
-            categories: ['08:00', '12:00', '16:00', '20:00'],
-            datasets: [
-                { name: 'Senin', data: [20, 60, 70, 60] },
-                { name: 'Minggu', data: [10, 90, 60, 40] }
-            ]
-        },
-        interpretation: 'Pemesanan memuncak pada jam makan siang dan pulang kerja.'
-    },
-    {
-        id: 'demo-stacked',
-        title: 'Shift Kerja',
-        category: 'Pola Kerja',
-        type: { type_code: 'stacked-bar', type_name: 'Stacked Bar' },
-        chart_data: {
-            labels: ['Senin', 'Selasa'],
-            datasets: [{ name: 'Pagi', data: [10, 15] }, { name: 'Malam', data: [25, 20] }]
-        },
-        interpretation: 'Mitra lebih banyak aktif pada shift malam di hari kerja.'
-    },
-    {
-        id: 'demo-map',
-        title: 'Peta Persebaran',
-        category: 'Wilayah', // Kategori Baru
-        type: { type_code: 'map', type_name: 'Map' },
-        chart_data: {
-            pointData: [
-                { id: 1, name: 'Bantul', lat: -7.89, lng: 110.33, value: 85 },
-                { id: 2, name: 'Sleman', lat: -7.70, lng: 110.40, value: 120 }
-            ],
-            selectedVariable: 'value'
-        },
-        interpretation: 'Konsentrasi responden tertinggi berada di wilayah Sleman dan Kota Yogyakarta.'
-    }
-];
 
 // --- Logic Data & Tab ---
 const chartRefs = ref({});
 const setChartRef = (el, id) => { if (el) chartRefs.value[id] = el; };
 
-// Menggabungkan data Props dan Sample
+// Gunakan hanya data dari database (DummyContentSeeder atau input user)
 const mergedVisualizations = computed(() => {
-    // Jika data dari DB tidak punya kategori, kita masukkan ke kategori 'Umum'
-    const dbData = props.visualizations.map(v => ({ ...v, category: v.category || 'Umum' }));
-    return [...dbData, ...sampleVisualizations];
+    return props.visualizations.map(v => ({ 
+        ...v, 
+        category: v.category || v.title // Gunakan title sebagai category jika tidak ada category
+    }));
 });
 
 // Mendapatkan daftar kategori unik
 const categories = computed(() => {
-    const cats = mergedVisualizations.value.map(v => v.category || 'Lainnya');
+    const cats = mergedVisualizations.value.map(v => v.category || v.title || 'Lainnya');
     return [...new Set(cats)].sort(); // Unik dan urut abjad
 });
 
@@ -180,7 +113,7 @@ onMounted(() => {
 
 // Filter Visualisasi berdasarkan Tab Aktif
 const filteredVisualizations = computed(() => {
-    return mergedVisualizations.value.filter(v => (v.category || 'Lainnya') === activeTab.value);
+    return mergedVisualizations.value.filter(v => (v.category || v.title || 'Lainnya') === activeTab.value);
 });
 
 // --- Helper Functions ---
@@ -192,19 +125,47 @@ const formatChartData = (vis) => {
     const typeCode = vis.type?.type_code;
     
     try {
-        if (typeCode === 'venn') return rawData.vennData ? rawData : { vennData: rawData };
-        if (['peta', 'map'].includes(typeCode)) return rawData;
-        if (rawData.labels && Array.isArray(rawData.datasets)) return rawData;
-        if (rawData.categories && Array.isArray(rawData.datasets)) return { labels: rawData.categories, datasets: rawData.datasets, ...rawData };
+        // Venn diagram
+        if (typeCode === 'venn-diagram') {
+            return rawData.vennData ? rawData : { vennData: rawData }
+        }
         
-        // Fallback layout lama
-        if (rawData.categories && Array.isArray(rawData.series)) return { labels: rawData.categories, datasets: rawData.series };
-        if (rawData.labels && Array.isArray(rawData.series)) return { labels: rawData.labels, datasets: rawData.series };
+        // Map types
+        if (['peta', 'map', 'choropleth'].includes(typeCode)) {
+            return rawData
+        }
         
-        if (typeCode === 'grouped-stacked-bar' && rawData.subgroups) return rawData;
-        return rawData;
-    } catch (e) { return null; }
-};
+        // Standard format with labels and datasets
+        if (rawData.labels && Array.isArray(rawData.datasets)) {
+            return rawData
+        }
+        
+        // Alternative format with categories instead of labels
+        if (rawData.categories && Array.isArray(rawData.datasets)) {
+            return { labels: rawData.categories, datasets: rawData.datasets, ...rawData }
+        }
+        
+        // Fallback for old layout
+        if (rawData.categories && Array.isArray(rawData.series)) {
+            return { labels: rawData.categories, datasets: rawData.series }
+        }
+        
+        if (rawData.labels && Array.isArray(rawData.series)) {
+            return { labels: rawData.labels, datasets: rawData.series }
+        }
+        
+        // Grouped stacked bar with subgroups
+        if (typeCode === 'grouped-stacked-bar-chart' && rawData.subgroups) {
+            return rawData
+        }
+        
+        // Default return
+        return rawData
+    } catch (e) {
+        console.error('Error formatting chart data:', e)
+        return null
+    }
+}
 
 const triggerDownload = (id) => {
     const chartComponent = chartRefs.value[id];

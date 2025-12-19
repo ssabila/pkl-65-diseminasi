@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
         PermissionRoleSeeder::class,
         UserSeeder::class,
         VisualizationTypeSeeder::class, // ← WAJIB
-        DummyContentSeeder::class,
+        RisetVisualizationSeeder::class,
     ]);
 }
 

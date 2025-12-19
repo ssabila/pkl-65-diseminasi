@@ -72,7 +72,26 @@ class DashboardController extends Controller
 
     public function edit(Visualization $visualization)
     {
-        $this->ensureVisualizationAccess($visualization);
+        // Check access - return error response instead of abort
+        $risetId = $visualization->topic?->riset_id;
+        if (!$risetId) {
+            return Inertia::render('Admin/Data', [
+                'risets' => [],
+                'visualizationTypes' => [],
+                'editingVisualization' => null,
+                'accessError' => 'Visualisasi tidak ditemukan.',
+            ]);
+        }
+
+        $user = Auth::user();
+        if ($user && $user->riset_id && (int) $user->riset_id !== (int) $risetId) {
+            return Inertia::render('Admin/Data', [
+                'risets' => [],
+                'visualizationTypes' => [],
+                'editingVisualization' => null,
+                'accessError' => 'Anda tidak bisa mengedit visualisasi ini. Visualisasi ini milik riset lain.',
+            ]);
+        }
 
         $visualization->load(['topic.riset', 'type']);
 
@@ -104,6 +123,7 @@ class DashboardController extends Controller
                 'riset_name' => $visualization->topic?->riset?->name,
                 'type_code' => $visualization->type?->type_code,
             ],
+            'accessError' => null,
         ]);
     }
 
