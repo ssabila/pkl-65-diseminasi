@@ -1,59 +1,462 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Aplikasi Diseminasi Riset & Visualisasi Data
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 📋 Deskripsi Singkat
 
-## About Laravel
+Aplikasi **Diseminasi Riset & Visualisasi Data** adalah platform web modern yang dirancang untuk mengelola, mendistribusikan, dan memvisualisasikan hasil penelitian secara interaktif. Aplikasi ini memungkinkan pengguna untuk membuat berbagai jenis visualisasi data termasuk grafik, peta choropleth, dan dashboard analitik yang dapat disesuaikan.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Fitur utama:
+- 📊 Berbagai jenis visualisasi data (charts, peta interaktif, dll)
+- 🔐 Sistem autentikasi dan manajemen pengguna
+- 📄 Manajemen dokumen penelitian
+- 🗺️ Visualisasi peta choropleth interaktif
+- 📈 Dashboard analitik dengan data real-time
+- 🔍 Search dan filtering data
+- 📱 UI responsif dengan Tailwind CSS
+- 🎨 Dark mode support
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🚀 Cara Implementasi
 
-## Learning Laravel
+### Prerequisites (Persyaratan Awal)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Sebelum memulai, pastikan Anda telah menginstall:
+- **PHP 8.2+**
+- **Node.js 18+** dan npm/yarn
+- **Composer**
+- **Database** (SQLite, MySQL, atau PostgreSQL)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Langkah-Langkah Instalasi
 
-## Laravel Sponsors
+#### 1. Clone Repository dan Setup Environment
+```bash
+# Clone project
+git clone <repository-url>
+cd PKL-65-Diseminasi
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# Copy file environment
+cp .env.example .env
 
-### Premium Partners
+# Generate application key
+php artisan key:generate
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+#### 2. Install Dependencies
 
-## Contributing
+**Backend (PHP/Laravel):**
+```bash
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**Frontend (Node.js/Vue):**
+```bash
+npm install
+# atau jika menggunakan yarn
+yarn install
+```
 
-## Code of Conduct
+#### 3. Setup Database
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+# Jalankan migration
+php artisan migrate
 
-## Security Vulnerabilities
+# (Optional) Jalankan seeder untuk data awal
+php artisan db:seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+#### 4. Build Assets Frontend
 
-## License
+```bash
+# Development
+npm run dev
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Production
+npm run build
+```
+
+#### 5. Jalankan Aplikasi
+
+**Terminal 1 - Development Server:**
+```bash
+php artisan serve
+```
+
+Aplikasi akan berjalan di `http://localhost:8000`
+
+**Terminal 2 - Vite Development Server:**
+```bash
+npm run dev
+```
+
+Vite akan serve assets di `http://localhost:5173`
+
+---
+
+## 🛠️ Teknologi & Tools yang Digunakan
+
+### Backend Framework & Libraries
+
+| Teknologi | Versi | Kegunaan |
+|-----------|-------|----------|
+| **Laravel** | ^12.0 | Framework web PHP utama |
+| **Inertia.js** | ^2.0 | Server-side rendering untuk Vue components |
+| **Laravel Sanctum** | ^4.0 | API authentication & token management |
+| **Laravel Scout** | ^10.15 | Full-text search dengan Typesense |
+| **Laravel Fortify** | ^1.23 | Autentikasi & user management |
+| **Spatie Permission** | ^6.10 | Role-based access control (RBAC) |
+| **Spatie Backup** | ^9.1 | Automated database & file backups |
+| **Spatie Health** | ^1.34 | Application health monitoring |
+| **Owen Auditing** | ^14.0 | Audit trail & activity logging |
+| **Intervention Image** | ^3.11 | Image manipulation & processing |
+| **Maatwebsite Excel** | ^3.1 | Excel file import/export |
+| **Typesense** | ^5.1 | Advanced search engine |
+| **Algolia Search** | ^5.30.0 | Full-text search alternative |
+
+### Frontend Framework & Libraries
+
+| Teknologi | Versi | Kegunaan |
+|-----------|-------|----------|
+| **Vue 3** | - | Progressive JavaScript framework |
+| **Vite** | ^6.2.0 | Next-gen frontend build tool |
+| **Tailwind CSS** | ^4.0.1 | Utility-first CSS framework |
+| **TailwindCSS PostCSS** | ^4.0.1 | PostCSS plugin untuk Tailwind |
+| **TailwindCSS Forms** | ^0.5.7 | Styled form components |
+| **Heroicons Vue** | ^2.1.5 | Beautiful Vue icon library |
+| **Leaflet** | ^1.9.4 | Interactive maps library |
+| **Vue-Leaflet** | ^0.10.1 | Vue wrapper untuk Leaflet |
+| **Leaflet.heat** | ^0.2.0 | Heatmap layer untuk peta |
+| **ApexCharts** | ^4.7.0 | Modern charting library |
+| **TanStack Vue Table** | ^8.20.5 | Headless table component |
+| **FilePond** | ^4.32.7 | Drag & drop file upload |
+| **html2canvas** | ^1.4.1 | Screenshot dan export functionality |
+| **dotenv** | ^16.4.5 | Environment variable management |
+| **Axios** | ^1.6.4 | HTTP client untuk API calls |
+| **AOS** | ^2.3.4 | Animate on scroll library |
+
+### Development Tools
+
+| Tool | Versi | Kegunaan |
+|------|-------|----------|
+| **ESLint** | ^9.36.0 | JavaScript linting & code quality |
+| **ESLint Vue Plugin** | ^10.5.0 | ESLint rules untuk Vue |
+| **Prettier** | - | Code formatter |
+| **PostCSS** | ^8.5.1 | CSS transformation tool |
+| **Autoprefixer** | ^10.4.20 | Vendor prefixes otomatis |
+| **Terser** | ^5.39.2 | JavaScript minifier |
+| **Pest** | ^3.8 | Testing framework PHP |
+| **PHPUnit** | - | Unit testing framework |
+| **Faker** | ^1.9.1 | Generate fake data untuk testing |
+
+### Project Structure & Config Tools
+
+| File/Folder | Kegunaan |
+|-------------|----------|
+| **vite.config.js** | Konfigurasi Vite build tool |
+| **tailwind.config.js** | Konfigurasi Tailwind CSS |
+| **postcss.config.js** | Konfigurasi PostCSS processors |
+| **eslint.config.js** | ESLint rules & configuration |
+| **.env** | Environment variables configuration |
+
+---
+
+## 📁 Struktur Folder Utama
+
+```
+project/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/        # Request handlers
+│   │   │   ├── Admin/
+│   │   │   ├── Auth/
+│   │   │   ├── DashboardController.php
+│   │   │   ├── DataController.php
+│   │   │   └── PageController.php
+│   │   ├── Middleware/         # HTTP middleware
+│   │   └── Requests/           # Form request validation
+│   ├── Models/
+│   │   ├── Riset.php           # Research model
+│   │   ├── Topic.php           # Topic/category model
+│   │   ├── Visualization.php   # Visualization config
+│   │   ├── Document.php        # Research documents
+│   │   ├── User.php            # User model
+│   │   └── LoginHistory.php    # Login tracking
+│   ├── Services/               # Business logic services
+│   ├── Traits/                 # Reusable class traits
+│   └── Providers/              # Service providers
+├── routes/
+│   ├── web.php                 # Web routes
+│   ├── api.php                 # API routes
+│   └── console.php             # Artisan commands
+├── resources/
+│   ├── js/
+│   │   ├── Pages/              # Vue page components
+│   │   ├── Components/         # Reusable Vue components
+│   │   ├── Layouts/            # Layout components
+│   │   ├── app.js              # Main app entry
+│   │   └── darkMode.js         # Dark mode functionality
+│   ├── css/
+│   │   └── app.css             # Global styles
+│   └── views/                  # Blade templates (if any)
+├── database/
+│   ├── migrations/             # Database schema
+│   ├── seeders/                # Data seeders
+│   └── factories/              # Model factories for testing
+├── public/
+│   ├── geojson/                # GeoJSON data untuk peta
+│   ├── sample-data/            # Sample data files
+│   ├── test_choropleth.csv     # Test choropleth data
+│   └── build/                  # Production assets (generated)
+├── config/
+│   ├── app.php                 # App configuration
+│   ├── database.php            # Database config
+│   ├── auth.php                # Authentication config
+│   ├── permission.php          # Permission & role config
+│   └── (lainnya)
+├── storage/
+│   ├── app/                    # User file uploads
+│   ├── logs/                   # Application logs
+│   └── framework/              # Cached files
+├── tests/
+│   ├── Feature/                # Feature tests
+│   └── Unit/                   # Unit tests
+├── vendor/                     # PHP dependencies (generated)
+├── node_modules/               # NPM dependencies (generated)
+└── bootstrap/                  # Application bootstrap
+```
+
+---
+
+## 📊 Fitur Utama Aplikasi
+
+### 1. Manajemen Riset
+- Create, Read, Update, Delete penelitian
+- Kategorisasi per topik
+- Publish/draft management
+- Audit trail untuk setiap perubahan
+
+### 2. Visualisasi Data
+Mendukung berbagai jenis visualisasi:
+- **Charts**: Line, Bar, Pie, Area, Scatter
+- **Maps**: Choropleth maps dengan data dinamis
+- **Heatmaps**: Untuk visualisasi kepadatan data
+- **Dashboards**: Custom dashboard dengan multiple charts
+
+### 3. Peta Choropleth Interaktif
+- Upload data CSV/Excel
+- Auto-detect variabel dari data
+- Interactive legend & tooltips
+- Export as image (html2canvas)
+- Multiple variable visualization
+- Lihat [CHOROPLETH_GUIDE.md](CHOROPLETH_GUIDE.md) untuk detail lengkap
+
+### 4. File Management
+- Upload dokumen penelitian
+- Drag & drop upload dengan FilePond
+- File validation (tipe & ukuran)
+- Download & sharing
+
+### 5. User Authentication & Authorization
+- Login/Register dengan email
+- Role-based access control (Admin, Editor, Viewer)
+- Activity logging
+- Login history tracking
+
+### 6. Search & Filter
+- Full-text search dengan Typesense
+- Advanced filtering options
+- Algolia integration (alternative)
+
+### 7. Dashboard Analytics
+- Real-time data metrics
+- Customizable widgets
+- Data export (Excel, CSV)
+- Chart export (PNG/JPG)
+
+---
+
+## 🔧 Perintah Artisan Penting
+
+```bash
+# Database
+php artisan migrate              # Run migrations
+php artisan migrate:rollback     # Rollback migrations
+php artisan db:seed              # Run seeders
+php artisan tinker               # Interactive PHP shell
+
+# Cache & Config
+php artisan cache:clear          # Clear application cache
+php artisan config:cache         # Cache config
+php artisan view:cache           # Cache views
+
+# Search (Typesense)
+php artisan scout:import         # Import models to Typesense
+php artisan scout:flush          # Flush Typesense index
+
+# Backup
+php artisan backup:run           # Run backup
+php artisan backup:list          # List backups
+
+# Development
+php artisan serve                # Start dev server
+php artisan make:model Name      # Create new model
+php artisan make:controller NameController   # Create controller
+php artisan make:migration create_table      # Create migration
+```
+
+---
+
+## 📝 NPM Scripts
+
+```bash
+# Development
+npm run dev              # Start Vite dev server (hot reload)
+npm run build            # Build for production
+npm run lint             # Run ESLint for code quality
+npm run format           # Format code dengan Prettier
+```
+
+---
+
+## 🌍 Environment Variables (.env)
+
+Beberapa environment variables penting:
+
+```env
+# App
+APP_NAME="Diseminasi Riset"
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+# Database
+DB_CONNECTION=sqlite
+DB_DATABASE=/path/to/database.sqlite
+
+# Fortify
+FORTIFY_GUARD=web
+FORTIFY_HOME=/dashboard
+
+# Typesense (Search)
+TYPESENSE_HOST=localhost
+TYPESENSE_PORT=8108
+TYPESENSE_PROTOCOL=http
+TYPESENSE_API_KEY=xyz
+
+# Algolia (Alternative Search)
+ALGOLIA_APP_ID=
+ALGOLIA_SECRET=
+
+# Email
+MAIL_MAILER=log
+MAIL_FROM_ADDRESS=noreply@example.com
+
+# File Upload
+FILESYSTEM_DISK=local
+```
+
+---
+
+## 📚 Dokumentasi Tambahan
+
+- **Panduan Choropleth**: Lihat [CHOROPLETH_GUIDE.md](CHOROPLETH_GUIDE.md)
+- **Contributing**: Lihat [CONTRIBUTING.md](CONTRIBUTING.md)
+- **License**: [LICENSE.md](LICENSE.md)
+- **Security**: [SECURITY.md](SECURITY.md)
+
+---
+
+## 🧪 Testing
+
+Aplikasi menggunakan **Pest** dan **PHPUnit** untuk testing:
+
+```bash
+# Run tests
+./vendor/bin/pest
+
+# Run specific test file
+./vendor/bin/pest tests/Feature/DashboardTest.php
+
+# Run with coverage
+./vendor/bin/pest --coverage
+```
+
+---
+
+## 📦 Deployment
+
+### Build untuk Production
+```bash
+# Frontend
+npm run build
+
+# Clear cache
+php artisan optimize
+
+# Backup database
+php artisan backup:run
+```
+
+### Environment untuk Production
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://yourdomain.com
+```
+
+---
+
+## 🤝 Kontribusi
+
+Untuk berkontribusi pada project ini:
+1. Fork repository
+2. Buat feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push ke branch (`git push origin feature/AmazingFeature`)
+5. Buat Pull Request
+
+Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk detail lebih lanjut.
+
+---
+
+
+## 🆘 Troubleshooting
+
+### Port sudah terpakai
+```bash
+php artisan serve --port=8001
+```
+
+### Build assets gagal
+```bash
+npm run dev
+# Jika masih error, coba:
+rm -rf node_modules
+npm install
+npm run dev
+```
+
+### Database error
+```bash
+php artisan migrate:fresh --seed
+```
+
+### Cache issues
+```bash
+php artisan cache:clear
+php artisan view:clear
+php artisan config:clear
+```
+
+---
+
+## 📞 Support
+
+Untuk pertanyaan atau masalah, hubungi tim development atau buat issue di repository.
+
+---
+
+**Last Updated**: December 2025
+**Version**: 1.0
+**Author**: PKL-65 Team
