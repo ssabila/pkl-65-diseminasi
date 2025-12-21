@@ -51,6 +51,7 @@
         "lucide-vue-next": "^0.554.0",
         "nprogress": "^0.2.0",
         "path": "^0.12.7",
+        "swiper": "^12.0.3",
         "typesense-instantsearch-adapter": "^2.9.0",
         "vue": "^3.0.0",
         "vue-filepond": "^7.0.4",
