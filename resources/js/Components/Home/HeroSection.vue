@@ -9,9 +9,13 @@ const content = {
 const assets = {
     logo: '/images/assets/LOGO-PKL_REV8.png',
     gunungan: '/images/assets/gunungan2.png', 
-    pattern: '/images/assets/pattern-batik.svg', 
+    pattern: '/images/assets/bg-pattern.svg', 
     border: '/images/assets/border-hero.svg', 
-    corner: '/images/assets/lanskap-gunung-abstrak.svg'
+    corner: '/images/assets/lanskap-gunung-abstrak.svg',
+    maskot: '/images/assets/maskotTugu.svg',
+    maskotTunjuk: '/images/assets/Gundatala_5 1.svg',
+    cornerBottom: '/images/assets/gununganGab.svg',
+    bottom: '/images/assets/monjali.svg'
 };
 
 const colors = {
@@ -24,18 +28,14 @@ const colors = {
 
 <template>
     <section 
-<<<<<<< HEAD
-        class="min-h-screen relative flex flex-col justify-between overflow-hidden -mt-35 pt-32"
-=======
-        class="min-h-screen relative flex flex-col justify-between overflow-hidden -mt-25 pt-32"
->>>>>>> main
+        class="min-h-screen relative flex flex-col justify-between overflow-hidden -mt-29 pt-32"
         :style="{ backgroundColor: colors.bgCream }" 
     >
         
         <div class="absolute inset-0 opacity-10 pointer-events-none z-0 animate-pan-pattern"
             :style="{ 
                 backgroundImage: `url(${assets.pattern})`, 
-                backgroundSize: '400px', // Sedikit diperkecil biar gerakannya kerasa
+                backgroundSize: '1000px', 
                 backgroundRepeat: 'repeat',
             }">
         </div>
@@ -59,7 +59,7 @@ const colors = {
                         {{ content.subtitle }}
                     </h2>
 
-                    <p class="md:text-[16px] font-sans font-medium leading-relaxed text-justify md:text-left mx-auto lg:mx-0"
+                    <p class="hidden lg:block md:text-[16px] font-sans font-medium leading-relaxed text-justify md:text-left mx-auto lg:mx-0"
                         :style="{ color: colors.text }"
                         data-aos="fade-up"
                         data-aos-delay="200">
@@ -67,13 +67,8 @@ const colors = {
                     </p>
 
                     <div class="pt-0 flex justify-center lg:justify-start"
-<<<<<<< HEAD
                         data-aos="fade-up"
                         data-aos-delay="300">
-=======
-                         data-aos="fade-up"
-                         data-aos-delay="300">
->>>>>>> main
                         <button class="group relative flex items-center gap-3 px-3 py-2 rounded-lg text-white font-semibold shadow-lg transform transition hover:-translate-y-1 hover:shadow-xl overflow-hidden"
                                 :style="{ backgroundColor: colors.btnGreen }">
                             
@@ -88,29 +83,52 @@ const colors = {
                     </div>
                 </div>
 
-                <div class="lg:col-span-5 relative flex justify-center lg:justify-end order-1 lg:order-2 z-10">
-                    <div data-aos="zoom-in-left" data-aos-duration="1200">
+                <div class="lg:col-span-5 relative flex flex-col justify-center lg:justify-end order-1 lg:order-2 z-10">
+                    <div class="hidden lg:flex justify-end w-full" 
+                        data-aos="zoom-in-left" 
+                        data-aos-duration="1200">
+                        
                         <img :src="assets.gunungan" alt="Gunungan" 
-                            class="w-3/4 md:w-full max-w-md lg:max-w-lg drop-shadow-xl transition-transform duration-300 transform scale-[1.3] lg:scale-[1.2] -translate-y-7 lg:translate-x-25 animate-float" />
+                            class="-mb-60 w-full max-w-lg drop-shadow-xl transition-transform duration-300 transform scale-[1.2] lg:translate-x-25 animate-float lg:mb-0" />
+                    </div>
+
+                    <div class="flex lg:hidden justify-center w-full" 
+                        data-aos="zoom-in" 
+                        data-aos-duration="1200">
+                        
+                        <img :src="assets.maskot" alt="Maskot PKL" 
+                            class="w-[35%] md:w-[20%] drop-shadow-xl -translate-y-35 md:-translate-y-20 animate-float" />
                     </div>
                 </div>
+
             </div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 w-full lg:hidden pointer-events-none overflow-hidden z-0 flex justify-center items-end">
+            
+            <img :src="assets.bottom" 
+                alt="Monumen Monjali" 
+                class="relative w-full md:w-[100%] drop-shadow-xl animate-float-bottom mb-[-2%]" 
+            />
+            
         </div>
 
         <img 
             :src="assets.corner" 
             v-if="assets.corner"
             alt="Corner Decor"
-            class="absolute bottom-0 right-0 z-20 w-auto h-auto max-h-[500px] pointer-events-none translate-x-31 translate-y-7"
+            class="hidden lg:block absolute bottom-0 z-20 pointer-events-none
+            md:hidden
+                w-auto h-auto max-h-[500px] 
+                right-0 translate-x-31 translate-y-9"
             data-aos="fade-left"
-            data-aos-delay="500"
-            data-aos-duration="1500"
+            data-aos-duration="1000"
         />
         
         <img 
             :src="assets.border" 
             alt="Border Bawah"
-            class="absolute bottom-0 left-0 z-30 w-full origin-bottom-left pointer-events-none translate-y-3"
+            class="hidden lg:block absolute bottom-0 left-0 z-30 w-full origin-bottom-left pointer-events-none translate-y-3"
             :style="{ 
                 transform: 'scale(1.1)' 
             }" 
@@ -142,8 +160,8 @@ const colors = {
 /* Jika di layar besar scale beda (lg:scale-[1.2]), kita buat media query khusus */
 @media (min-width: 1024px) {
     @keyframes floatDesktop {
-        0%, 100% { transform: translateY(25px) translateX(60px) scale(1.2); } 
-        50% { transform: translateY(-10px) translateX(100px) scale(1.2); }
+        0%, 100% { transform: translateY(15px) translateX(30px) scale(1.2); } 
+        50% { transform: translateY(-5px) translateX(100px) scale(1.2); }
     }
     .animate-float {
         animation: floatDesktop 6s ease-in-out infinite;
@@ -157,6 +175,6 @@ const colors = {
 }
 
 .animate-pan-pattern {
-    animation: panPattern 60s linear infinite;
+    animation: panPattern 30s linear infinite;
 }
 </style>
