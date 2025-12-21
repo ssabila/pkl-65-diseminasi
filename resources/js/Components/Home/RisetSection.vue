@@ -34,12 +34,12 @@ const ornamenCard = '/images/assets/batik3.png';
             backgroundImage: `url('${patternKuning}')`,
             backgroundRepeat: 'repeat',
             backgroundSize: '300px',
-            opacity: 0.9
+            opacity: 0.8
         }"></div>
 
         <img :src="bgSilhouette" alt="Candi Prambanan"
             class="absolute left-1/2 transform -translate-x-1/2 z-10 object-cover pointer-events-none"
-            style="width: 1100px; height: 800px; opacity: 0.9; bottom: -10px;" />
+            style="width: 1100px; height: 800px; bottom: -10px;" />
 
         <img :src="wayangKiri" alt="Wayang Kiri" class="absolute z-50 hidden md:block pointer-events-none"
             style="width: 300px; height: 300px; bottom: -20px; left: -70px;" />
