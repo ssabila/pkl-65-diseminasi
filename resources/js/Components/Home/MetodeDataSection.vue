@@ -4,129 +4,175 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 
 const content = {
-    wawancara: {
-        title: 'Metode Wawancara',
-        desc: 'Pengumpulan data dilakukan melalui wawancara tatap muka (face-to-face) menggunakan kuesioner terstruktur (CAPI) untuk menjamin validitas data langsung dari responden.'
+    intro: {
+        source: 'ILO, 2025',
+        text: 'Pengumpulan data menggunakan pendekatan adaptif berdasarkan klasifikasi pekerja gig:'
+    },
+    modes: [
+        {
+            id: 'capi',
+            title: 'CAPI',
+            subtitle: 'Tatap Muka (Location Based)',
+            desc: 'Wawancara langsung dibantu gawai untuk pekerja yang terikat lokasi fisik (Ojol, Kurir).',
+            icon: 'tablet',
+            color: 'text-orange-600',
+            bg: 'bg-orange-50',
+            border: 'border-orange-200'
+        },
+        {
+            id: 'cawi',
+            title: 'CAWI',
+            subtitle: 'Mandiri (Online Based)',
+            desc: 'Pengisian mandiri via web untuk pekerja remote/freelance yang tidak terikat lokasi.',
+            icon: 'globe',
+            color: 'text-[#748D63]', // Hijau Sage
+            bg: 'bg-[#748D63]/10',
+            border: 'border-[#748D63]/30'
+        }
+    ],
+    tech: {
+        name: 'FASIH',
+        fullName: 'Flexible Authentically Survey in Harmony',
+        desc: 'Seluruh moda terintegrasi dalam satu instrumen digital standar BPS (Mobile & Web) untuk menjamin kualitas data real-time.',
     },
     alur: {
-        title: 'Alur Pengumpulan',
+        title: 'Timeline Kegiatan',
         steps: [
-            { id: 1, label: 'Persiapan', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
-            { id: 2, label: 'Lapangan', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z' },
-            { id: 3, label: 'Pengolahan', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-            { id: 4, label: 'Analisis', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-            { id: 5, label: 'Diseminasi', icon: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' }
+            { id: '01', label: 'Persiapan', desc: 'Desain instrumen & pelatihan petugas' },
+            { id: '02', label: 'Lapangan', desc: 'Pelaksanaan CAPI & CAWI serentak' },
+            { id: '03', label: 'Pengolahan', desc: 'Cleaning, Validasi & Tabulasi Data' },
+            { id: '04', label: 'Analisis', desc: 'Interpretasi statistik & visualisasi' },
+            { id: '05', label: 'Diseminasi', desc: 'Seminar hasil & publikasi laporan' }
         ]
     }
 };
 
 const assets = {
     wayang: '/images/assets/22.png',
-    titleText: '/images/assets/metodologi-data.svg',
-    flowerIcon: '/images/assets/bunga1.png',
-    batikPattern: '/images/Group 11 (1).png' 
+    gunungan: '/images/assets/gunungan3.svg',
+    daun: '/images/assets/ornamen-daun-sudut.svg',
+    batik: '/images/assets/pattern-batik.png', 
+    abstrak: '/images/assets/lanskap-gunung-abstrak.svg',
+    fasihLogo: '/images/assets/fasih.png' // Logo FASIH
 };
 
 const colors = {
     bgCream: '#FFFBDF',
     textDark: '#D94313',
     primaryOrange: '#EF874B',
+    primaryGreen: '#748D63', 
     white: '#FFFFFF'
 };
 
 onMounted(() => {
-    AOS.init({
-        duration: 700, // Kecepatan snappy
-        once: false,   // Berulang saat scroll bawah
-        mirror: true,  // Berulang saat scroll atas
-        easing: 'ease-out',
-    });
+    AOS.init({ duration: 800, once: false, easing: 'ease-out-cubic' });
 });
 </script>
 
 <template>
     <section 
-        class="relative py-20 lg:py-28 px-6 overflow-hidden"
+        class="relative py-24 lg:py-32 px-6 overflow-hidden font-sans z-10"
         :style="{ backgroundColor: colors.bgCream }"
     >
+        <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full opacity-5 mix-blend-multiply"
+                 :style="{ backgroundImage: `url('${assets.batik}')`, backgroundSize: '300px' }">
+            </div>
+            <img :src="assets.gunungan" class="absolute -bottom-10 -right-20 w-[400px] lg:w-[600px] opacity-10 rotate-6" />
+        </div>
+
         <div class="container mx-auto relative z-20 max-w-7xl">
             
-            <div class="flex flex-col items-center mb-16 text-center"
-                 data-aos="fade-down">
-                
-                <div class="flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-8 mb-6">
-                    <div class="relative shrink-0">
-                        <img :src="assets.wayang" alt="Wayang Icon" 
-                            class="w-16 h-auto md:w-24 lg:w-20 object-contain drop-shadow-xl animate-bounce-slow" />
-                    </div>
-
-                    <h2 class="text-4xl md:text-5xl lg:text-6xl font-headline font-bold leading-tight" :style="{ color: colors.textDark }">
+            <div class="text-center mb-16 lg:mb-20" data-aos="fade-down">
+                <div class="inline-flex flex-col items-center gap-2">
+                    <img :src="assets.wayang" class="w-16 h-auto drop-shadow-md mb-2 animate-float" />
+                    <span class="text-orange-600 font-bold tracking-[0.2em] text-xs uppercase border-b-2 border-orange-400 pb-1">Metodologi Riset</span>
+                    <h2 class="text-3xl md:text-5xl lg:text-6xl font-headline font-bold leading-tight" :style="{ color: colors.textDark }">
                         Metode Pengumpulan Data
                     </h2>
                 </div>
-
-                <div class="h-1.5 w-40 rounded-full" :style="{ backgroundColor: colors.primaryOrange }"></div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-stretch">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
                 
-                <div class="lg:col-span-4 flex"
-                     data-aos="fade-right"
-                     data-aos-delay="200">
-                    <div class="w-full bg-white/70 backdrop-blur-sm rounded-[2rem] p-8 border border-orange-100 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group">
-                        <div class="absolute -right-10 -top-10 w-32 h-32 bg-orange-100 rounded-full opacity-50 transition-transform group-hover:scale-150 duration-500"></div>
-                        
-                        <div class="relative z-10">
-                            <div class="flex items-center gap-4 mb-6">
-                                <div class="p-3 rounded-xl bg-orange-100 text-orange-600 shadow-sm">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                </div>
-                                <h3 class="text-2xl lg:text-3xl font-headline font-bold" :style="{ color: colors.textDark }">
-                                    {{ content.wawancara.title }}
-                                </h3>
-                            </div>
+                <div class="lg:col-span-7 flex flex-col gap-8">
+                    
+                    <p class="text-lg text-gray-700 font-medium leading-relaxed border-l-4 border-orange-400 pl-4" data-aos="fade-right">
+                        {{ content.intro.text }} <span class="font-bold text-[#D94313]">(ILO, 2025)</span>
+                    </p>
+
+                    <div class="grid md:grid-cols-2 gap-6" data-aos="fade-up">
+                        <div v-for="(mode, idx) in content.modes" :key="idx" 
+                             class="group relative bg-white p-6 lg:p-8 rounded-[2rem] shadow-lg hover:shadow-2xl transition-all duration-300 border-2 transform hover:-translate-y-2 z-10"
+                             :class="mode.border">
                             
-                            <p class="text-base md:text-lg font-sans leading-relaxed text-gray-700 text-justify">
-                                {{ content.wawancara.desc }}
+                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110"
+                                 :class="mode.bg">
+                                <svg v-if="mode.icon === 'tablet'" class="w-7 h-7" :class="mode.color" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                <svg v-else class="w-7 h-7" :class="mode.color" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                            </div>
+
+                            <h3 class="text-3xl font-headline font-bold text-gray-800 mb-1">{{ mode.title }}</h3>
+                            <p class="text-xs font-bold uppercase tracking-wider mb-4" :class="mode.color">{{ mode.subtitle }}</p>
+                            
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                {{ mode.desc }}
                             </p>
+
+                            <span class="absolute top-4 right-6 text-6xl font-headline font-bold opacity-5 pointer-events-none select-none">
+                                0{{ idx + 1 }}
+                            </span>
                         </div>
                     </div>
+
+                    <div class="relative rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 overflow-hidden shadow-md group z-10 border border-green-200"
+                         :style="{ backgroundColor: colors.primaryGreen }"
+                         data-aos="fade-up" data-aos-delay="100">
+                         
+                         <div class="absolute inset-0 opacity-10 bg-[url('/images/assets/pattern-batik.png')] bg-cover mix-blend-overlay"></div>
+                         
+                         <div class="shrink-0 w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-105">
+                            <img :src="assets.fasihLogo" alt="Logo FASIH" class="w-14 h-auto object-contain" />
+                         </div>
+
+                         <div class="flex-1 text-center md:text-left relative z-10 text-white">
+                            <div class="flex flex-col md:flex-row md:items-end gap-2 mb-2">
+                                <h4 class="text-xl font-bold font-headline leading-none">Didukung oleh FASIH</h4>
+                                <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-md text-white/90 border border-white/20 uppercase tracking-wider">Instrumen Resmi BPS</span>
+                            </div>
+                            <p class="text-sm text-green-50 leading-snug">
+                                {{ content.tech.desc }}
+                            </p>
+                         </div>
+                    </div>
+
                 </div>
 
-                <div class="lg:col-span-8 flex flex-col justify-center"
-                     data-aos="fade-left"
-                     data-aos-delay="400">
-                    <div class="bg-white/50 backdrop-blur-sm rounded-[2rem] p-8 md:p-10 border border-orange-50 shadow-md">
-                        <h3 class="text-2xl lg:text-3xl font-headline font-bold mb-10 text-center lg:text-left" :style="{ color: colors.textDark }">
+                <div class="lg:col-span-5 relative" data-aos="fade-left" data-aos-delay="200">
+                    
+                    <div class="bg-white/60 backdrop-blur-md rounded-[2.5rem] p-8 lg:p-10 border border-white shadow-xl relative z-10">
+                        <h3 class="text-2xl font-headline font-bold mb-8 flex items-center gap-3" :style="{ color: colors.textDark }">
+                            <span class="w-8 h-1 bg-[#EF874B] rounded-full"></span>
                             {{ content.alur.title }}
                         </h3>
 
-                        <div class="relative px-2">
-                            <div class="hidden lg:block absolute top-8 left-10 right-10 h-1 bg-orange-200 z-0"></div>
-                            <div class="lg:hidden absolute left-8 top-8 bottom-8 w-1 bg-orange-200 z-0"></div>
+                        <div class="relative">
+                            <div class="absolute left-[19px] top-4 bottom-4 w-0.5 bg-gradient-to-b from-[#EF874B] via-[#748D63] to-[#EF874B] opacity-40"></div>
 
-                            <div class="flex flex-col lg:flex-row justify-between gap-8 lg:gap-0 relative z-10">
+                            <div class="space-y-8">
                                 <div v-for="(step, index) in content.alur.steps" :key="step.id" 
-                                     class="flex lg:flex-col items-center gap-6 lg:gap-4 group cursor-default"
-                                     data-aos="zoom-in"
-                                     :data-aos-delay="500 + (index * 100)">
+                                     class="relative flex gap-5 group">
                                     
-                                    <div class="w-16 h-16 shrink-0 rounded-full flex items-center justify-center shadow-md transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 border-4 border-white"
-                                         :style="{ backgroundColor: colors.primaryOrange }">
-                                        <div class="relative w-full h-full flex items-center justify-center">
-                                            <span class="text-2xl font-bold text-white font-headline group-hover:opacity-0 transition-opacity duration-300 absolute">{{ step.id }}</span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="step.icon" />
-                                            </svg>
-                                        </div>
+                                    <div class="w-10 h-10 shrink-0 rounded-full bg-white border-4 border-[#EF874B] group-hover:border-[#748D63] flex items-center justify-center z-10 shadow-sm group-hover:scale-110 transition-all duration-300">
+                                        <span class="text-[10px] font-bold text-[#D94313] group-hover:text-[#748D63]">{{ step.id }}</span>
                                     </div>
 
-                                    <div class="text-left lg:text-center pt-1">
-                                        <p class="text-base lg:text-lg font-bold transition-colors duration-300 group-hover:text-orange-600"
-                                           :style="{ color: colors.textDark }">
+                                    <div class="pt-1">
+                                        <h4 class="text-base font-bold text-gray-800 group-hover:text-[#D94313] transition-colors">
                                             {{ step.label }}
+                                        </h4>
+                                        <p class="text-sm text-gray-600 mt-0.5">
+                                            {{ step.desc }}
                                         </p>
                                     </div>
                                 </div>
@@ -136,18 +182,7 @@ onMounted(() => {
                 </div>
 
             </div>
-
         </div>
-
-        <div class="absolute bottom-0 left-0 w-full h-16 lg:h-20 z-10 opacity-30 pointer-events-none"
-             :style="{ 
-                backgroundImage: `url('${assets.batikPattern}')`,
-                backgroundRepeat: 'repeat-x',
-                backgroundSize: 'contain',
-                backgroundPosition: 'bottom'
-            }">
-        </div>
-
     </section>
 </template>
 
@@ -159,16 +194,11 @@ onMounted(() => {
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Animasi Bounce Halus untuk Gunungan */
-@keyframes bounceSlow {
+@keyframes float {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+    50% { transform: translateY(-6px); }
 }
-.animate-bounce-slow {
-    animation: bounceSlow 3s ease-in-out infinite;
-}
-
-section {
-    transition: background-color 0.5s ease;
+.animate-float {
+    animation: float 5s ease-in-out infinite;
 }
 </style>
