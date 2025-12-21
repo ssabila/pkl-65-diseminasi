@@ -26,7 +26,7 @@ Route::get('/dokumen', [PageController::class, 'dokumen'])->name('dokumen');
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     // User Account
     Route::prefix('user')->name('user.')->group(function () {
@@ -60,7 +60,6 @@ Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
         */
         Route::prefix('admin')->name('admin.')->group(function () {
 
-
             /*
             |--------------------------------------------------------------
             | Dashboard Actions
@@ -75,9 +74,18 @@ Route::middleware(['web', 'auth', 'auth.session'])->group(function () {
             Route::post('/dashboard/publish', [DashboardController::class, 'publish'])
                 ->name('dashboard.publish');
 
+            Route::get('/dashboard/{visualization}/edit', [DashboardController::class, 'edit'])
+                ->name('dashboard.edit');
+
+            Route::put('/dashboard/{visualization}', [DashboardController::class, 'update'])
+                ->name('dashboard.update');
+
+            Route::delete('/dashboard/{visualization}', [DashboardController::class, 'destroy'])
+                ->name('dashboard.delete');
+
             /*
             |--------------------------------------------------------------
-            | Data Page (INI YANG KAMU MINTA)
+            | Data Page
             |--------------------------------------------------------------
             */
             Route::get('/data', [DataController::class, 'index'])->name('data');

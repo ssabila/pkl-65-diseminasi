@@ -58,6 +58,7 @@ class HandleInertiaRequests extends Middleware
                             ->setTheme('pastel')
                             ->setFontSize(48)
                             ->setDimension(100, 100)
+                            // ->toBase64()
                     ] : null,
                 ],
 

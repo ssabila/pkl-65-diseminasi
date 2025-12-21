@@ -45,22 +45,18 @@ const chartOptions = computed(() => ({
     tooltip: { theme: 'light', style: { fontSize: '12px', fontFamily: 'TT Bells, sans-serif' } }
 }));
 
-const series = computed(() => props.chartData.datasets || []);
-
-const downloadChart = () => {
-    if (chartRef.value) {
-        chartRef.value.chart.dataURI().then(({ imgURI }) => {
-            const link = document.createElement('a');
-            link.href = imgURI;
-            link.download = `Chart-${props.title || 'Export'}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
+const series = computed(() => {
+    // Jika datasets adalah array langsung dari angka (format baru untuk pie/donut)
+    if (Array.isArray(props.chartData.datasets) && typeof props.chartData.datasets[0] === 'number') {
+        return props.chartData.datasets;
     }
-};
-
-defineExpose({ downloadChart });
+    // Jika datasets adalah array object dengan property data (format konsisten dengan bar/line)
+    if (Array.isArray(props.chartData.datasets) && props.chartData.datasets[0]?.data) {
+        // Untuk pie/donut, kita ambil data dari dataset pertama saja
+        return props.chartData.datasets[0].data;
+    }
+    return [];
+});
 </script>
 
 <template>

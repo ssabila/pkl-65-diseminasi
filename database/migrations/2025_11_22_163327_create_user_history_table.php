@@ -13,16 +13,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('user_history', function (Blueprint $table) {
-            $table->id();
-            $table->char('user_id', 26);
-            $table->string('action', 255);
-            $table->dateTime('timestamp')->default(DB::raw('CURRENT_TIMESTAMP'));
-            $table->string('status', 50);
-            $table->text('details')->nullable();
-            $table->timestamps();
+    $table->id();
+    $table->foreignId('user_id')
+          ->constrained('users')
+          ->cascadeOnDelete();
+    $table->string('action');
+    $table->dateTime('timestamp')->useCurrent();
+    $table->string('status', 50);
+    $table->text('details')->nullable();
+    $table->timestamps();
+});
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        });
     }
 
     /**
