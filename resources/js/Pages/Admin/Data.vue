@@ -96,6 +96,77 @@ const mapInstance = ref(null)
 const chartKey = ref(0) // Force chart re-render
 const variableInterpretations = ref({}) // Store interpretations per variable
 
+// Sample data for chart previews in visualization type picker
+const previewSampleData = {
+    simple: {
+        labels: ['A', 'B', 'C', 'D'],
+        datasets: [{ name: 'Series 1', data: [30, 45, 28, 52] }]
+    },
+    line: {
+        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+        datasets: [{ name: 'Trend', data: [15, 32, 40, 55] }]
+    },
+    area: {
+        labels: ['2019', '2020', '2021', '2022'],
+        datasets: [{ name: 'Growth', data: [20, 28, 35, 48] }]
+    },
+    pie: {
+        labels: ['Kategori A', 'Kategori B', 'Kategori C', 'Kategori D'],
+        datasets: [{ name: 'Distribusi', data: [35, 25, 20, 20] }]
+    },
+    histogram: {
+        labels: ['0-10', '10-20', '20-30', '30-40'],
+        datasets: [{ name: 'Frekuensi', data: [5, 12, 18, 9] }],
+        xAxisTitle: 'Kelompok Nilai',
+        yAxisTitle: 'Frekuensi'
+    },
+    boxPlot: {
+        labels: ['Grup A', 'Grup B'],
+        datasets: [{
+            name: 'Sebaran',
+            type: 'boxPlot',
+            data: [
+                { x: 'Grup A', y: [10, 20, 30, 40, 50] },
+                { x: 'Grup B', y: [15, 22, 33, 46, 58] }
+            ]
+        }],
+        yAxisTitle: 'Nilai'
+    },
+    heatmap: {
+        categories: ['Indikator 1', 'Indikator 2', 'Indikator 3'],
+        datasets: [
+            { name: 'Wilayah A', data: [10, 25, 40] },
+            { name: 'Wilayah B', data: [20, 35, 55] }
+        ]
+    },
+    density: {
+        labels: [1, 2, 3, 4, 5],
+        datasets: [{ name: 'Kepadatan', data: [0.1, 0.3, 0.6, 0.4, 0.2] }]
+    },
+    venn: {
+        vennData: {
+            sets: [
+                { name: 'A', size: 80 },
+                { name: 'B', size: 70 },
+                { name: 'C', size: 60 }
+            ],
+            overlaps: [
+                { sets: ['A', 'B'], size: 30 },
+                { sets: ['A', 'C'], size: 25 },
+                { sets: ['B', 'C'], size: 20 },
+                { sets: ['A', 'B', 'C'], size: 10 }
+            ]
+        }
+    },
+    populationPyramid: {
+        labels: ['15-24', '25-34', '35-44', '45-54'],
+        datasets: [
+            { name: 'Laki-laki', data: [40, 35, 30, 20] },
+            { name: 'Perempuan', data: [38, 34, 32, 22] }
+        ]
+    }
+}
+
 // Dialog states
 const showSuccessNotif = ref(false)
 const showErrorNotif = ref(false)
@@ -264,10 +335,77 @@ const topicOptions = computed(() => {
     }))
 })
 
-const visualizationTypeOptions = props.visualizationTypes.map(vt => ({
-    value: vt.id,
-    label: vt.type_name
-}))
+const ALLOWED_TYPE_CODES = [
+    'stacked-bar-chart',        // Horizontal Stacked Bar Chart (konfigurasi di preview)
+    'bar-chart',                // Vertical Stacked Bar Chart (dipakai sebagai vertikal)
+    'histogram',                // Histogram
+    '100-stacked-bar-chart',    // 100% Stacked Bar Chart
+    'pie-chart',                // Pie Chart
+    'clustered-bar-chart',      // Clustered Bar Chart
+    'grouped-bar-chart',        // Grouped Bar Chart
+    'population-pyramid'        // Population Pyramid
+]
+
+const visualizationTypeOptions = props.visualizationTypes
+    .filter(vt => ALLOWED_TYPE_CODES.includes(vt.type_code))
+    .map(vt => ({
+        value: vt.id,
+        label: vt.type_name
+    }))
+
+const previewComponentMap = {
+    'bar-chart': ApexBarChart,
+    'pie-chart': ApexDonutChart,
+    'donut-chart': ApexDonutChart,
+    'line-chart': ApexLineChart,
+    'area-chart': ApexAreaChart,
+    'histogram': ApexHistogramChart,
+    'box-plot': ApexBoxPlotChart,
+    'stacked-bar-chart': ApexStackedBarChart,
+    'grouped-bar-chart': ApexGroupedBarChart,
+    '100-stacked-bar-chart': ApexStackedBar100Chart,
+    'clustered-bar-chart': ApexClusteredBarChart,
+    'grouped-stacked-bar-chart': ApexGroupedStackedBarChart,
+    'heatmap-matrix': ApexHeatmapChart,
+    'density-plot': ApexDensityChart,
+    'population-pyramid': ApexPopulationPyramidChart,
+    'venn-diagram': VennDiagramChart
+}
+
+const getPreviewComponent = (typeCode) => previewComponentMap[typeCode] || null
+
+const getPreviewChartData = (typeCode) => {
+    switch (typeCode) {
+        case 'bar-chart':
+        case 'stacked-bar-chart':
+        case 'grouped-bar-chart':
+        case '100-stacked-bar-chart':
+        case 'clustered-bar-chart':
+        case 'grouped-stacked-bar-chart':
+            return previewSampleData.simple
+        case 'line-chart':
+            return previewSampleData.line
+        case 'area-chart':
+            return previewSampleData.area
+        case 'pie-chart':
+        case 'donut-chart':
+            return previewSampleData.pie
+        case 'histogram':
+            return previewSampleData.histogram
+        case 'box-plot':
+            return previewSampleData.boxPlot
+        case 'heatmap-matrix':
+            return previewSampleData.heatmap
+        case 'density-plot':
+            return previewSampleData.density
+        case 'population-pyramid':
+            return previewSampleData.populationPyramid
+        case 'venn-diagram':
+            return previewSampleData.venn
+        default:
+            return null
+    }
+}
 
 const isBarOrPie = computed(() => {
     return selectedVisualizationType.value && ['bar-chart', 'pie-chart', 'donut-chart', 'line-chart', 'area-chart'].includes(selectedVisualizationType.value)
@@ -2562,15 +2700,62 @@ const addVariableInfoPanel = () => {
                         required 
                     />
 
-                    <!-- Jenis Grafik -->
-                    <FormSelect 
-                        label="Pilih Jenis Grafik" 
-                        v-model="form.visualization_type_id"
-                        :options="visualizationTypeOptions"
-                        :error="form.errors.visualization_type_id"
-                        placeholder="-- Pilih Jenis Grafik --"
-                        required 
-                    />
+                    <!-- Jenis Grafik - picker dengan preview -->
+                    <div class="mb-2">
+                        <label class="block text-sm font-semibold text-black mb-1">
+                            Pilih Jenis Grafik <span class="text-red-600">*</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mb-3">
+                            Klik salah satu kartu di bawah untuk memilih jenis grafik. Setiap kartu menampilkan contoh visualisasi.
+                        </p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <button
+                                v-for="vt in visualizationTypes.filter(v => ALLOWED_TYPE_CODES.includes(v.type_code))"
+                                :key="vt.id"
+                                type="button"
+                                class="group text-left rounded-xl border transition-all bg-white/60 hover:bg-white hover:shadow-md"
+                                :class="{
+                                    'border-[#EF874B] ring-2 ring-[#EF874B]/40 shadow-lg bg-white':
+                                        form.visualization_type_id === vt.id,
+                                    'border-[#E5E7EB]': form.visualization_type_id !== vt.id
+                                }"
+                                @click="form.visualization_type_id = vt.id"
+                            >
+                                <div class="p-3 flex flex-col gap-2 h-full">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <h4 class="text-sm font-semibold text-[#7A2509] leading-snug">
+                                            {{ vt.type_name }}
+                                        </h4>
+                                        <span class="px-2 py-0.5 text-[10px] uppercase tracking-wide rounded-full bg-orange-50 text-orange-500 border border-orange-100">
+                                            {{ vt.type_code }}
+                                        </span>
+                                    </div>
+
+                                    <div class="rounded-lg bg-[#F9FAFB] border border-dashed border-gray-200 overflow-hidden flex-1 min-h-[120px] flex items-center justify-center">
+                                        <component
+                                            v-if="getPreviewComponent(vt.type_code) && getPreviewChartData(vt.type_code)"
+                                            :is="getPreviewComponent(vt.type_code)"
+                                            :chart-data="getPreviewChartData(vt.type_code)"
+                                            :title="vt.type_name"
+                                            :height="140"
+                                        />
+                                        <div
+                                            v-else
+                                            class="flex flex-col items-center justify-center px-3 text-xs text-gray-400 text-center"
+                                        >
+                                            <span class="font-semibold mb-1">Preview belum tersedia</span>
+                                            <span>Grafik tetap bisa digunakan saat Anda mengisi data.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+
+                        <p v-if="form.errors.visualization_type_id" class="mt-2 text-xs text-red-600">
+                            {{ form.errors.visualization_type_id }}
+                        </p>
+                    </div>
 
                     <!-- Judul Visualisasi -->
                     <FormInput 
