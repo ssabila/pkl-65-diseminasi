@@ -24,7 +24,11 @@ const colors = {
 
 <template>
     <section 
+<<<<<<< HEAD
         class="min-h-screen relative flex flex-col justify-between overflow-hidden -mt-35 pt-32"
+=======
+        class="min-h-screen relative flex flex-col justify-between overflow-hidden -mt-25 pt-32"
+>>>>>>> main
         :style="{ backgroundColor: colors.bgCream }" 
     >
         
@@ -63,8 +67,13 @@ const colors = {
                     </p>
 
                     <div class="pt-0 flex justify-center lg:justify-start"
+<<<<<<< HEAD
                         data-aos="fade-up"
                         data-aos-delay="300">
+=======
+                         data-aos="fade-up"
+                         data-aos-delay="300">
+>>>>>>> main
                         <button class="group relative flex items-center gap-3 px-3 py-2 rounded-lg text-white font-semibold shadow-lg transform transition hover:-translate-y-1 hover:shadow-xl overflow-hidden"
                                 :style="{ backgroundColor: colors.btnGreen }">
                             

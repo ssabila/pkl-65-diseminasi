@@ -9,6 +9,8 @@ import InstantSearch from 'vue-instantsearch/vue3/es'
 import 'leaflet/dist/leaflet.css'
 import VueApexCharts from 'vue3-apexcharts'
 
+import AOS from 'aos'
+import 'aos/dist/aos.css'
 
 initializeTheme()
 
@@ -28,7 +30,7 @@ createInertiaApp({
         showSpinner: true
     },
 
-    title: title => `${title} - GuacPanel`,
+    title: title => `${title} - PKL 65`,
 
     resolve: name => {
         const pages = import.meta.glob('./Pages/**/*.vue', { eager: true })
@@ -52,6 +54,20 @@ createInertiaApp({
             app.component(name, component)
         })
 
+        AOS.init({
+            once: true, 
+            offset: 100, 
+            duration: 800, 
+            easing: 'ease-in-out', 
+            delay: 50, 
+        })
+
+        // Tambahkan ini agar saat pindah page via Inertia, animasi di-refresh
+        router.on('navigate', () => {
+            setTimeout(() => {
+                AOS.refresh();
+            }, 100);
+        });
         app.mount(el)
 
         return app

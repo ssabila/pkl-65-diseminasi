@@ -1,136 +1,61 @@
 <script setup>
-import { computed, ref, onUnmounted } from 'vue'
-import VueApexCharts from 'vue3-apexcharts'
+import { computed, ref } from 'vue';
+import VueApexCharts from 'vue3-apexcharts';
 
 const props = defineProps({
-    chartData: { type: Object, required: true },
-    height: { type: String, default: '400px' },
-    title: { type: String, default: '' }
-})
+    chartData: Object,
+    title: String,
+    height: { type: [String, Number], default: 350 },
+    colors: { type: Array, default: () => ['#ef874b', '#50829b'] }
+});
 
-const isDark = ref(document.documentElement.classList.contains('dark'))
+const chartRef = ref(null);
 
-const observer = new MutationObserver(() => {
-    isDark.value = document.documentElement.classList.contains('dark')
-})
+const chartOptions = computed(() => ({
+    chart: {
+        id: 'area-chart',
+        fontFamily: 'TT Bells, sans-serif',
+        toolbar: { show: false }, 
+        zoom: { enabled: false }
+    },
+    colors: props.colors,
+    dataLabels: { enabled: false },
+    stroke: { curve: 'smooth', width: 2 },
+    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.3, stops: [0, 90, 100] } },
+    xaxis: {
+        categories: props.chartData.labels || [],
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        labels: { style: { colors: '#333333', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 } }
+    },
+    yaxis: {
+        labels: { style: { colors: '#333333', fontSize: '12px', fontFamily: 'TT Bells, sans-serif', fontWeight: 600 } }
+    },
+    grid: { show: true, borderColor: '#E5E5E5', strokeDashArray: 0 },
+    legend: {
+        position: 'top',
+        horizontalAlign: 'right',
+        fontFamily: 'TT Bells, sans-serif',
+        fontWeight: 600,
+        labels: { colors: '#333333' },
+        markers: { radius: 12 }
+    },
+    tooltip: { theme: 'light', style: { fontSize: '12px', fontFamily: 'TT Bells, sans-serif' } }
+}));
 
-observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['class']
-})
-
-onUnmounted(() => observer.disconnect())
-
-const series = computed(() =>
-    props.chartData.datasets.map(dataset => ({
-        name: dataset.label,
-        data: dataset.data
-    }))
-)
-
-const fontFamily = 'Zalando Sans'
-
-const chartOptions = computed(() => {
-    const dark = isDark.value
-    const textColor = dark ? '#ffffff' : '#111827'
-    const axisColor = dark ? '#9ca3af' : '#6b7280'
-    const gridColor = dark ? '#374151' : '#e5e7eb'
-
-    return {
-        chart: {
-            type: 'area',
-            toolbar: {
-                show: true,
-                tools: {
-                    download: true,
-                    selection: false,
-                    zoom: false,
-                    zoomin: false,
-                    zoomout: false,
-                    pan: false,
-                    reset: false
-                }
-            },
-            animations: { enabled: false },
-            redrawOnWindowResize: true,
-            redrawOnParentResize: true,
-            foreColor: axisColor
-        },
-        plotOptions: {
-            area: { dataLabels: { enabled: false } }
-        },
-        dataLabels: { enabled: false },
-        stroke: { curve: 'smooth', width: 2 },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.7,
-                opacityTo: 0.3,
-                stops: [0, 90, 100]
-            }
-        },
-        colors: ['#10b981'],
-        title: {
-            text: props.title,
-            align: 'center',
-            style: {
-                fontSize: '16px',
-                fontWeight: '600',
-                fontFamily,
-                color: textColor
-            }
-        },
-        xaxis: {
-            categories: props.chartData.labels,
-            labels: {
-                style: { colors: axisColor, fontFamily }
-            }
-        },
-        yaxis: {
-            labels: {
-                style: { colors: axisColor, fontFamily },
-                formatter: val => val.toLocaleString()
-            }
-        },
-        grid: {
-            borderColor: gridColor,
-            strokeDashArray: 4
-        },
-        legend: { show: false },
-        tooltip: {
-            theme: 'dark',
-            style: {
-                fontFamily: fontFamily
-            },
-            y: { formatter: val => val.toLocaleString() }
-        },
-        responsive: [
-            {
-                breakpoint: 480,
-                options: {
-                    title: { style: { fontSize: '14px', fontFamily } },
-                    xaxis: {
-                        labels: { style: { fontSize: '10px', fontFamily } }
-                    },
-                    yaxis: {
-                        labels: { style: { fontSize: '10px', fontFamily } }
-                    }
-                }
-            }
-        ]
+const series = computed(() => {
+    // Jika datasets adalah array dengan objek berisi data
+    if (Array.isArray(props.chartData.datasets) && props.chartData.datasets[0]?.data) {
+        return props.chartData.datasets;
     }
-})
+    // Jika datasets langsung array nilai (fallback)
+    if (Array.isArray(props.chartData.datasets)) {
+        return [{ name: 'Nilai', data: props.chartData.datasets }];
+    }
+    return [];
+});
 </script>
 
 <template>
-    <div class="w-full h-full">
-        <VueApexCharts
-            :key="isDark"
-            :type="'area'"
-            :height="height"
-            :options="chartOptions"
-            :series="series"
-            class="w-full" />
-    </div>
+    <VueApexCharts ref="chartRef" type="area" :height="height" :options="chartOptions" :series="series" />
 </template>

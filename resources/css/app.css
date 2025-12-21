@@ -1,70 +1,79 @@
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Thin.woff2') format('woff2');
-    font-weight: 100; /* Thin */
+    font-weight: 100;
     font-style: normal;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Thin Italic.woff2') format('woff2');
-    font-weight: 100; /* Thin */
+    font-weight: 100;
     font-style: italic;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Light.woff2') format('woff2');
-    font-weight: 300; /* Light */
+    font-weight: 300;
     font-style: normal;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Light Italic.woff2') format('woff2');
-    font-weight: 300; /* Light */
+    font-weight: 300;
     font-style: italic;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Regular.woff2') format('woff2');
-    font-weight: 400; /* Regular */
+    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Italic.woff2') format('woff2');
-    font-weight: 400; /* Regular */
+    font-weight: 400;
     font-style: italic;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Bold.woff2') format('woff2');
-    font-weight: 700; /* Bold */
+    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Bold Italic.woff2') format('woff2');
-    font-weight: 700; /* Bold */
+    font-weight: 700;
     font-style: italic;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Black.woff2') format('woff2');
-    font-weight: 900; /* Black */
+    font-weight: 900;
     font-style: normal;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'TT Bells';
     src: url('../fonts/TT Bells Trial Black Italic.woff2') format('woff2');
-    font-weight: 900; /* Black */
+    font-weight: 900;
     font-style: italic;
     font-display: swap;
 }
@@ -72,7 +81,7 @@
 @font-face {
     font-family: 'Yodnam';
     src: url('../fonts/yodnamtrialregular-eaja4.woff2') format('woff2');
-    font-weight: 400; 
+    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
@@ -80,23 +89,28 @@
 @font-face {
     font-family: 'Rakkas';
     src: url('../fonts/Rakkas-Regular.woff2') format('woff2');
-    font-weight: 400; 
+    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 
 @tailwind base;
 @tailwind components;
+
 @tailwind utilities;
+
+@source "../views";
+@source "../js";
+
 
 @import 'tailwindcss';
 @source "../views";
 
 /* Theme Configuration */
-@theme { 
+@theme {
     --primary-gradient-from: #0d9488;
     --primary-gradient-to: #14b8a6;
-    --primary-color: #0d9488;
+    --primary-color: #7A2509;
     --primary-hover: #0f766e;
     --primary-color-rgb: 13, 148, 136;
     --selection-color: #3b82f6;
@@ -106,9 +120,9 @@
     --error-color: #ef4444;
     --error-color-rgb: 239, 68, 68;
 
-      /* --- KUSTOMISASI PKL 65 --- */
+    /* --- KUSTOMISASI PKL 65 --- */
     --color-pkl-base-orange: #F58220;
-    --color-pkl-base-cream: #FDF8E1;
+    --color-pkl-base-cream: #FFFBDF;
 
     --color-pkl-compliment-yellow: #FBE18B;
     --color-pkl-compliment-blue: #3A539B;
@@ -118,6 +132,298 @@
     --font-sans: "TT Bells", sans-serif;
     --font-headline: "Rakkas", serif;
     --font-sub: "Yodnam", sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Animated Background Keyframes */
+@keyframes slowRotate {
+    from {
+        transform: rotate(0deg) scale(1.5);
+    }
+
+    to {
+        transform: rotate(360deg) scale(1.5);
+    }
+}
+
+@keyframes rotateClockwise {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes rotateCounterClockwise {
+    from {
+        transform: rotate(360deg);
+    }
+
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes floatUp {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+    }
+}
+
+/* New Animations for Login Page Redesign */
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spin-reverse {
+    from {
+        transform: rotate(360deg);
+    }
+
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-15px) rotate(5deg);
+    }
+}
+
+@keyframes float-delay {
+
+    0%,
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-12px) rotate(-5deg);
+    }
+}
+
+@keyframes bounce-gentle {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Animation Utility Classes */
+.animate-spin-slow {
+    animation: spin-slow 120s linear infinite;
+}
+
+.animate-spin-reverse {
+    animation: spin-reverse 25s linear infinite;
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delay {
+    animation: float-delay 7s ease-in-out infinite;
+    animation-delay: 1s;
+}
+
+.animate-bounce-gentle {
+    animation: bounce-gentle 3s ease-in-out infinite;
+}
+
+/* Scattered Flower Styles */
+.flower {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Flower positions and animations - scattered randomly with BIGGER sizes */
+.flower-1 {
+    top: -5%;
+    left: -3%;
+    width: 180px;
+    animation: rotateClockwise 15s linear infinite;
+}
+
+.flower-2 {
+    top: 5%;
+    right: -5%;
+    width: 160px;
+    animation: rotateCounterClockwise 20s linear infinite;
+    opacity: 0.45;
+}
+
+.flower-3 {
+    bottom: -5%;
+    left: 5%;
+    width: 170px;
+    animation: rotateClockwise 18s linear infinite;
+}
+
+.flower-4 {
+    bottom: -8%;
+    right: -3%;
+    width: 200px;
+    animation: rotateCounterClockwise 12s linear infinite;
+    opacity: 0.4;
+}
+
+.flower-5 {
+    top: 35%;
+    left: -8%;
+    width: 140px;
+    animation: rotateClockwise 22s linear infinite;
+    opacity: 0.45;
+}
+
+.flower-6 {
+    top: 25%;
+    right: -6%;
+    width: 150px;
+    animation: rotateCounterClockwise 16s linear infinite;
+}
+
+.flower-7 {
+    top: 55%;
+    right: -5%;
+    width: 130px;
+    animation: rotateClockwise 25s linear infinite;
+    opacity: 0.4;
+}
+
+.flower-8 {
+    bottom: 30%;
+    left: -5%;
+    width: 120px;
+    animation: rotateCounterClockwise 19s linear infinite;
+    opacity: 0.5;
+}
+
+.flower-9 {
+    top: 10%;
+    left: 25%;
+    width: 100px;
+    animation: rotateClockwise 28s linear infinite;
+    opacity: 0.3;
+}
+
+.flower-10 {
+    bottom: 8%;
+    right: 20%;
+    width: 160px;
+    animation: rotateCounterClockwise 14s linear infinite;
+    opacity: 0.45;
+}
+
+.flower-11 {
+    top: 70%;
+    left: 35%;
+    width: 90px;
+    animation: rotateClockwise 30s linear infinite;
+    opacity: 0.35;
+}
+
+.flower-12 {
+    top: 15%;
+    right: 30%;
+    width: 110px;
+    animation: rotateCounterClockwise 21s linear infinite;
+    opacity: 0.25;
+}
+
+/* Additional flowers for fuller coverage */
+.flower-13 {
+    top: 3%;
+    left: 45%;
+    width: 130px;
+    animation: rotateClockwise 17s linear infinite;
+    opacity: 0.35;
+}
+
+.flower-14 {
+    top: 28%;
+    left: 18%;
+    width: 95px;
+    animation: rotateCounterClockwise 23s linear infinite;
+    opacity: 0.3;
+}
+
+.flower-15 {
+    top: 22%;
+    right: 15%;
+    width: 105px;
+    animation: rotateClockwise 19s linear infinite;
+    opacity: 0.35;
+}
+
+.flower-16 {
+    top: 45%;
+    left: 12%;
+    width: 120px;
+    animation: rotateCounterClockwise 26s linear infinite;
+    opacity: 0.4;
+}
+
+.flower-17 {
+    top: 50%;
+    right: 15%;
+    width: 115px;
+    animation: rotateClockwise 24s linear infinite;
+    opacity: 0.35;
+}
+
+.flower-18 {
+    top: 65%;
+    right: 25%;
+    width: 100px;
+    animation: rotateCounterClockwise 20s linear infinite;
+    opacity: 0.3;
+}
+
+.flower-19 {
+    bottom: 3%;
+    left: 30%;
+    width: 140px;
+    animation: rotateClockwise 16s linear infinite;
+    opacity: 0.4;
+}
+
+.flower-20 {
+    bottom: 12%;
+    left: 55%;
+    width: 125px;
+    animation: rotateCounterClockwise 22s linear infinite;
+    opacity: 0.35;
 }
 
 @layer utilities {
@@ -134,21 +440,39 @@
 :root {
     --color-bg: #ffffff;
     --color-surface: #ffffff;
-    --color-surface-muted: #f9fafb; /* gray-50 */
-    --color-border: #e5e7eb; /* gray-200 */
-    --color-border-strong: #d1d5db; /* gray-300 */
-    --color-text: #111827; /* gray-900 */
-    --color-text-muted: #4b5563; /* gray-600 */
+    --color-surface-muted: #f9fafb;
+    /* gray-50 */
+    --color-border: #e5e7eb;
+    /* gray-200 */
+    --color-border-strong: #d1d5db;
+    /* gray-300 */
+    --color-text: #111827;
+    /* gray-900 */
+    --color-text-muted: #4b5563;
+    /* gray-600 */
+
+    /* === PKL 65 THEME COLORS VARIABLES === */
+    --pkl-orange: #EF874B;
+    --pkl-yellow: #FCDA7B;
+    --pkl-maroon: #7A2509;
+    --pkl-cream: #FCEFEA;
 }
 
 .dark {
-    --color-bg: #111827; /* gray-900 */
-    --color-surface: #1f2937; /* gray-800 */
-    --color-surface-muted: #111827; /* gray-900 */
-    --color-border: #374151; /* gray-700 */
-    --color-border-strong: #4b5563; /* gray-600 */
-    --color-text: #e5e7eb; /* gray-200 */
-    --color-text-muted: #9ca3af; /* gray-400 */
+    --color-bg: #111827;
+    /* gray-900 */
+    --color-surface: #1f2937;
+    /* gray-800 */
+    --color-surface-muted: #111827;
+    /* gray-900 */
+    --color-border: #374151;
+    /* gray-700 */
+    --color-border-strong: #4b5563;
+    /* gray-600 */
+    --color-text: #e5e7eb;
+    /* gray-200 */
+    --color-text-muted: #9ca3af;
+    /* gray-400 */
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -173,15 +497,11 @@ input:focus {
     color: var(--color-text);
 }
 
-/* Dark heading colors inherit from variables; no override needed */
-
 .container-border {
     background-color: var(--color-surface);
     border: 1px solid var(--color-border);
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
-
-/* Container border uses variables in both themes */
 
 .container-border-table {
     background-color: var(--color-surface);
@@ -263,10 +583,8 @@ input:focus {
     --tw-ring-opacity: 1;
     --tw-ring-offset-width: 0px;
     --tw-ring-offset-color: #fff;
-    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width)
-        var(--tw-ring-offset-color);
-    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width))
-        var(--tw-ring-color);
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color);
     box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
 }
 
@@ -286,10 +604,8 @@ input:focus {
     --tw-ring-opacity: 1;
     --tw-ring-offset-width: 0px;
     --tw-ring-offset-color: #fff;
-    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width)
-        var(--tw-ring-offset-color);
-    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width))
-        var(--tw-ring-color);
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color);
     box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
 }
 
@@ -303,8 +619,6 @@ input:focus {
 .link:hover {
     color: var(--primary-hover);
 }
-
-/* Link colors are variable-driven for both themes */
 
 /* Form Input States */
 input:focus,
@@ -372,6 +686,7 @@ pre {
 }
 
 @layer components {
+
     /* Button Styles */
     [class*='btn-'] {
         text-transform: capitalize;
@@ -560,12 +875,16 @@ pre {
     }
 }
 
-/* Navigation Styles */
+/* =========================================
+   NAVIGATION STYLES (UPDATED)
+   ========================================= */
+
 .nav-sidebar {
     height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: var(--color-surface);
+    /* Background Sidebar dasar menggunakan variabel PKL Orange */
+    background-color: var(--color-pkl-base-orange);
     box-shadow:
         0 10px 15px -3px rgba(0, 0, 0, 0.1),
         0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -574,174 +893,174 @@ pre {
     transition-timing-function: ease-in-out;
 }
 
-.dark .nav-sidebar {
-    background-color: var(--color-surface);
-}
-
+/* --- Base Nav Item (Layout) --- */
 .nav-item {
     display: flex;
     align-items: center;
-    padding-left: 0.625rem;
-    padding-right: 0.625rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
     border-radius: 0.5rem;
-    transition-property: all;
-    transition-duration: 200ms;
-    transition-timing-function: ease-in-out;
+    transition: all 200ms ease-in-out;
+    font-weight: 500;
+    margin-bottom: 2px;
 }
 
+/* --- 1. STATE: ACTIVE (Sedang Dipilih) --- */
+/* Background Kuning, Tulisan Coklat Maroon */
 .nav-item-active {
-    color: var(--primary-color);
+    background-color: #FCDA7B;
+    /* Kuning */
+    color: #7A2509;
+    /* Coklat Maroon */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.dark .nav-item-active {
-    color: var(--primary-color);
-}
-
-.nav-item-default {
-    color: var(--color-text-muted);
-}
-
-.dark .nav-item-default {
-    color: var(--color-text-muted);
-}
-
-.nav-item-default:hover {
-    color: var(--color-text);
-    background-color: var(--color-surface-muted);
-}
-
-.dark .nav-item-default:hover {
-    color: var(--color-text);
-    background-color: rgba(55, 65, 81, 0.5);
-}
-
-.nav-icon {
-    width: 18px;
-    height: 18px;
-    margin-right: 0.625rem;
-    transition-property: color;
-    transition-duration: 200ms;
-    transition-timing-function: linear;
-}
-
+/* Icon saat Active: Ikut warna Coklat */
 .nav-icon-active {
-    color: var(--primary-color);
+    color: #7A2509;
 }
 
-.dark .nav-icon-active {
-    color: var(--primary-color);
+/* --- 2. STATE: DEFAULT (Tidak Dipilih) --- */
+/* Background Transparan, Tulisan Putih */
+.nav-item-default {
+    background-color: transparent;
+    color: #ffffff;
+    /* Putih */
 }
 
+/* Icon saat Default: Putih */
 .nav-icon-default {
-    color: var(--color-text-muted);
+    color: #ffffff;
+    transition: color 200ms ease-in-out;
 }
 
-.dark .nav-icon-default {
-    color: var(--color-text-muted);
+/* --- 3. HOVER EFFECT (Hanya pada Default) --- */
+/* Saat di-hover, berubah jadi Kuning & Coklat (Seperti Active) */
+.nav-item-default:hover {
+    background-color: #FCDA7B;
+    /* Jadi Kuning */
+    color: #7A2509;
+    /* Jadi Coklat */
 }
 
+/* Saat item di-hover, paksa icon di dalamnya jadi Coklat juga */
+.nav-item-default:hover .nav-icon-default {
+    color: #7A2509;
+}
+
+/* --- Icon Sizing --- */
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* --- Dropdown Styles --- */
 .nav-dropdown {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-left: 0.625rem;
-    padding-right: 0.625rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding: 0.625rem 0.75rem;
     border-radius: 0.5rem;
-    transition-property: all;
-    transition-duration: 200ms;
-    transition-timing-function: ease-in-out;
     cursor: pointer;
+    transition: all 200ms ease-in-out;
 }
 
-.nav-dropdown-active {
-    color: var(--primary-color);
+/* Dropdown Active */
+.nav-dropdown.nav-item-active {
+    background-color: #FCDA7B;
+    color: #7A2509;
 }
 
-.dark .nav-dropdown-active {
-    color: var(--primary-color);
+/* Dropdown Default */
+.nav-dropdown.nav-item-default {
+    color: #ffffff;
 }
 
-.nav-dropdown-default {
-    color: var(--color-text-muted);
+.nav-dropdown.nav-item-default:hover {
+    background-color: #FCDA7B;
+    color: #7A2509;
 }
 
-.dark .nav-dropdown-default {
-    color: var(--color-text-muted);
-}
-
-.nav-dropdown-default:hover {
-    color: var(--color-text);
-    background-color: var(--color-surface-muted);
-}
-
-.dark .nav-dropdown-default:hover {
-    color: var(--color-text);
-    background-color: rgba(55, 65, 81, 0.5);
-}
-
+/* Child Item (Sub-menu) */
 .nav-child-item {
     display: flex;
     align-items: center;
-    padding-left: 0.375rem;
-    padding-right: 0.375rem;
-    padding-top: 0.375rem;
-    padding-bottom: 0.375rem;
+    padding: 0.5rem 0.75rem;
     border-radius: 0.5rem;
-    transition-property: all;
-    transition-duration: 200ms;
-    transition-timing-function: ease-in-out;
+    transition: all 200ms ease-in-out;
 }
 
-.nav-child-item-active {
-    color: var(--primary-color);
-    font-weight: 500;
-}
-
-.dark .nav-child-item-active {
-    color: var(--primary-color);
-}
-
-.nav-child-item-default {
-    color: var(--color-text-muted);
-}
-
-.dark .nav-child-item-default {
-    color: var(--color-text-muted);
-}
-
-.nav-child-item-default:hover {
-    color: var(--color-text);
-    background-color: var(--color-surface-muted);
-}
-
-.dark .nav-child-item-default:hover {
-    color: var(--color-text);
-    background-color: rgba(55, 65, 81, 0.5);
-}
-
+/* Divider Style */
 .nav-divider {
     height: 1px;
     width: 100%;
-    background-color: var(--color-border);
+    /* Divider putih transparan agar terlihat di background orange */
+    background-color: rgba(255, 255, 255, 0.3);
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
 }
-
-/* Divider color is the same in both themes via variable */
 
 .nav-footer {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-    border-top: 1px solid var(--color-border);
-    background-color: var(--color-surface);
+    padding: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    background-color: var(--color-pkl-base-orange);
 }
 
-.dark .nav-footer {
-    border-color: var(--color-border);
-    background-color: var(--color-surface);
+/* PKL Helper Classes (Utility) */
+.bg-pkl-orange {
+    background-color: var(--pkl-orange);
+}
+
+.bg-pkl-yellow {
+    background-color: var(--pkl-yellow);
+}
+
+.bg-pkl-cream {
+    background-color: var(--pkl-cream);
+}
+
+.text-pkl-maroon {
+    color: var(--pkl-maroon);
+}
+
+/* ===================================== */
+/* FLOWER ANIMATED BACKGROUND (LOGIN) */
+/* ===================================== */
+
+.bg-flower {
+    position: relative;
+    background-color: #FFFBDF;
+    /* warna dasar */
+    overflow: hidden;
+}
+
+/* LAYER BUNGA */
+.bg-flower::before {
+    content: "";
+    position: absolute;
+    inset: -60%;
+    background-image: url("/images/assets/bunga1.png");
+    background-repeat: repeat;
+    background-size: 280px;
+    /* ukuran bunga lebih besar */
+    opacity: 0.25;
+    animation: flower-spin 180s linear infinite;
+    z-index: 0;
+    will-change: transform;
+}
+
+/* ANIMASI MUTER */
+@keyframes flower-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }

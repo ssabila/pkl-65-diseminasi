@@ -1,65 +1,366 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
-import PKL65Layout from '@/Layouts/PKL65Layout.vue';
+import { Head } from '@inertiajs/vue3'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import Sidebar from '@/Components/Sidebar.vue'
 
-// Definisikan layout
-defineOptions({ layout: PKL65Layout });
+// --- Existing Imports ---
+import ApexBarChart from '@/Components/Charts/ApexBarChart.vue'
+import ApexDonutChart from '@/Components/Charts/ApexDonutChart.vue'
+import ApexLineChart from '@/Components/Charts/ApexLineChart.vue'
+import ApexAreaChart from '@/Components/Charts/ApexAreaChart.vue'
+import LeafletMap from '@/Components/Charts/LeafletMap.vue'
 
-// Nanti lu bisa terima data dari controller di sini
-// defineProps({
-//   risets: Array,
-//   topics: Array,
-//   visualizations: Array
-// });
+// --- New Imports ---
+import ApexStackedBarChart from '@/Components/Charts/ApexStackedBarChart.vue'
+import ApexStackedBar100Chart from '@/Components/Charts/ApexStackedBar100Chart.vue'
+import ApexGroupedBarChart from '@/Components/Charts/ApexGroupedBarChart.vue'
+import ApexGroupedStackedBarChart from '@/Components/Charts/ApexGroupedStackedBarChart.vue'
+import ApexClusteredBarChart from '@/Components/Charts/ApexClusteredBarChart.vue'
+import ApexBoxPlotChart from '@/Components/Charts/ApexBoxPlotChart.vue'
+import ApexHeatmapChart from '@/Components/Charts/ApexHeatmapChart.vue'
+import ApexHistogramChart from '@/Components/Charts/ApexHistogramChart.vue'
+import ApexDensityChart from '@/Components/Charts/ApexDensityChart.vue'
+import ApexPopulationPyramidChart from '@/Components/Charts/ApexPopulationPyramidChart.vue'
+import VennDiagramChart from '@/Components/Charts/VennDiagramChart.vue'
+
+const props = defineProps({
+    risetTopics: { type: Array, default: () => [] },
+    visualizations: { type: Array, default: () => [] },
+    activeTopic: { type: Object, default: null },
+    selectedTopicId: { type: [String, Number], default: null }
+})
+
+const pklColors = ['#ef874b', '#50829b', '#748d63', '#fcda7b', '#8174a0', '#f69a5c'];
+
+// --- Component Mapping ---
+const chartComponents = {
+    'bar': ApexBarChart, 'bar-chart': ApexBarChart,
+    'pie': ApexDonutChart, 'pie-chart': ApexDonutChart, 'donut': ApexDonutChart, 'donut-chart': ApexDonutChart,
+    'line': ApexLineChart, 'line-chart': ApexLineChart,
+    'area': ApexAreaChart, 'area-chart': ApexAreaChart,
+    'map': LeafletMap, 'peta': LeafletMap,
+    'stacked-bar': ApexStackedBarChart, 'stacked-bar-100': ApexStackedBar100Chart,
+    'grouped-bar': ApexGroupedBarChart, 'grouped-stacked-bar': ApexGroupedStackedBarChart,
+    'clustered-bar': ApexClusteredBarChart,
+    'boxplot': ApexBoxPlotChart, 'heatmap': ApexHeatmapChart,
+    'histogram': ApexHistogramChart, 'density': ApexDensityChart,
+    'pyramid': ApexPopulationPyramidChart, 'venn': VennDiagramChart
+};
+
+// --- Sample Data dengan KATEGORI ---
+const sampleVisualizations = [
+    {
+        id: 'demo-pyramid',
+        title: 'Piramida Penduduk',
+        category: 'Demografi', // Kategori Baru
+        type: { type_code: 'pyramid', type_name: 'Population Pyramid' },
+        chart_data: {
+            labels: ['17-20', '21-25', '26-30', '31-35', '36-40', '41-45', '46+'],
+            datasets: [
+                { name: 'Laki-laki', data: [10, 25, 35, 30, 20, 15, 10] },
+                { name: 'Perempuan', data: [15, 30, 40, 25, 15, 10, 5] }
+            ]
+        },
+        interpretation: 'Mayoritas responden berada pada rentang usia produktif (26-30 tahun).'
+    },
+    {
+        id: 'demo-venn',
+        title: 'Irisan Aplikasi',
+        category: 'Demografi',
+        type: { type_code: 'venn', type_name: 'Venn Diagram' },
+        chart_data: {
+            vennData: {
+                sets: [{ name: 'A', size: 100 }, { name: 'B', size: 90 }],
+                overlaps: [{ sets: ['A', 'B'], size: 40 }]
+            }
+        },
+        interpretation: 'Terdapat irisan penggunaan aplikasi yang signifikan antar platform.'
+    },
+    {
+        id: 'demo-grouped-stacked',
+        title: 'Pendapatan Mitra',
+        category: 'Ekonomi', // Kategori Baru
+        type: { type_code: 'grouped-stacked-bar', type_name: 'Grouped Stacked Bar' },
+        chart_data: {
+            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+            subgroups: ['Lama', 'Baru'],
+            stacks: ['Bonus', 'Pokok'],
+            yAxisTitle: 'Juta Rupiah',
+            datasets: [
+                { name: 'Lama - Bonus', group: 'Lama', data: [10, 15, 12, 18] },
+                { name: 'Lama - Pokok', group: 'Lama', data: [50, 55, 52, 58] },
+                { name: 'Baru - Bonus', group: 'Baru', data: [5, 8, 10, 12] },
+                { name: 'Baru - Pokok', group: 'Baru', data: [30, 35, 40, 45] }
+            ]
+        },
+        interpretation: 'Pendapatan mitra lama cenderung lebih stabil dibanding mitra baru.'
+    },
+    {
+        id: 'demo-boxplot',
+        title: 'Sebaran Pendapatan',
+        category: 'Ekonomi',
+        type: { type_code: 'boxplot', type_name: 'Box Plot' },
+        chart_data: {
+            labels: ['Ojol', 'Kurir', 'Food'],
+            datasets: [{ type: 'boxPlot', data: [{ x: 'Ojol', y: [50, 80, 100, 150, 200] }, { x: 'Kurir', y: [70, 90, 120, 160, 220] }, { x: 'Food', y: [40, 60, 90, 130, 180] }] }]
+        },
+        interpretation: 'Variabilitas pendapatan tertinggi ditemukan pada sektor kurir logistik.'
+    },
+    {
+        id: 'demo-heatmap',
+        title: 'Jam Sibuk',
+        category: 'Pola Kerja', // Kategori Baru
+        type: { type_code: 'heatmap', type_name: 'Heatmap' },
+        chart_data: {
+            categories: ['08:00', '12:00', '16:00', '20:00'],
+            datasets: [
+                { name: 'Senin', data: [20, 60, 70, 60] },
+                { name: 'Minggu', data: [10, 90, 60, 40] }
+            ]
+        },
+        interpretation: 'Pemesanan memuncak pada jam makan siang dan pulang kerja.'
+    },
+    {
+        id: 'demo-stacked',
+        title: 'Shift Kerja',
+        category: 'Pola Kerja',
+        type: { type_code: 'stacked-bar', type_name: 'Stacked Bar' },
+        chart_data: {
+            labels: ['Senin', 'Selasa'],
+            datasets: [{ name: 'Pagi', data: [10, 15] }, { name: 'Malam', data: [25, 20] }]
+        },
+        interpretation: 'Mitra lebih banyak aktif pada shift malam di hari kerja.'
+    },
+    {
+        id: 'demo-map',
+        title: 'Peta Persebaran',
+        category: 'Wilayah', // Kategori Baru
+        type: { type_code: 'map', type_name: 'Map' },
+        chart_data: {
+            pointData: [
+                { id: 1, name: 'Bantul', lat: -7.89, lng: 110.33, value: 85 },
+                { id: 2, name: 'Sleman', lat: -7.70, lng: 110.40, value: 120 }
+            ],
+            selectedVariable: 'value'
+        },
+        interpretation: 'Konsentrasi responden tertinggi berada di wilayah Sleman dan Kota Yogyakarta.'
+    }
+];
+
+// --- Logic Data & Tab ---
+const chartRefs = ref({});
+const setChartRef = (el, id) => { if (el) chartRefs.value[id] = el; };
+
+// Menggabungkan data Props dan Sample
+const mergedVisualizations = computed(() => {
+    // Jika data dari DB tidak punya kategori, kita masukkan ke kategori 'Umum'
+    const dbData = props.visualizations.map(v => ({ ...v, category: v.category || 'Umum' }));
+    return [...dbData, ...sampleVisualizations];
+});
+
+// Mendapatkan daftar kategori unik
+const categories = computed(() => {
+    const cats = mergedVisualizations.value.map(v => v.category || 'Lainnya');
+    return [...new Set(cats)].sort(); // Unik dan urut abjad
+});
+
+// State Tab Aktif (Default ke kategori pertama)
+const activeTab = ref('');
+
+// Set tab pertama saat data siap
+onMounted(() => {
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    document.addEventListener('click', handleClickAway);
+    
+    if (categories.value.length > 0) {
+        activeTab.value = categories.value[0];
+    }
+});
+
+// Filter Visualisasi berdasarkan Tab Aktif
+const filteredVisualizations = computed(() => {
+    return mergedVisualizations.value.filter(v => (v.category || 'Lainnya') === activeTab.value);
+});
+
+// --- Helper Functions ---
+const getChartComponent = (typeCode) => chartComponents[typeCode] || null;
+
+const formatChartData = (vis) => {
+    if (!vis || !vis.chart_data) return null;
+    const rawData = vis.chart_data;
+    const typeCode = vis.type?.type_code;
+    
+    try {
+        if (typeCode === 'venn') return rawData.vennData ? rawData : { vennData: rawData };
+        if (['peta', 'map'].includes(typeCode)) return rawData;
+        if (rawData.labels && Array.isArray(rawData.datasets)) return rawData;
+        if (rawData.categories && Array.isArray(rawData.datasets)) return { labels: rawData.categories, datasets: rawData.datasets, ...rawData };
+        
+        // Fallback layout lama
+        if (rawData.categories && Array.isArray(rawData.series)) return { labels: rawData.categories, datasets: rawData.series };
+        if (rawData.labels && Array.isArray(rawData.series)) return { labels: rawData.labels, datasets: rawData.series };
+        
+        if (typeCode === 'grouped-stacked-bar' && rawData.subgroups) return rawData;
+        return rawData;
+    } catch (e) { return null; }
+};
+
+const triggerDownload = (id) => {
+    const chartComponent = chartRefs.value[id];
+    if (chartComponent && typeof chartComponent.downloadChart === 'function') chartComponent.downloadChart();
+};
+
+// --- Mobile Sidebar Logic ---
+const isMobile = ref(false);
+const isSidebarOpen = ref(false);
+const checkMobile = () => {
+    isMobile.value = window.innerWidth < 768;
+    if (!isMobile.value) isSidebarOpen.value = false;
+};
+const toggleSidebar = () => isSidebarOpen.value = !isSidebarOpen.value;
+const closeSidebar = () => isSidebarOpen.value = false;
+const handleClickAway = (event) => {
+    if (!isMobile.value || !isSidebarOpen.value) return;
+    const sidebar = event.target.closest('aside');
+    const hamburger = event.target.closest('button[aria-label="Toggle sidebar"]');
+    if (hamburger) return;
+    if (!sidebar) closeSidebar();
+};
+onUnmounted(() => {
+    window.removeEventListener('resize', checkMobile);
+    document.removeEventListener('click', handleClickAway);
+});
 </script>
 
 <template>
-  <Head title="Hasil Riset" />
+    <Head title="Hasil Riset" />
 
-  <main class="flex min-h-screen">
-    
-    <aside class="w-1/4 bg-pkl-base-orange p-8">
-      <h2 class="font-sub text-2xl text-white">Website Hasil PKL 65</h2>
-      
-      <nav class="mt-8 space-y-4">
-        <div>
-          <h3 class="font-sub text-lg text-orange-100">Riset 1</h3>
-          <ul class="mt-2 space-y-1 pl-4">
-            <li><Link href="#" class="text-white hover:underline">Sub Topik 1.1</Link></li>
-            <li><Link href="#" class="text-white hover:underline">Sub Topik 1.2</Link></li>
-          </ul>
-        </div>
-        <div>
-          <h3 class="font-sub text-lg text-orange-100">Riset 2</h3>
-          <ul class="mt-2 space-y-1 pl-4">
-            <li><Link href="#" class="text-white hover:underline">Sub Topik 2.1</Link></li>
-          </ul>
-        </div>
-        </nav>
-    </aside>
+    <div class="flex flex-col md:flex-row min-h-screen w-full bg-[#FDFBF7] font-sans overflow-hidden text-gray-800">
+        
+        <div v-if="isMobile && isSidebarOpen" class="fixed inset-0 bg-black/30 z-40" @click="closeSidebar"></div>
+        <button v-if="isMobile && !isSidebarOpen" type="button"
+            class="fixed top-4 left-4 z-50 p-3 bg-pkl-base-orange text-white rounded-lg shadow-lg hover:bg-orange-600 transition-all duration-300 md:hidden"
+            aria-label="Toggle sidebar" @click.stop="toggleSidebar">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        
+        <Sidebar :riset-topics="risetTopics" :selected-topic-id="selectedTopicId" active-page="hasil-riset"
+            :class="['md:translate-x-0 md:static', isMobile && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0']"
+            @close="closeSidebar" />
 
-    <section class="w-3/4 bg-pkl-light-yellow p-10">
-      <h1 class="font-sub text-4xl text-pkl-dark-blue">
-        Judul Sub Menu
-      </h1>
+        <main class="flex-1 p-6 md:p-10 h-screen overflow-y-auto relative scroll-smooth transition-all duration-300">
+            <div class="absolute top-0 right-0 w-full h-full pointer-events-none opacity-30 mix-blend-multiply z-0 fixed">
+                 <img src="/images/assets/pattern kuning 1.svg" class="absolute top-0 right-0 w-[600px] opacity-30" />
+            </div>
 
-      <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
-        <h2 class="font-sub text-2xl text-pkl-dark-blue">
-          Distribusi Berdasarkan Variabel 1
-        </h2>
-        <div class="mt-4">
-          <div class="bg-gray-200 h-64 w-full flex items-center justify-center">
-            (Chart.js Canvas di sini)
-          </div>
-        </div>
-        <div class="mt-4">
-          <h3 class="font-sub text-lg text-pkl-dark-blue">Interpretasi:</h3>
-          <p class="mt-2 text-gray-700">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit...
-          </p>
-        </div>
-      </div>
+            <div v-if="activeTopic || mergedVisualizations.length > 0" class="max-w-7xl mx-auto pb-20 relative z-10">
+                
+                <div class="mb-8 border-b-2 border-orange-100 pb-6">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="px-4 py-1 rounded-full bg-white border border-orange-200 text-orange-500 text-[11px] font-bold tracking-widest uppercase shadow-sm">
+                            {{ activeTopic?.riset?.name || 'Riset PKL' }}
+                        </span>
+                    </div>
+                    <h1 class="font-headline text-4xl md:text-6xl text-pkl-base-orange leading-none drop-shadow-sm">
+                        {{ activeTopic?.name || 'Galeri Visualisasi' }}
+                    </h1>
+                    <p v-if="activeTopic?.description" class="mt-4 text-gray-600 max-w-3xl font-sans">
+                        {{ activeTopic.description }}
+                    </p>
+                </div>
 
-      </section>
-  </main>
+                <div v-if="categories.length > 0" class="mb-10 overflow-x-auto pb-2">
+                    <div class="flex space-x-2 min-w-max p-1 bg-orange-50/50 rounded-xl border border-orange-100">
+                        <button 
+                            v-for="cat in categories" 
+                            :key="cat"
+                            @click="activeTab = cat"
+                            class="px-6 py-2.5 rounded-lg text-sm font-bold tracking-wide transition-all duration-300 focus:outline-none"
+                            :class="activeTab === cat 
+                                ? 'bg-pkl-base-orange text-white shadow-md transform scale-105' 
+                                : 'text-gray-500 hover:text-pkl-base-orange hover:bg-white'"
+                        >
+                            {{ cat }}
+                        </button>
+                    </div>
+                </div>
+
+                <div v-if="filteredVisualizations.length > 0" class="space-y-16">
+                    <div v-for="vis in filteredVisualizations" :key="vis.id" 
+                         class="bg-white rounded-[2.5rem] shadow-xl shadow-orange-900/5 border border-white overflow-hidden ring-1 ring-black/5 animate-fade-in-up">
+                        
+                        <div class="px-8 py-5 bg-gradient-to-r from-white to-orange-50/30 border-b border-orange-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div class="flex-1">
+                                <h2 class="font-headline text-2xl text-gray-800 leading-snug">{{ vis.title }}</h2>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-[10px] font-bold tracking-widest uppercase text-white bg-pkl-compliment-teal/80 px-2 py-0.5 rounded">{{ vis.category }}</span>
+                                    <span class="text-xs text-gray-400 font-medium">{{ vis.type?.type_name }}</span>
+                                </div>
+                            </div>
+                            <button @click="triggerDownload(vis.id)" 
+                                class="flex items-center gap-2 px-5 py-2.5 bg-white border border-orange-200 text-pkl-base-orange text-xs font-bold tracking-widest uppercase rounded-full shadow-sm hover:bg-orange-50 hover:shadow-md transition-all active:scale-95">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Download
+                            </button>
+                        </div>
+
+                        <div class="p-6 md:p-8 min-h-[400px] flex flex-col justify-center bg-white relative">
+                            <component
+                                :ref="(el) => setChartRef(el, vis.id)"
+                                :is="getChartComponent(vis.type?.type_code)"
+                                v-if="getChartComponent(vis.type?.type_code) && formatChartData(vis)"
+                                :chart-data="formatChartData(vis)"
+                                :title="vis.title"
+                                :colors="pklColors" 
+                                height="400" 
+                            />
+                            <div v-else class="flex flex-col items-center justify-center h-80 border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50 text-center">
+                                <p class="font-bold text-gray-400 text-sm uppercase tracking-wide">Visualisasi tidak tersedia</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#FDFBF7] px-8 py-8 border-t border-orange-100/50">
+                            <div class="flex items-start gap-4">
+                                <div class="mt-1 w-8 h-8 rounded-full bg-pkl-compliment-teal/10 flex items-center justify-center text-pkl-compliment-teal shrink-0">
+                                    <span class="text-lg">💡</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-sm text-gray-800 uppercase tracking-wide mb-1">Insight Utama</h3>
+                                    <p class="text-gray-600 leading-relaxed font-sans text-[15px]">{{ vis.interpretation }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else class="flex flex-col items-center justify-center h-64 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-white/50">
+                    <p class="text-gray-400 font-sans">Tidak ada data untuk kategori ini.</p>
+                </div>
+            </div>
+
+            <div v-else class="h-full flex flex-col items-center justify-center text-center pb-20 opacity-80">
+                <div class="mb-6 p-6 bg-white rounded-full shadow-xl shadow-orange-100/50 border border-white">
+                    <img src="/images/assets/LOGO-PKL_REV8.png" class="w-24 h-24 object-contain opacity-90" />
+                </div>
+                <h2 class="font-headline text-5xl text-pkl-base-orange mb-3">HASIL PKL 65</h2>
+                <p class="font-sans text-gray-500 tracking-wide text-lg">Silakan pilih topik riset pada menu di sebelah kiri.</p>
+            </div>
+        </main>
+    </div>
 </template>
+
+<style scoped>
+/* Animation for Tab Switching */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+</style>
