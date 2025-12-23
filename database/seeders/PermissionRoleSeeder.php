@@ -65,7 +65,8 @@ class PermissionRoleSeeder extends Seeder
     {
         $roleData = [
             'superuser' => 'Superuser with full system access',
-            'user' => 'Standard user with limited permissions'
+            'user' => 'Standard user with limited permissions',
+            'Riset User' => 'User assigned to specific riset with dashboard access'
         ];
         
         $roles = [];
@@ -88,6 +89,12 @@ class PermissionRoleSeeder extends Seeder
         
         // Regular user permissions
         $roles['user']->syncPermissions([
+            $permissions['edit-profile'],
+        ]);
+        
+        // Riset User permissions - can access dashboard and edit profile
+        $roles['Riset User']->syncPermissions([
+            $permissions['access-dashboard'],
             $permissions['edit-profile'],
         ]);
     }

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class DashboardController extends Controller
 {
@@ -179,6 +180,275 @@ class DashboardController extends Controller
             'topics' => $topics
         ]);
     }
+
+    public function uploadHistogram(Request $request)
+{
+    $request->validate([
+        'file' => 'required|file|mimes:txt,csv,xlsx,xls|max:10240'
+    ]);
+
+    try {
+        $file = $request->file('file');
+        $extension = $file->getClientOriginalExtension();
+        $values = [];
+
+        if (in_array($extension, ['xlsx', 'xls'])) {
+            // Parse Excel
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $worksheet = $spreadsheet->getActiveSheet();
+            
+            foreach ($worksheet->toArray() as $row) {
+                foreach ($row as $cell) {
+                    if (is_numeric($cell)) {
+                        $values[] = floatval($cell);
+                    }
+                }
+            }
+        } else {
+            // Parse TXT/CSV
+            $content = file_get_contents($file->getRealPath());
+            $numbers = preg_split('/[\s,;\t\n\r]+/', $content);
+            
+            foreach ($numbers as $num) {
+                $num = trim($num);
+                if (is_numeric($num)) {
+                    $values[] = floatval($num);
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $values,
+            'message' => 'File berhasil diparse'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal memproses file: ' . $e->getMessage()
+        ], 422);
+    }
+}
+
+    public function uploadBoxPlot(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,xlsx,xls|max:10240'
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $data = Excel::toArray([], $file);
+            
+            if (empty($data) || empty($data[0])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File kosong atau format tidak valid'
+                ], 422);
+            }
+
+            $rows = $data[0];
+            $headers = array_map('strtolower', array_map('trim', $rows[0]));
+            
+            // Find column indices for Kelompok and Nilai
+            $groupIndex = $this->findColumnIndex($headers, ['kelompok', 'group', 'nama', 'kategori']);
+            $valueIndex = $this->findColumnIndex($headers, ['nilai', 'value', 'data']);
+            
+            if ($groupIndex === null || $valueIndex === null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File harus memiliki kolom "Kelompok" dan "Nilai"'
+                ], 422);
+            }
+
+            // Group data by Kelompok
+            $groupedData = [];
+            for ($i = 1; $i < count($rows); $i++) {
+                if (!isset($rows[$i][$groupIndex]) || !isset($rows[$i][$valueIndex])) {
+                    continue;
+                }
+                
+                $group = trim($rows[$i][$groupIndex]);
+                $value = $rows[$i][$valueIndex];
+                
+                if (!empty($group) && is_numeric($value)) {
+                    if (!isset($groupedData[$group])) {
+                        $groupedData[$group] = [];
+                    }
+                    $groupedData[$group][] = floatval($value);
+                }
+            }
+
+            if (empty($groupedData)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada data valid yang ditemukan'
+                ], 422);
+            }
+
+            // Calculate Tukey's statistics for each group
+            $boxPlotData = [];
+            $outlierData = [];
+            $labels = [];
+            
+            foreach ($groupedData as $groupName => $values) {
+                if (count($values) < 3) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Kelompok '$groupName' harus memiliki minimal 3 data"
+                    ], 422);
+                }
+                
+                $stats = $this->calculateTukeysBoxPlot($values);
+                
+                $labels[] = $groupName;
+                $boxPlotData[] = [
+                    'x' => $groupName,
+                    'y' => [
+                        $stats['min'],
+                        $stats['q1'],
+                        $stats['median'],
+                        $stats['q3'],
+                        $stats['max']
+                    ]
+                ];
+                
+                // Collect outliers for this group
+                if (!empty($stats['outliers'])) {
+                    foreach ($stats['outliers'] as $outlier) {
+                        $outlierData[] = [
+                            'x' => $groupName,
+                            'y' => $outlier
+                        ];
+                    }
+                }
+            }
+
+            // Build datasets array
+            $datasets = [
+                [
+                    'type' => 'boxPlot',
+                    'data' => $boxPlotData
+                ]
+            ];
+            
+            // Add outliers as scatter series if there are any
+            if (!empty($outlierData)) {
+                $datasets[] = [
+                    'type' => 'scatter',
+                    'name' => 'Outliers',
+                    'data' => $outlierData
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'labels' => $labels,
+                    'datasets' => $datasets,
+                    'hasOutliers' => !empty($outlierData),
+                    'outlierCount' => count($outlierData)
+                ],
+                'total_groups' => count($boxPlotData)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memproses file: ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
+    /**
+     * Calculate Tukey's Boxplot statistics
+     * Uses linear interpolation for quartiles (Excel/R method)
+     * Whiskers at 1.5 × IQR from Q1 and Q3
+     */
+    private function calculateTukeysBoxPlot(array $values)
+    {
+        sort($values);
+        $n = count($values);
+        
+        // Calculate quartiles using linear interpolation
+        $q1 = $this->calculateQuartile($values, 0.25);
+        $median = $this->calculateQuartile($values, 0.5);
+        $q3 = $this->calculateQuartile($values, 0.75);
+        
+        // Calculate IQR
+        $iqr = $q3 - $q1;
+        
+        // Calculate whisker bounds (Tukey's 1.5 × IQR rule)
+        $lowerBound = $q1 - 1.5 * $iqr;
+        $upperBound = $q3 + 1.5 * $iqr;
+        
+        // Find actual whiskers (min/max values within bounds)
+        $lowerWhisker = null;
+        $upperWhisker = null;
+        $outliers = [];
+        
+        foreach ($values as $value) {
+            if ($value >= $lowerBound && $value <= $upperBound) {
+                // Value is within whisker bounds
+                if ($lowerWhisker === null || $value < $lowerWhisker) {
+                    $lowerWhisker = $value;
+                }
+                if ($upperWhisker === null || $value > $upperWhisker) {
+                    $upperWhisker = $value;
+                }
+            } else {
+                // Value is an outlier
+                $outliers[] = $value;
+            }
+        }
+        
+        return [
+            'min' => $lowerWhisker ?? $values[0],
+            'q1' => $q1,
+            'median' => $median,
+            'q3' => $q3,
+            'max' => $upperWhisker ?? $values[$n - 1],
+            'outliers' => $outliers
+        ];
+    }
+
+    /**
+     * Calculate quartile using linear interpolation (Excel/R method)
+     * 
+     * @param array $sortedValues Sorted array of values
+     * @param float $p Percentile (0.25 for Q1, 0.5 for median, 0.75 for Q3)
+     * @return float Calculated quartile value
+     */
+    private function calculateQuartile(array $sortedValues, float $p)
+    {
+        $n = count($sortedValues);
+        $index = $p * ($n - 1);
+        $lowerIndex = floor($index);
+        $upperIndex = ceil($index);
+        $fraction = $index - $lowerIndex;
+        
+        // If index is exactly on a data point
+        if ($lowerIndex == $upperIndex) {
+            return $sortedValues[$lowerIndex];
+        }
+        
+        // Linear interpolation between two data points
+        return $sortedValues[$lowerIndex] + $fraction * ($sortedValues[$upperIndex] - $sortedValues[$lowerIndex]);
+    }
+
+    /**
+     * Find column index by searching for possible column names
+     */
+    private function findColumnIndex(array $headers, array $possibleNames)
+    {
+        foreach ($possibleNames as $name) {
+            $index = array_search($name, $headers);
+            if ($index !== false) {
+                return $index;
+            }
+        }
+        return null;
+    }
+
 
     public function uploadMapData(Request $request)
     {
