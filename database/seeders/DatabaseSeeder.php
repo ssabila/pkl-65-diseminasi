@@ -12,9 +12,9 @@ class DatabaseSeeder extends Seeder
         RoleSeeder::class,
         SettingSeeder::class,
         PermissionRoleSeeder::class,
-        UserSeeder::class,
-        VisualizationTypeSeeder::class, // ← WAJIB
-        RisetVisualizationSeeder::class,
+        VisualizationTypeSeeder::class, // ← WAJIB sebelum Riset
+        RisetVisualizationSeeder::class, // ← Buat riset dulu
+        UserSeeder::class, // ← Baru buat user dengan riset_id
     ]);
 }
 

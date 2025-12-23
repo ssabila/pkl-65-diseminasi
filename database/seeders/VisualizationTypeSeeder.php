@@ -30,6 +30,7 @@ class VisualizationTypeSeeder extends Seeder
             ['type_code' => 'clustered-bar-chart', 'type_name' => 'Clustered Bar Chart'],
             ['type_code' => 'population-pyramid', 'type_name' => 'Population Pyramid'],
             ['type_code' => 'area-chart', 'type_name' => 'Area Chart'],
+            ['type_code' => 'horizontal-stacked-bar-chart', 'type_name' => 'Horizontal Stacked Bar Chart'], // NEW
         ];
 
         foreach ($types as $type) {

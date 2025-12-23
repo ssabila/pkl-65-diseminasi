@@ -4,6 +4,7 @@ import { Link, usePage } from '@inertiajs/vue3'
 import Logo from '@/Components/Logo.vue'
 import NavProfile from '@/Components/NavProfile.vue'
 import NavSidebarDesktop from '@/Components/NavSidebarDesktop.vue'
+import AdminNavbar from '@/Components/AdminNavbar.vue'
 
 const page = usePage()
 const isSidebarOpen = ref(true) // Default terbuka
@@ -142,6 +143,9 @@ watch(isSidebarOpen, (newVal) => {
 
         <!-- MAIN WRAPPER -->
         <div class="flex flex-col min-h-screen">
+            <!-- Admin Navbar -->
+            <AdminNavbar />
+            
             <!-- Main Content -->
             <main
                 :class="[

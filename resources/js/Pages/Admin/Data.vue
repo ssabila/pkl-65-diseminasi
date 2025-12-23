@@ -14,6 +14,7 @@ import 'leaflet.heat'
 import VueApexCharts from 'vue3-apexcharts'
 import ApexBarChart from '@/Components/Charts/ApexBarChart.vue'
 import ApexStackedBarChart from '@/Components/Charts/ApexStackedBarChart.vue'
+import ApexHorizontalStackedBarChart from '@/Components/Charts/ApexHorizontalStackedBarChart.vue'
 import ApexGroupedBarChart from '@/Components/Charts/ApexGroupedBarChart.vue'
 import ApexGroupedStackedBarChart from '@/Components/Charts/ApexGroupedStackedBarChart.vue'
 import ApexStackedBar100Chart from '@/Components/Charts/ApexStackedBar100Chart.vue'
@@ -43,10 +44,6 @@ const props = defineProps({
     },
     editingVisualization: {
         type: Object,
-        default: null
-    },
-    accessError: {
-        type: String,
         default: null
     }
 })
@@ -87,85 +84,38 @@ const uploadingMap = ref(false)
 const groupedStackedData = ref([]) // { groupName: '', subgroups: [{ subgroupName: '', stacks: [{ stackName: '', value: '' }] }] }
 // Histogram data (raw numeric values)
 const histogramRawData = ref('')
-const histogramBinCount = ref(10)
-const histogramBinMethod = ref('manual') // 'manual', 'sturges', 'sqrt', 'freedman'
+const histogramBinSize = ref('') // User input range/bin size
+const histogramAutoCalculate = ref(false) // Auto calculate optimal bin size
+const histogramFile = ref(null)
+const histogramFileInput = ref(null)
+// Box Plot file upload
+const boxPlotFile = ref(null)
+const boxPlotFileInput = ref(null)
+const boxPlotPreviewData = ref(null) // Separate ref for preview to bypass form reactivity
 const selectedVisualizationType = ref(null)
 const chartOptions = ref({})
 const chartSeries = ref([])
 const mapInstance = ref(null)
 const chartKey = ref(0) // Force chart re-render
 const variableInterpretations = ref({}) // Store interpretations per variable
+const searchQuery = ref('') // Search query for filtering visualizations
 
-// Sample data for chart previews in visualization type picker
-const previewSampleData = {
-    simple: {
-        labels: ['A', 'B', 'C', 'D'],
-        datasets: [{ name: 'Series 1', data: [30, 45, 28, 52] }]
-    },
-    line: {
-        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-        datasets: [{ name: 'Trend', data: [15, 32, 40, 55] }]
-    },
-    area: {
-        labels: ['2019', '2020', '2021', '2022'],
-        datasets: [{ name: 'Growth', data: [20, 28, 35, 48] }]
-    },
-    pie: {
-        labels: ['Kategori A', 'Kategori B', 'Kategori C', 'Kategori D'],
-        datasets: [{ name: 'Distribusi', data: [35, 25, 20, 20] }]
-    },
-    histogram: {
-        labels: ['0-10', '10-20', '20-30', '30-40'],
-        datasets: [{ name: 'Frekuensi', data: [5, 12, 18, 9] }],
-        xAxisTitle: 'Kelompok Nilai',
-        yAxisTitle: 'Frekuensi'
-    },
-    boxPlot: {
-        labels: ['Grup A', 'Grup B'],
-        datasets: [{
-            name: 'Sebaran',
-            type: 'boxPlot',
-            data: [
-                { x: 'Grup A', y: [10, 20, 30, 40, 50] },
-                { x: 'Grup B', y: [15, 22, 33, 46, 58] }
-            ]
-        }],
-        yAxisTitle: 'Nilai'
-    },
-    heatmap: {
-        categories: ['Indikator 1', 'Indikator 2', 'Indikator 3'],
-        datasets: [
-            { name: 'Wilayah A', data: [10, 25, 40] },
-            { name: 'Wilayah B', data: [20, 35, 55] }
-        ]
-    },
-    density: {
-        labels: [1, 2, 3, 4, 5],
-        datasets: [{ name: 'Kepadatan', data: [0.1, 0.3, 0.6, 0.4, 0.2] }]
-    },
-    venn: {
-        vennData: {
-            sets: [
-                { name: 'A', size: 80 },
-                { name: 'B', size: 70 },
-                { name: 'C', size: 60 }
-            ],
-            overlaps: [
-                { sets: ['A', 'B'], size: 30 },
-                { sets: ['A', 'C'], size: 25 },
-                { sets: ['B', 'C'], size: 20 },
-                { sets: ['A', 'B', 'C'], size: 10 }
-            ]
-        }
-    },
-    populationPyramid: {
-        labels: ['15-24', '25-34', '35-44', '45-54'],
-        datasets: [
-            { name: 'Laki-laki', data: [40, 35, 30, 20] },
-            { name: 'Perempuan', data: [38, 34, 32, 22] }
-        ]
+// Filtered visualization types based on search query
+const filteredVisualizationTypes = computed(() => {
+    const allowedTypes = props.visualizationTypes.filter(vt => 
+        ALLOWED_TYPE_CODES.includes(vt.type_code)
+    )
+    
+    if (!searchQuery.value.trim()) {
+        return allowedTypes
     }
-}
+    
+    const query = searchQuery.value.toLowerCase()
+    return allowedTypes.filter(vt => 
+        vt.type_name.toLowerCase().includes(query) ||
+        vt.type_code.toLowerCase().includes(query)
+    )
+})
 
 // Dialog states
 const showSuccessNotif = ref(false)
@@ -264,12 +214,22 @@ watch(() => vennSets.value.map(s => s.name).filter(Boolean), (setNames) => {
     vennOverlaps.value = newOverlaps
 }, { deep: true })
 
+watch(() => histogramAutoCalculate.value, (autoCalc) => {
+    if (autoCalc && histogramRawData.value) {
+        const rawValues = parseHistogramData()
+        if (rawValues.length > 0) {
+            const range = Math.max(...rawValues) - Math.min(...rawValues)
+            const optimalBinCount = calculateOptimalBinSize(rawValues)
+            histogramBinSize.value = (range / optimalBinCount).toFixed(2)
+        }
+    }
+})
+
 watch(() => form.visualization_type_id, (newTypeId) => {
     const vizType = props.visualizationTypes.find(vt => vt.id === newTypeId)
     selectedVisualizationType.value = vizType ? vizType.type_code : null
 
-    // Skip reset if we're in setup mode or if we're loading existing data
-    if (isSettingUp.value || (props.editingVisualization && form.chart_data)) return
+    if (isSettingUp.value) return
 
     chartCategories.value = []
     multiSeriesData.value = []
@@ -287,12 +247,14 @@ watch(() => form.visualization_type_id, (newTypeId) => {
     form.chart_data_json = ''
     groupedStackedData.value = []
     histogramRawData.value = ''
-    histogramBinCount.value = 10
-    histogramBinMethod.value = 'manual'
+    histogramBinSize.value = ''
+    histogramAutoCalculate.value = false
+    histogramFile.value = null
     
     // Initialize with one empty row for charts that need category/value input
     const simpleChartTypes = ['bar-chart', 'pie-chart', 'donut-chart', 'line-chart', 'area-chart']
-    const multiSeriesChartTypes = ['stacked-bar-chart', 'grouped-bar-chart', '100-stacked-bar-chart', 'clustered-bar-chart']
+    // Multi-series charts (stacked, grouped, etc)
+    const multiSeriesChartTypes = ['stacked-bar-chart', 'horizontal-stacked-bar-chart', 'grouped-bar-chart', '100-stacked-bar-chart']
     const matrixChartTypes = ['heatmap-matrix']
     
     if (newTypeId && simpleChartTypes.includes(selectedVisualizationType.value)) {
@@ -305,9 +267,6 @@ watch(() => form.visualization_type_id, (newTypeId) => {
         // Histogram doesn't need initialization - uses raw data input
     } else if (newTypeId && selectedVisualizationType.value === 'box-plot') {
         addBoxPlotGroup()
-    } else if (newTypeId && selectedVisualizationType.value === 'venn-diagram') {
-        addVennSet()
-        addVennSet()
     } else if (newTypeId && selectedVisualizationType.value === 'heatmap-matrix') {
         heatmapRows.value = [{
             rowName: '',
@@ -336,78 +295,95 @@ const topicOptions = computed(() => {
 })
 
 const ALLOWED_TYPE_CODES = [
-    'stacked-bar-chart',        // Horizontal Stacked Bar Chart (konfigurasi di preview)
-    'bar-chart',                // Vertical Stacked Bar Chart (dipakai sebagai vertikal)
-    'histogram',                // Histogram
-    '100-stacked-bar-chart',    // 100% Stacked Bar Chart
-    'pie-chart',                // Pie Chart
-    'clustered-bar-chart',      // Clustered Bar Chart
-    'grouped-bar-chart',        // Grouped Bar Chart
-    'population-pyramid'        // Population Pyramid
+    'bar-chart',                     // Bar Chart (simple bar chart from DB)
+    'stacked-bar-chart',             // Stacked Bar Chart (vertical stacked from DB)
+    'horizontal-stacked-bar-chart',  // Horizontal Stacked Bar Chart (NEW)
+    'grouped-bar-chart',             // Grouped Bar Chart
+    '100-stacked-bar-chart',         // 100% Stacked Bar Chart
+    'histogram',                     // Histogram
+    'pie-chart',                     // Pie Chart
+    'donut-chart',                   // Donut Chart
+    'line-chart',                    // Line Chart
+    'area-chart',                    // Area Chart
+    'box-plot',                      // Box Plot
+    'population-pyramid',            // Population Pyramid
+    'grouped-stacked-bar-chart',     // Grouped Stacked Bar Chart
+    'heatmap-matrix',                // Heatmap Matrix
+    'density-plot',                  // Density Plot
+    'peta',                          // Peta Heatmap
+    'choropleth'                     // Peta Choropleth
 ]
+
+// Fungsi untuk mengubah nama tampilan berdasarkan type_code
+const getDisplayName = (typeCode, defaultName) => {
+    const nameMap = {
+        'bar-chart': 'Bar Chart',
+        'stacked-bar-chart': 'Stacked Bar Chart',
+        'horizontal-stacked-bar-chart': 'Horizontal Stacked Bar Chart'
+    }
+    return nameMap[typeCode] || defaultName
+}
+
+// Fungsi untuk mendapatkan thumbnail image berdasarkan type_code
+const getThumbnailImage = (typeCode) => {
+    const thumbnailMap = {
+        'bar-chart': 'chart_1.jpg',                    // Bar Chart
+        'stacked-bar-chart': 'chart_2.jpg',            // Stacked Bar Chart (Vertical)
+        'horizontal-stacked-bar-chart': 'chart_19.png',// Horizontal Stacked Bar Chart
+        'grouped-bar-chart': 'chart_3.jpg',            // Grouped Bar Chart
+        '100-stacked-bar-chart': 'chart_4.jpg',        // 100% Stacked Bar Chart
+        'histogram': 'chart_6.jpg',                    // Histogram
+        'pie-chart': 'chart_7.jpg',                    // Pie Chart
+        'donut-chart': 'chart_8.jpg',                  // Donut Chart
+        'line-chart': 'chart_9.jpg',                   // Line Chart
+        'area-chart': 'chart_10.jpg',                  // Area Chart
+        'box-plot': 'chart_11.jpg',                    // Box Plot
+        'population-pyramid': 'chart_12.jpg',          // Population Pyramid
+        'grouped-stacked-bar-chart': 'chart_13.jpg',   // Grouped Stacked Bar Chart
+        'heatmap-matrix': 'chart_14.jpg',              // Heatmap Matrix
+        'density-plot': 'chart_15.jpg',                // Density Plot
+        'peta': 'chart_17.jpg',                        // Peta Heatmap
+        'choropleth': 'chart_18.jpg'                   // Peta Choropleth
+    }
+    return thumbnailMap[typeCode] || 'chart_1.jpg' // fallback
+}
 
 const visualizationTypeOptions = props.visualizationTypes
     .filter(vt => ALLOWED_TYPE_CODES.includes(vt.type_code))
     .map(vt => ({
         value: vt.id,
-        label: vt.type_name
+        label: getDisplayName(vt.type_code, vt.type_name)
     }))
 
 const previewComponentMap = {
+    // Bar Chart - basic single series bar chart
     'bar-chart': ApexBarChart,
+    // Stacked Bar Chart - stacked bar chart vertical
+    'stacked-bar-chart': ApexStackedBarChart,
+    // Horizontal Stacked Bar Chart - menggunakan komponen khusus horizontal
+    'horizontal-stacked-bar-chart': ApexHorizontalStackedBarChart,
+    // Pie Chart
     'pie-chart': ApexDonutChart,
     'donut-chart': ApexDonutChart,
+    // Histogram
+    'histogram': ApexHistogramChart,
+    // 100% Stacked Bar Chart
+    '100-stacked-bar-chart': ApexStackedBar100Chart,
+    // Grouped Bar Chart
+    'grouped-bar-chart': ApexGroupedBarChart,
+    // Population Pyramid
+    'population-pyramid': ApexPopulationPyramidChart,
+    // Other chart types
     'line-chart': ApexLineChart,
     'area-chart': ApexAreaChart,
-    'histogram': ApexHistogramChart,
     'box-plot': ApexBoxPlotChart,
-    'stacked-bar-chart': ApexStackedBarChart,
-    'grouped-bar-chart': ApexGroupedBarChart,
-    '100-stacked-bar-chart': ApexStackedBar100Chart,
-    'clustered-bar-chart': ApexClusteredBarChart,
     'grouped-stacked-bar-chart': ApexGroupedStackedBarChart,
     'heatmap-matrix': ApexHeatmapChart,
-    'density-plot': ApexDensityChart,
-    'population-pyramid': ApexPopulationPyramidChart,
-    'venn-diagram': VennDiagramChart
-}
-
-const getPreviewComponent = (typeCode) => previewComponentMap[typeCode] || null
-
-const getPreviewChartData = (typeCode) => {
-    switch (typeCode) {
-        case 'bar-chart':
-        case 'stacked-bar-chart':
-        case 'grouped-bar-chart':
-        case '100-stacked-bar-chart':
-        case 'clustered-bar-chart':
-        case 'grouped-stacked-bar-chart':
-            return previewSampleData.simple
-        case 'line-chart':
-            return previewSampleData.line
-        case 'area-chart':
-            return previewSampleData.area
-        case 'pie-chart':
-        case 'donut-chart':
-            return previewSampleData.pie
-        case 'histogram':
-            return previewSampleData.histogram
-        case 'box-plot':
-            return previewSampleData.boxPlot
-        case 'heatmap-matrix':
-            return previewSampleData.heatmap
-        case 'density-plot':
-            return previewSampleData.density
-        case 'population-pyramid':
-            return previewSampleData.populationPyramid
-        case 'venn-diagram':
-            return previewSampleData.venn
-        default:
-            return null
-    }
+    'density-plot': ApexDensityChart
 }
 
 const isBarOrPie = computed(() => {
+    // Simple charts with single series
     return selectedVisualizationType.value && ['bar-chart', 'pie-chart', 'donut-chart', 'line-chart', 'area-chart'].includes(selectedVisualizationType.value)
 })
 
@@ -416,7 +392,7 @@ const isHistogram = computed(() => {
 })
 
 const isMultiSeries = computed(() => {
-    return selectedVisualizationType.value && ['stacked-bar-chart', 'grouped-bar-chart', '100-stacked-bar-chart', 'clustered-bar-chart'].includes(selectedVisualizationType.value)
+    return selectedVisualizationType.value && ['stacked-bar-chart', 'horizontal-stacked-bar-chart', 'grouped-bar-chart', '100-stacked-bar-chart'].includes(selectedVisualizationType.value)
 })
 
 const isGroupedStackedBar = computed(() => {
@@ -639,7 +615,7 @@ const syncStackNames = (groupIndex) => {
 }
 
 // Histogram functions
-const calculateHistogramBins = (data, method, manualBinCount) => {
+const calculateHistogramBins = (data, binSize) => {
     if (!data || data.length === 0) return { bins: [], labels: [] }
     
     const n = data.length
@@ -647,36 +623,32 @@ const calculateHistogramBins = (data, method, manualBinCount) => {
     const max = Math.max(...data)
     const range = max - min
     
-    let binCount = manualBinCount
-    
-    if (method === 'sturges') {
-        // Sturges' formula: k = ceil(log2(n) + 1)
-        binCount = Math.ceil(Math.log2(n) + 1)
-    } else if (method === 'sqrt') {
-        // Square-root rule: k = ceil(sqrt(n))
-        binCount = Math.ceil(Math.sqrt(n))
-    } else if (method === 'freedman') {
-        // Freedman-Diaconis rule: bin width = 2 * IQR / n^(1/3)
-        const sorted = [...data].sort((a, b) => a - b)
-        const q1Index = Math.floor(n * 0.25)
-        const q3Index = Math.floor(n * 0.75)
-        const iqr = sorted[q3Index] - sorted[q1Index]
-        const binWidth = 2 * iqr / Math.pow(n, 1/3)
-        binCount = binWidth > 0 ? Math.ceil(range / binWidth) : manualBinCount
+    if (range === 0) {
+        return {
+            bins: [n],
+            labels: [`${min.toFixed(2)}`],
+            binWidth: 0,
+            min: min,
+            max: max,
+            binCount: 1
+        }
     }
     
-    // Ensure reasonable bin count
-    binCount = Math.max(1, Math.min(binCount, 50))
+    // Calculate number of bins based on bin size
+    const binCount = Math.max(1, Math.ceil(range / binSize))
+    const actualBinWidth = range / binCount
     
-    const binWidth = range / binCount
     const bins = new Array(binCount).fill(0)
     const labels = []
     
     // Create bin labels and count frequencies
     for (let i = 0; i < binCount; i++) {
-        const binStart = min + i * binWidth
-        const binEnd = min + (i + 1) * binWidth
-        labels.push(`${binStart.toFixed(1)} - ${binEnd.toFixed(1)}`)
+        const binStart = min + i * actualBinWidth
+        const binEnd = min + (i + 1) * actualBinWidth
+        
+        // Format labels based on data magnitude
+        const decimals = range < 10 ? 2 : (range < 100 ? 1 : 0)
+        labels.push(`${binStart.toFixed(decimals)} - ${binEnd.toFixed(decimals)}`)
         
         data.forEach(value => {
             // Last bin is inclusive on the right
@@ -688,7 +660,7 @@ const calculateHistogramBins = (data, method, manualBinCount) => {
         })
     }
     
-    return { bins, labels, binWidth, min, max }
+    return { bins, labels, binWidth: actualBinWidth, min, max, binCount }
 }
 
 const parseHistogramData = () => {
@@ -702,6 +674,184 @@ const parseHistogramData = () => {
         .filter(v => !isNaN(v))
     
     return values
+}
+
+// Handle file upload - using backend API like peta visualization
+const handleHistogramFileChange = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    // Validate file type
+    const fileName = file.name.toLowerCase()
+    const validExtensions = ['.txt', '.csv', '.xlsx', '.xls']
+    const isValidFile = validExtensions.some(ext => fileName.endsWith(ext))
+    
+    if (!isValidFile) {
+        notificationTitle.value = 'File Tidak Valid'
+        notificationMessage.value = 'Hanya file TXT, CSV, atau Excel yang diperbolehkan'
+        showErrorNotif.value = true
+        return
+    }
+
+    uploadingMap.value = true
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('file_type', 'histogram')
+
+    try {
+        const response = await axios.post(route('admin.dashboard.upload-histogram'), formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+
+        if (response.data.success) {
+            const values = response.data.data
+            console.log('Parsed values from backend:', values)
+            console.log('Values count:', values.length)
+            
+            if (values.length === 0) {
+                notificationTitle.value = 'File Kosong'
+                notificationMessage.value = 'File tidak mengandung data numerik yang valid'
+                showErrorNotif.value = true
+                return
+            }
+
+            // Store parsed data
+            histogramRawData.value = values.join(', ')
+            histogramFile.value = file
+            
+            console.log('histogramRawData updated:', histogramRawData.value)
+            
+            notificationTitle.value = 'Upload Berhasil!'
+            notificationMessage.value = `Berhasil memuat ${values.length} data numerik`
+            showSuccessNotif.value = true
+        } else {
+            throw new Error(response.data.message || 'Upload failed')
+        }
+    } catch (error) {
+        console.error('Upload failed:', error)
+        notificationTitle.value = 'Upload Gagal!'
+        notificationMessage.value = error.response?.data?.message || 'Gagal mengupload file. Pastikan file berisi data numerik.'
+        showErrorNotif.value = true
+    } finally {
+        uploadingMap.value = false
+    }
+}
+
+// Clear file upload
+const clearHistogramFile = () => {
+    histogramFile.value = null
+    if (histogramFileInput.value) {
+        histogramFileInput.value.value = ''
+    }
+}
+
+// Handle Box Plot file upload
+const handleBoxPlotFileChange = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    // Validate file type
+    const fileName = file.name.toLowerCase()
+    const validExtensions = ['.csv', '.xlsx', '.xls']
+    const isValidFile = validExtensions.some(ext => fileName.endsWith(ext))
+    
+    if (!isValidFile) {
+        notificationTitle.value = 'File Tidak Valid'
+        notificationMessage.value = 'Hanya file CSV atau Excel yang diperbolehkan'
+        showErrorNotif.value = true
+        return
+    }
+
+    uploadingMap.value = true
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+        const response = await axios.post(route('admin.dashboard.upload-boxplot'), formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+
+        if (response.data.success) {
+            const chartData = response.data.data
+            console.log('Box Plot data from backend:', chartData)
+            console.log('Backend labels:', chartData.labels)
+            console.log('Backend datasets:', chartData.datasets)
+            console.log('Backend datasets[0].data:', chartData.datasets[0].data)
+            
+            // Deep clone to ensure proper reactivity
+            const clonedData = JSON.parse(JSON.stringify(chartData))
+            
+            // Update form.chart_data with parsed data
+            form.chart_data = clonedData
+            
+            // Store in separate ref for preview (bypasses form reactivity issues)
+            boxPlotPreviewData.value = clonedData
+            
+            // Serialize to JSON for publish validation
+            form.chart_data_json = JSON.stringify(clonedData)
+            
+            boxPlotFile.value = file
+            
+            console.log('boxPlotPreviewData updated:', boxPlotPreviewData.value)
+            console.log('boxPlotPreviewData.labels:', boxPlotPreviewData.value?.labels)
+            console.log('boxPlotPreviewData.datasets:', boxPlotPreviewData.value?.datasets)
+            
+            // Force chart re-render with new data after DOM update
+            nextTick(() => {
+                chartKey.value++
+                console.log('chartKey incremented to:', chartKey.value)
+            })
+            
+            notificationTitle.value = 'Upload Berhasil!'
+            notificationMessage.value = `Berhasil memuat ${response.data.total_groups} kelompok`
+            showSuccessNotif.value = true
+        } else {
+            throw new Error(response.data.message || 'Upload failed')
+        }
+    } catch (error) {
+        console.error('Upload failed:', error)
+        notificationTitle.value = 'Upload Gagal!'
+        notificationMessage.value = error.response?.data?.message || 'Gagal mengupload file'
+        showErrorNotif.value = true
+    } finally {
+        uploadingMap.value = false
+    }
+}
+
+// Clear Box Plot file upload
+const clearBoxPlotFile = () => {
+    boxPlotFile.value = null
+    if (boxPlotFileInput.value) {
+        boxPlotFileInput.value.value = ''
+    }
+    form.chart_data = { labels: [], datasets: [] }
+}
+
+// Calculate optimal bin size using Freedman-Diaconis
+const calculateOptimalBinSize = (data) => {
+    if (!data || data.length === 0) return 10
+    
+    const n = data.length
+    const min = Math.min(...data)
+    const max = Math.max(...data)
+    const range = max - min
+    
+    // Freedman-Diaconis rule for bin width
+    const sorted = [...data].sort((a, b) => a - b)
+    const q1Index = Math.floor(n * 0.25)
+    const q3Index = Math.floor(n * 0.75)
+    const iqr = sorted[q3Index] - sorted[q1Index]
+    
+    if (iqr === 0 || range === 0) {
+        // Fallback to Sturges' rule
+        return Math.max(1, Math.ceil(Math.log2(n) + 1))
+    }
+    
+    const binWidth = 2 * iqr / Math.pow(n, 1/3)
+    const optimalBins = Math.ceil(range / binWidth)
+    
+    // Limit to reasonable range
+    return Math.max(5, Math.min(optimalBins, 50))
 }
 
 const formatVariableName = (variable) => {
@@ -895,10 +1045,18 @@ const handlePreview = () => {
             return
         }
 
-        const { bins, labels, binWidth, min, max } = calculateHistogramBins(
+        // Validate bin size
+        let binSize = parseFloat(histogramBinSize.value)
+        if (histogramAutoCalculate.value || !binSize || binSize <= 0) {
+            // Auto calculate optimal bin size
+            const range = Math.max(...rawValues) - Math.min(...rawValues)
+            const optimalBinCount = calculateOptimalBinSize(rawValues)
+            binSize = range / optimalBinCount
+        }
+
+        const { bins, labels, binWidth, min, max, binCount } = calculateHistogramBins(
             rawValues, 
-            histogramBinMethod.value, 
-            parseInt(histogramBinCount.value) || 10
+            binSize
         )
 
         form.chart_data = {
@@ -908,53 +1066,15 @@ const handlePreview = () => {
                 data: bins
             }],
             rawData: rawValues,
-            binMethod: histogramBinMethod.value,
-            binCount: bins.length,
+            binSize: binSize,
             binWidth: binWidth,
+            binCount: binCount,
             min: min,
-            max: max
+            max: max,
+            autoCalculate: histogramAutoCalculate.value
         }
         
-        // Prepare chart options for histogram preview
-        chartSeries.value = [{
-            name: 'Frekuensi',
-            data: bins
-        }]
-        
-        chartOptions.value = {
-            chart: {
-                type: 'bar',
-                height: 400,
-                toolbar: { show: true, tools: { download: true, selection: false, zoom: false, zoomin: false, zoomout: false, pan: false, reset: false } },
-                animations: { enabled: true, easing: 'easeinout', speed: 800 }
-            },
-            plotOptions: {
-                bar: {
-                    horizontal: false,
-                    columnWidth: '95%',
-                    borderRadius: 0
-                }
-            },
-            dataLabels: {
-                enabled: true,
-                offsetY: -20,
-                style: { fontSize: '11px', colors: ["#304758"] }
-            },
-            xaxis: {
-                categories: labels,
-                labels: { style: { fontSize: '10px' }, rotate: -45, rotateAlways: labels.length > 8 },
-                title: { text: 'Interval', style: { fontSize: '12px' } }
-            },
-            yaxis: {
-                title: { text: 'Frekuensi', style: { fontSize: '12px' } },
-                labels: { formatter: val => val.toFixed(0) }
-            },
-            colors: ['#ef874b'],
-            tooltip: {
-                enabled: true,
-                y: { formatter: val => `${val} data` }
-            }
-        }
+        chartOptions.value = {}
     }
 
     // Handle Grouped Stacked Bar Chart
@@ -1048,30 +1168,44 @@ const handlePreview = () => {
 
     // Handle Box Plot
     if (isBoxPlot.value) {
-        if (boxPlotData.value.length === 0) {
-            notificationTitle.value = 'Data Tidak Lengkap'
-            notificationMessage.value = 'Mohon isi minimal satu group box plot'
-            showErrorNotif.value = true
-            return
+        // If file was uploaded, use the data from file (already in boxPlotPreviewData)
+        if (boxPlotFile.value && boxPlotPreviewData.value?.datasets?.length > 0) {
+            // Data already set from file upload, just use it
+            form.chart_data = boxPlotPreviewData.value
+            chartOptions.value = {}
+        } else {
+            // Manual input mode - check if manual data exists
+            const validBoxPlotData = boxPlotData.value.filter(g => 
+                g.groupName && (g.min || g.q1 || g.median || g.q3 || g.max)
+            )
+            
+            if (validBoxPlotData.length === 0) {
+                notificationTitle.value = 'Data Tidak Lengkap'
+                notificationMessage.value = 'Mohon isi minimal satu group box plot dengan data lengkap, atau upload file data'
+                showErrorNotif.value = true
+                return
+            }
+
+            const labels = validBoxPlotData.map(g => g.groupName)
+            const datasets = [{
+                type: 'boxPlot',
+                data: validBoxPlotData.map(g => ({
+                    x: g.groupName,
+                    y: [
+                        parseFloat(g.min) || 0,
+                        parseFloat(g.q1) || 0,
+                        parseFloat(g.median) || 0,
+                        parseFloat(g.q3) || 0,
+                        parseFloat(g.max) || 0
+                    ]
+                }))
+            }]
+
+            form.chart_data = { labels, datasets }
+            // Also update boxPlotPreviewData for preview rendering
+            boxPlotPreviewData.value = { labels, datasets }
+            chartOptions.value = {}
         }
-
-        const labels = boxPlotData.value.map(g => g.groupName)
-        const datasets = [{
-            type: 'boxPlot',
-            data: boxPlotData.value.map(g => ({
-                x: g.groupName,
-                y: [
-                    parseFloat(g.min) || 0,
-                    parseFloat(g.q1) || 0,
-                    parseFloat(g.median) || 0,
-                    parseFloat(g.q3) || 0,
-                    parseFloat(g.max) || 0
-                ]
-            }))
-        }]
-
-        form.chart_data = { labels, datasets }
-        chartOptions.value = {}
     }
 
     // Handle Venn Diagram
@@ -1230,8 +1364,22 @@ const requestSubmit = () => {
         // Histogram validation will be done below
     } else if (isGroupedStackedBar.value) {
         // Grouped Stacked Bar validation will be done below  
-    } else if (isBoxPlot.value || isVennDiagram.value || isHeatmapMatrix.value || isDensityPlot.value) {
-        // These will be validated below with proper data validation
+    } else if (isMultiSeries.value || isBoxPlot.value || isVennDiagram.value || isHeatmapMatrix.value || isDensityPlot.value) {
+        // Validate JSON data
+        if (!form.chart_data_json) {
+            notificationTitle.value = 'Data Tidak Lengkap'
+            notificationMessage.value = 'Mohon isi data JSON untuk grafik ini'
+            showErrorNotif.value = true
+            return
+        }
+        try {
+            JSON.parse(form.chart_data_json)
+        } catch (e) {
+            notificationTitle.value = 'Format JSON Salah'
+            notificationMessage.value = 'Format JSON tidak valid. Mohon periksa kembali.'
+            showErrorNotif.value = true
+            return
+        }
     }
 
     // Prepare data similar to handlePreview but don't show preview
@@ -1339,46 +1487,76 @@ const requestSubmit = () => {
         }
         chartOptions.value = {}
     } else if (isBoxPlot.value) {
-        // Validate Box Plot
-        if (boxPlotData.value.length === 0) {
-            notificationTitle.value = 'Data Box Plot Kosong'
-            notificationMessage.value = 'Mohon tambahkan minimal satu kelompok untuk box plot'
-            showErrorNotif.value = true
-            return
+        // Check if we have file-uploaded data first
+        if (boxPlotFile.value && boxPlotPreviewData.value?.datasets?.length > 0) {
+            // Use data from file upload - already validated by backend
+            form.chart_data = boxPlotPreviewData.value
+            chartOptions.value = {}
+        } else {
+            // Validate manual Box Plot input
+            if (boxPlotData.value.length === 0) {
+                notificationTitle.value = 'Data Box Plot Kosong'
+                notificationMessage.value = 'Mohon tambahkan minimal satu kelompok untuk box plot atau upload file data'
+                showErrorNotif.value = true
+                return
+            }
+
+            // Filter out empty groups
+            const validGroups = boxPlotData.value.filter(g => 
+                g.groupName && (g.min || g.q1 || g.median || g.q3 || g.max)
+            )
+
+            if (validGroups.length === 0) {
+                notificationTitle.value = 'Data Box Plot Kosong'
+                notificationMessage.value = 'Mohon isi data minimal satu kelompok untuk box plot atau upload file data'
+                showErrorNotif.value = true
+                return
+            }
+
+            const hasValidData = validGroups.every(group => {
+                const min = parseFloat(group.min);
+                const q1 = parseFloat(group.q1);
+                const median = parseFloat(group.median);
+                const q3 = parseFloat(group.q3);
+                const max = parseFloat(group.max);
+                
+                // Check all values exist
+                if (!group.groupName || isNaN(min) || isNaN(q1) || isNaN(median) || isNaN(q3) || isNaN(max)) {
+                    return false;
+                }
+                
+                // Check correct order: Min ≤ Q1 ≤ Median ≤ Q3 ≤ Max
+                return min <= q1 && q1 <= median && median <= q3 && q3 <= max;
+            });
+
+            if (!hasValidData) {
+                notificationTitle.value = 'Data Box Plot Tidak Valid'
+                notificationMessage.value = 'Pastikan semua nilai diisi dan urutannya benar: Min ≤ Q1 ≤ Median ≤ Q3 ≤ Max'
+                showErrorNotif.value = true
+                return
+            }
+
+            const categories = validGroups.map(g => g.groupName)
+            const boxData = validGroups.map(group => ({
+                x: group.groupName,
+                y: [
+                    parseFloat(group.min),
+                    parseFloat(group.q1),
+                    parseFloat(group.median),
+                    parseFloat(group.q3),
+                    parseFloat(group.max)
+                ]
+            }))
+
+            form.chart_data = {
+                labels: categories,
+                datasets: [{
+                    type: 'boxPlot',
+                    data: boxData
+                }]
+            }
+            chartOptions.value = {}
         }
-
-        const hasValidData = boxPlotData.value.every(group => {
-            return group.groupName && group.min !== '' && group.q1 !== '' && 
-                   group.median !== '' && group.q3 !== '' && group.max !== ''
-        })
-
-        if (!hasValidData) {
-            notificationTitle.value = 'Data Box Plot Tidak Lengkap'
-            notificationMessage.value = 'Semua kelompok harus memiliki nama dan 5 nilai (Min, Q1, Median, Q3, Max)'
-            showErrorNotif.value = true
-            return
-        }
-
-        const categories = boxPlotData.value.map(g => g.groupName)
-        const boxData = boxPlotData.value.map(group => ({
-            x: group.groupName,
-            y: [
-                parseFloat(group.min),
-                parseFloat(group.q1),
-                parseFloat(group.median),
-                parseFloat(group.q3),
-                parseFloat(group.max)
-            ]
-        }))
-
-        form.chart_data = {
-            labels: categories,
-            datasets: [{
-                type: 'boxPlot',
-                data: boxData
-            }]
-        }
-        chartOptions.value = {}
     } else if (isVennDiagram.value) {
         // Validate Venn Diagram
         if (vennSets.value.length < 2 || vennSets.value.length > 3) {
@@ -1413,15 +1591,22 @@ const requestSubmit = () => {
         const rawValues = parseHistogramData()
         if (rawValues.length === 0) {
             notificationTitle.value = 'Data Histogram Kosong'
-            notificationMessage.value = 'Mohon masukkan data numerik untuk histogram'
+            notificationMessage.value = 'Mohon masukkan data numerik untuk histogram (via upload file atau input manual)'
             showErrorNotif.value = true
             return
         }
 
-        const { bins, labels, binWidth, min, max } = calculateHistogramBins(
+        // Validate bin size
+        let binSize = parseFloat(histogramBinSize.value)
+        if (histogramAutoCalculate.value || !binSize || binSize <= 0) {
+            const range = Math.max(...rawValues) - Math.min(...rawValues)
+            const optimalBinCount = calculateOptimalBinSize(rawValues)
+            binSize = range / optimalBinCount
+        }
+
+        const { bins, labels, binWidth, min, max, binCount } = calculateHistogramBins(
             rawValues, 
-            histogramBinMethod.value, 
-            parseInt(histogramBinCount.value) || 10
+            binSize
         )
 
         form.chart_data = {
@@ -1431,11 +1616,12 @@ const requestSubmit = () => {
                 data: bins
             }],
             rawData: rawValues,
-            binMethod: histogramBinMethod.value,
-            binCount: bins.length,
+            binSize: binSize,
             binWidth: binWidth,
+            binCount: binCount,
             min: min,
-            max: max
+            max: max,
+            autoCalculate: histogramAutoCalculate.value
         }
         chartOptions.value = {}
     } else if (isGroupedStackedBar.value) {
@@ -1634,8 +1820,13 @@ const handleReset = () => {
     chartKey.value = 0
     groupedStackedData.value = []
     histogramRawData.value = ''
-    histogramBinCount.value = 10
-    histogramBinMethod.value = 'manual'
+    histogramBinSize.value = 10
+    histogramAutoCalculate.value = false
+    histogramFile.value = null
+
+    if (histogramFileInput.value) {
+        histogramFileInput.value.value = ''
+    }
 
     if (mapInstance.value) {
         mapInstance.value.remove()
@@ -1702,6 +1893,27 @@ const initializeEditingState = async () => {
         }
         
         chartCategories.value = []
+    } else if (isPopulationPyramid.value) {
+        // Load population pyramid data
+        const labels = editing.chart_data?.labels || []
+        const datasets = editing.chart_data?.datasets || []
+        const leftData = datasets[0]?.data || []
+        const rightData = datasets[1]?.data || []
+        const leftLabel = datasets[0]?.name || 'Male'
+        const rightLabel = datasets[1]?.name || 'Female'
+        
+        populationPyramidData.value = labels.map((label, idx) => ({
+            ageGroup: label,
+            leftValue: leftData[idx] ?? '',
+            rightValue: rightData[idx] ?? '',
+            leftLabel: leftLabel,
+            rightLabel: rightLabel
+        }))
+
+        if (populationPyramidData.value.length === 0) {
+            addPopulationPyramidRow()
+        }
+        chartCategories.value = []
     } else if (isMultiSeries.value) {
         // Load multi-series data from saved format
         const labels = editing.chart_data?.labels || []
@@ -1753,24 +1965,6 @@ const initializeEditingState = async () => {
             addVennSet()
         }
         chartCategories.value = []
-    } else if (isHistogram.value) {
-        // Load histogram data
-        const rawData = editing.chart_data?.rawData
-        if (rawData && Array.isArray(rawData) && rawData.length > 0) {
-            histogramRawData.value = rawData.join(', ')
-            histogramBinMethod.value = editing.chart_data?.binMethod || 'manual'
-            histogramBinCount.value = editing.chart_data?.binCount || 10
-        }
-        chartCategories.value = []
-    } else if (isGroupedStackedBar.value) {
-        // Load grouped stacked bar data
-        const rawData = editing.chart_data?.rawGroupedData
-        if (rawData && rawData.length > 0) {
-            groupedStackedData.value = rawData
-        } else {
-            addGroupedStackedGroup()
-        }
-        chartCategories.value = []
     } else if (isHeatmapMatrix.value) {
         // Load heatmap data
         const labels = editing.chart_data?.labels || []
@@ -1800,22 +1994,39 @@ const initializeEditingState = async () => {
         if (chartCategories.value.length === 0) {
             addCategory()
         }
-    } else if (isPopulationPyramid.value) {
-        // Load population pyramid data
-        const labels = editing.chart_data?.labels || []
-        const datasets = editing.chart_data?.datasets || []
+    } else if (isHistogram.value) {
+        // Load histogram data
+        const rawData = editing.chart_data?.rawData || []
+        const binSize = editing.chart_data?.binSize || ''
+        const autoCalculate = editing.chart_data?.autoCalculate || false
         
-        const leftDataset = datasets[0] || {}
-        const rightDataset = datasets[1] || {}
+        // Convert raw data array to string format for the textarea
+        if (rawData.length > 0) {
+            histogramRawData.value = rawData.join(', ')
+        }
+        histogramBinSize.value = binSize ? binSize.toString() : ''
+        histogramAutoCalculate.value = autoCalculate
         
-        populationPyramidData.value = labels.map((label, idx) => ({
-            ageGroup: label,
-            leftValue: leftDataset.data?.[idx] ?? '',
-            rightValue: rightDataset.data?.[idx] ?? ''
-        }))
+        chartCategories.value = []
+    } else if (isGroupedStackedBar.value) {
+        // Load grouped stacked bar data
+        const rawGroupedData = editing.chart_data?.rawGroupedData || []
+        
+        if (rawGroupedData.length > 0) {
+            groupedStackedData.value = rawGroupedData.map(group => ({
+                groupName: group.groupName || '',
+                subgroups: (group.subgroups || []).map(sg => ({
+                    subgroupName: sg.subgroupName || '',
+                    stacks: (sg.stacks || []).map(s => ({
+                        stackName: s.stackName || '',
+                        value: s.value ?? ''
+                    }))
+                }))
+            }))
+        }
 
-        if (populationPyramidData.value.length === 0) {
-            addPopulationPyramidRow()
+        if (groupedStackedData.value.length === 0) {
+            addGroupedStackedGroup()
         }
         chartCategories.value = []
     } else {
@@ -1836,17 +2047,7 @@ const initializeEditingState = async () => {
 }
 
 onMounted(() => {
-    // Check if there's an access error
-    if (props.accessError) {
-        notificationTitle.value = 'Akses Ditolak'
-        notificationMessage.value = props.accessError
-        showErrorNotif.value = true
-        
-        // Redirect to dashboard after 3 seconds
-        setTimeout(() => {
-            window.location.href = route('dashboard')
-        }, 3000)
-    } else if (isEditing.value) {
+    if (isEditing.value) {
         initializeEditingState()
     }
 })
@@ -2709,9 +2910,35 @@ const addVariableInfoPanel = () => {
                             Klik salah satu kartu di bawah untuk memilih jenis grafik. Setiap kartu menampilkan contoh visualisasi.
                         </p>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Search Bar -->
+                        <div class="mb-4">
+                            <div class="relative">
+                                <input
+                                    v-model="searchQuery"
+                                    type="text"
+                                    placeholder="Cari jenis visualisasi..."
+                                    class="w-full px-4 py-2.5 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#EF874B] focus:border-[#EF874B] transition-all"
+                                />
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <button
+                                    v-if="searchQuery"
+                                    @click="searchQuery = ''"
+                                    type="button"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Grid Layout - Responsive: 2 cols (mobile), 3 cols (sm), 4 cols (md), 6 cols (lg) -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                             <button
-                                v-for="vt in visualizationTypes.filter(v => ALLOWED_TYPE_CODES.includes(v.type_code))"
+                                v-for="vt in filteredVisualizationTypes"
                                 :key="vt.id"
                                 type="button"
                                 class="group text-left rounded-xl border transition-all bg-white/60 hover:bg-white hover:shadow-md"
@@ -2725,30 +2952,38 @@ const addVariableInfoPanel = () => {
                                 <div class="p-3 flex flex-col gap-2 h-full">
                                     <div class="flex items-start justify-between gap-2">
                                         <h4 class="text-sm font-semibold text-[#7A2509] leading-snug">
-                                            {{ vt.type_name }}
+                                            {{ getDisplayName(vt.type_code, vt.type_name) }}
                                         </h4>
-                                        <span class="px-2 py-0.5 text-[10px] uppercase tracking-wide rounded-full bg-orange-50 text-orange-500 border border-orange-100">
-                                            {{ vt.type_code }}
-                                        </span>
                                     </div>
 
-                                    <div class="rounded-lg bg-[#F9FAFB] border border-dashed border-gray-200 overflow-hidden flex-1 min-h-[120px] flex items-center justify-center">
-                                        <component
-                                            v-if="getPreviewComponent(vt.type_code) && getPreviewChartData(vt.type_code)"
-                                            :is="getPreviewComponent(vt.type_code)"
-                                            :chart-data="getPreviewChartData(vt.type_code)"
-                                            :title="vt.type_name"
-                                            :height="140"
+                                    <div class="rounded-lg bg-white border border-gray-200 overflow-hidden flex-1 min-h-[120px] flex items-center justify-center p-2">
+                                        <img 
+                                            :src="`/images/charts/${getThumbnailImage(vt.type_code)}`"
+                                            :alt="getDisplayName(vt.type_code, vt.type_name)"
+                                            class="w-full h-full object-contain"
+                                            loading="lazy"
+                                            @error="$event.target.src = '/images/charts/chart_1.jpg'"
                                         />
-                                        <div
-                                            v-else
-                                            class="flex flex-col items-center justify-center px-3 text-xs text-gray-400 text-center"
-                                        >
-                                            <span class="font-semibold mb-1">Preview belum tersedia</span>
-                                            <span>Grafik tetap bisa digunakan saat Anda mengisi data.</span>
-                                        </div>
                                     </div>
                                 </div>
+                            </button>
+                        </div>
+
+                        <!-- Empty State -->
+                        <div
+                            v-if="filteredVisualizationTypes.length === 0"
+                            class="text-center py-12"
+                        >
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="mt-4 text-gray-500">Tidak ada visualisasi yang cocok dengan pencarian "{{ searchQuery }}"</p>
+                            <button
+                                @click="searchQuery = ''"
+                                type="button"
+                                class="mt-2 text-[#EF874B] hover:text-[#7A2509] font-medium transition-colors"
+                            >
+                                Reset pencarian
                             </button>
                         </div>
 
@@ -2813,61 +3048,97 @@ const addVariableInfoPanel = () => {
                     <!-- Dynamic Form: Histogram -->
                     <div v-if="isHistogram" class="border-t pt-6">
                         <h3 class="text-lg font-semibold mb-4">Input Data Histogram</h3>
-                        <p class="text-sm text-gray-600 mb-4">
-                            Histogram mengelompokkan data numerik ke dalam interval (bins) dan menghitung frekuensi per interval.
-                            Masukkan nilai-nilai numerik yang akan dikelompokkan.
-                        </p>
                         
-                        <!-- Bin Method Selection -->
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Metode Penentuan Bin</label>
-                                <select 
-                                    v-model="histogramBinMethod"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                >
-                                    <option value="manual">Manual</option>
-                                    <option value="sturges">Sturges (log₂(n) + 1)</option>
-                                    <option value="sqrt">Square Root (√n)</option>
-                                    <option value="freedman">Freedman-Diaconis (IQR)</option>
-                                </select>
-                            </div>
-                            <div v-if="histogramBinMethod === 'manual'">
-                                <FormInput
-                                    label="Jumlah Bin"
-                                    v-model="histogramBinCount"
-                                    type="number"
-                                    min="2"
-                                    max="50"
-                                    placeholder="10"
-                                />
-                            </div>
-                        </div>
-                        
-                        <!-- Raw Data Input -->
-                        <div class="mb-4">
+                        <!-- File Upload -->
+                        <div class="mb-6">
                             <label class="block text-sm font-medium mb-2">
-                                Data Numerik
+                                File Data Numerik
                                 <span class="text-red-500">*</span>
                             </label>
-                            <textarea
-                                v-model="histogramRawData"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-32"
-                                placeholder="Masukkan nilai numerik dipisahkan dengan koma, spasi, atau enter.&#10;Contoh: 12, 15, 18, 22, 25, 28, 30, 35, 40..."
-                            ></textarea>
+                            <input
+                                ref="histogramFileInput"
+                                type="file"
+                                accept=".txt,.csv,.xlsx,.xls"
+                                @change="handleHistogramFileChange"
+                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            />
                             <p class="mt-1 text-sm text-gray-500">
-                                Format: nilai dipisahkan dengan koma, spasi, titik koma, atau baris baru
+                                Format: TXT, CSV, atau Excel dengan data numerik (dipisahkan koma, spasi, atau baris baru)
                             </p>
                         </div>
-                        
+
+                        <!-- Bin Size Configuration -->
+                        <div class="mb-6 border rounded-lg p-4 bg-gray-50">
+                            <h4 class="text-sm font-semibold mb-3">Pengaturan Bin (Interval)</h4>
+                            
+                            <!-- Auto Calculate Toggle -->
+                            <div class="mb-4 flex items-center gap-3">
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        v-model="histogramAutoCalculate"
+                                        class="sr-only peer"
+                                    />
+                                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    <span class="ms-3 text-sm font-medium text-gray-700">Hitung Otomatis (Gunakan Freedman-Diaconis Rule)</span>
+                                </label>
+                            </div>
+
+                            <!-- Manual Bin Size Input -->
+                            <div v-if="!histogramAutoCalculate" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">
+                                        Ukuran Bin (Range per Interval)
+                                        <span class="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        v-model="histogramBinSize"
+                                        type="number"
+                                        step="0.1"
+                                        min="0.1"
+                                        placeholder="Contoh: 10"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Misal: bin size 10 → interval 0-10, 10-20, 20-30, dst.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Auto Calculate Active Info -->
+                            <div v-else class="p-3 bg-green-50 rounded-lg border border-green-200">
+                                <p class="text-sm text-green-700">
+                                    ✓ Ukuran bin akan dihitung otomatis menggunakan Freedman-Diaconis Rule
+                                </p>
+                            </div>
+                        </div>
+
                         <!-- Data Preview -->
-                        <div v-if="parseHistogramData().length > 0" class="p-3 bg-green-50 rounded-lg">
-                            <p class="text-sm text-green-700">
-                                ✓ {{ parseHistogramData().length }} nilai terdeteksi
-                                <span v-if="parseHistogramData().length > 0">
-                                    (Min: {{ Math.min(...parseHistogramData()).toFixed(2) }}, 
-                                     Max: {{ Math.max(...parseHistogramData()).toFixed(2) }})
-                                </span>
+                        <div v-if="parseHistogramData().length > 0" class="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                            <h4 class="text-sm font-semibold text-green-900 mb-2">✓ Data Valid</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <span class="text-green-700">Jumlah Data:</span>
+                                    <span class="font-bold text-green-900 ml-1">{{ parseHistogramData().length }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-green-700">Min:</span>
+                                    <span class="font-bold text-green-900 ml-1">{{ Math.min(...parseHistogramData()).toFixed(2) }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-green-700">Max:</span>
+                                    <span class="font-bold text-green-900 ml-1">{{ Math.max(...parseHistogramData()).toFixed(2) }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-green-700">Range:</span>
+                                    <span class="font-bold text-green-900 ml-1">{{ (Math.max(...parseHistogramData()) - Math.min(...parseHistogramData())).toFixed(2) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div v-else-if="histogramRawData" class="mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                            <p class="text-sm text-yellow-700">
+                                ⚠️ Belum ada data numerik yang valid terdeteksi
                             </p>
                         </div>
                     </div>
@@ -3149,75 +3420,60 @@ const addVariableInfoPanel = () => {
                     <!-- Dynamic Form: Box Plot -->
                     <div v-if="isBoxPlot" class="border-t pt-6">
                         <h3 class="text-lg font-semibold mb-4">Input Data Box Plot</h3>
-                        <p class="text-sm text-gray-600 mb-4">
-                            Masukkan 5 nilai statistik untuk setiap kelompok: Minimum, Q1 (Kuartil 1), Median, Q3 (Kuartil 3), Maximum
-                        </p>
-                        <div class="space-y-4">
-                            <div v-for="(group, index) in boxPlotData" :key="index" 
-                                 class="border rounded-lg p-4 bg-gray-50">
-                                <div class="flex items-center justify-between mb-3">
-                                    <FormInput
-                                        label="Nama Kelompok"
-                                        v-model="group.groupName"
-                                        placeholder="Contoh: Kelompok A"
-                                        class="flex-1 mr-3"
-                                    />
-                                    <button
-                                        v-if="boxPlotData.length > 1"
-                                        @click="removeBoxPlotGroup(index)"
-                                        type="button"
-                                        class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition self-end"
-                                    >
-                                        Hapus
-                                    </button>
-                                </div>
-                                
-                                <div class="grid grid-cols-5 gap-3">
-                                    <FormInput
-                                        label="Min"
-                                        v-model="group.min"
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="Min"
-                                    />
-                                    <FormInput
-                                        label="Q1"
-                                        v-model="group.q1"
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="Q1"
-                                    />
-                                    <FormInput
-                                        label="Median"
-                                        v-model="group.median"
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="Median"
-                                    />
-                                    <FormInput
-                                        label="Q3"
-                                        v-model="group.q3"
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="Q3"
-                                    />
-                                    <FormInput
-                                        label="Max"
-                                        v-model="group.max"
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="Max"
-                                    />
-                                </div>
+                        
+                        <!-- File Upload Section -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                File Data (Excel/CSV)
+                            </label>
+                            <p class="text-xs text-gray-500 mb-3">
+                                Format: 2 kolom (Kelompok, Nilai) - setiap baris adalah satu data point
+                            </p>
+                            
+                            <div class="relative">
+                                <input
+                                    ref="boxPlotFileInput"
+                                    type="file"
+                                    accept=".csv,.xlsx,.xls"
+                                    @change="handleBoxPlotFileChange"
+                                    class="block w-full text-sm text-gray-500
+                                        file:mr-4 file:py-2 file:px-4
+                                        file:rounded-lg file:border-0
+                                        file:text-sm file:font-semibold
+                                        file:bg-blue-50 file:text-blue-700
+                                        hover:file:bg-blue-100
+                                        cursor-pointer border border-gray-300 rounded-lg
+                                        focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
                             </div>
-
-                            <button
-                                @click="addBoxPlotGroup"
-                                type="button"
-                                class="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
-                            >
-                                + Tambah Kelompok
-                            </button>
+                            
+                            
+                            <!-- Example Format -->
+                            <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                <p class="text-xs font-semibold text-blue-800 mb-2">📝 Contoh Format File:</p>
+                                <pre class="text-xs text-blue-700 font-mono">Kelompok, Nilai
+Grup A, 10
+Grup A, 15
+Grup A, 20
+Grup B, 12
+Grup B, 18</pre>
+                            </div>
+                        </div>
+                        
+                        <!-- Data Preview -->
+                        <div v-if="form.chart_data?.labels && form.chart_data.labels.length > 0" class="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                            <div class="flex items-center gap-2">
+                                <span class="text-green-600 text-lg">✓</span>
+                                <span class="text-sm font-semibold text-green-800">
+                                    {{ form.chart_data.labels.length }} Kelompok Dimuat
+                                    <span v-if="form.chart_data.datasets?.length > 1 && form.chart_data.datasets[1]?.type === 'scatter'" class="text-orange-600">
+                                        ({{ form.chart_data.datasets[1].data?.length || 0 }} Outliers)
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="text-xs text-green-600 mt-1">
+                                Kelompok: {{ form.chart_data.labels.join(', ') }}
+                            </div>
                         </div>
                     </div>
 
@@ -3554,19 +3810,40 @@ const addVariableInfoPanel = () => {
 
                 <!-- Histogram Preview -->
                 <div v-if="isHistogram" class="mb-6 bg-white rounded-lg p-4">
-                    <div class="mb-4 p-3 bg-gray-50 rounded-lg">
-                        <p class="text-sm text-gray-600">
-                            <strong>Statistik:</strong> 
-                            {{ form.chart_data?.rawData?.length || 0 }} data | 
-                            {{ form.chart_data?.binCount || 0 }} bins | 
-                            Bin width: {{ (form.chart_data?.binWidth || 0).toFixed(2) }} |
-                            Range: {{ (form.chart_data?.min || 0).toFixed(2) }} - {{ (form.chart_data?.max || 0).toFixed(2) }}
-                        </p>
+                    <div class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                        <h4 class="font-semibold text-blue-900 mb-3">📊 Informasi Histogram</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div class="bg-white p-3 rounded-lg shadow-sm">
+                                <p class="text-gray-500 text-xs mb-1">Total Data</p>
+                                <p class="text-xl font-bold text-blue-900">{{ form.chart_data?.rawData?.length || 0 }}</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg shadow-sm">
+                                <p class="text-gray-500 text-xs mb-1">Jumlah Bin</p>
+                                <p class="text-xl font-bold text-green-700">{{ form.chart_data?.binCount || 0 }}</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg shadow-sm">
+                                <p class="text-gray-500 text-xs mb-1">Ukuran Bin</p>
+                                <p class="text-xl font-bold text-orange-600">{{ (form.chart_data?.binSize || 0).toFixed(2) }}</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg shadow-sm">
+                                <p class="text-gray-500 text-xs mb-1">Range Data</p>
+                                <p class="text-lg font-bold text-purple-700">
+                                    {{ (form.chart_data?.min || 0).toFixed(1) }} - {{ (form.chart_data?.max || 0).toFixed(1) }}
+                                </p>
+                            </div>
+                        </div>
+                        <div v-if="form.chart_data?.autoCalculate" class="mt-3 p-2 bg-green-100 rounded text-xs text-green-800 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Ukuran bin dihitung otomatis menggunakan metode Freedman-Diaconis</span>
+                        </div>
                     </div>
                     <ApexHistogramChart 
                         :key="'histogram-' + chartKey"
                         :chartData="form.chart_data" 
                         :title="form.title"
+                        :colors="pklColors"
                         :height="400"
                     />
                 </div>
@@ -3575,6 +3852,16 @@ const addVariableInfoPanel = () => {
                 <div v-if="selectedVisualizationType === 'stacked-bar-chart'" class="mb-6 bg-white rounded-lg p-4">
                     <ApexStackedBarChart 
                         :key="'stacked-' + chartKey"
+                        :chartData="form.chart_data" 
+                        :title="form.title"
+                        :height="400"
+                    />
+                </div>
+
+                <!-- Horizontal Stacked Bar Chart Preview -->
+                <div v-if="selectedVisualizationType === 'horizontal-stacked-bar-chart'" class="mb-6 bg-white rounded-lg p-4">
+                    <ApexHorizontalStackedBarChart 
+                        :key="'horizontal-stacked-' + chartKey"
                         :chartData="form.chart_data" 
                         :title="form.title"
                         :height="400"
@@ -3628,11 +3915,10 @@ const addVariableInfoPanel = () => {
                 </div>
 
                 <!-- Box Plot Preview -->
-                <div v-show="isBoxPlot && showPreview" class="mb-6 bg-white rounded-lg p-4">
+                <div v-if="isBoxPlot && boxPlotPreviewData?.labels?.length > 0" class="mb-6 bg-white rounded-lg p-4">
                     <ApexBoxPlotChart 
-                        v-if="form.chart_data && form.chart_data.labels"
                         :key="'boxplot-' + chartKey"
-                        :chartData="form.chart_data" 
+                        :chartData="boxPlotPreviewData" 
                         :title="form.title"
                         :height="400"
                     />

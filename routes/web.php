@@ -40,15 +40,14 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Admin Routes (Super Admin only)
+    | Admin Routes (Super Admin & Riset User)
     |--------------------------------------------------------------------------
     */
-    Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/history', [\App\Http\Controllers\Admin\HistoryController::class, 'index'])
-        ->name('admin.history');
-    });
+    Route::middleware(['role:Super Admin|Riset User'])->group(function () {
 
-    Route::middleware(['role:Super Admin'])->group(function () {
+        // History (accessible by both Super Admin and Riset User)
+        Route::get('/admin/history', [\App\Http\Controllers\Admin\HistoryController::class, 'index'])
+            ->name('admin.history');
 
         // Dashboard (root dashboard)
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -71,6 +70,12 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/dashboard/upload-map', [DashboardController::class, 'uploadMapData'])
                 ->name('dashboard.upload-map');
 
+            Route::post('/dashboard/upload-histogram', [DashboardController::class, 'uploadHistogram'])
+                ->name('dashboard.upload-histogram');
+
+            Route::post('/dashboard/upload-boxplot', [DashboardController::class, 'uploadBoxPlot'])
+                ->name('dashboard.upload-boxplot');
+
             Route::post('/dashboard/publish', [DashboardController::class, 'publish'])
                 ->name('dashboard.publish');
 
@@ -90,14 +95,7 @@ Route::middleware(['auth'])->group(function () {
             */
             Route::get('/data', [DataController::class, 'index'])->name('data');
 
-
-            // routes/web.php atau routes/admin.php
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
-    Route::delete('/dashboard/{id}', [DashboardController::class, 'destroy'])->name('dashboard.delete');
-    Route::get('/dashboard/{id}/edit', [DashboardController::class, 'edit'])->name('dashboard.edit');
-});
-
         });
     });
 });
+
