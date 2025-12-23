@@ -99,7 +99,7 @@ onMounted(() => {
 
         <div class="absolute bottom-0 left-0 right-0 z-10 pointer-events-none">
              <img :src="assets.bgSilhouette" alt="Candi Prambanan"
-                class="w-full h-auto object-cover object-bottom opacity-60" />
+                class="w-full h-auto object-cover object-bottom opacity-100" />
         </div>
 
         <img :src="assets.wayangKiri" alt="Wayang Kiri" 
