@@ -10,26 +10,30 @@
 
         <style>
             :root {
-                --primary: #4338ca;
-                --primary-light: #6366f1;
-                --primary-rgb: 67, 56, 202;
-                --text: #1e293b;
-                --text-light: #475569;
-                --bg: #ffffff;
-                --bg-offset: #f8fafc;
-                --border: #e2e8f0;
+                --primary: #EF874B;
+                --primary-dark: #D94313;
+                --primary-light: #FCDA7B;
+                --primary-rgb: 239, 135, 75;
+                --text: #2c3e50;
+                --text-light: #7f8c8d;
+                --bg: #FFFBDF;
+                --bg-offset: #ffffff;
+                --border: #e8e3c3;
+                --accent-red: #dc2626;
             }
 
             @media (prefers-color-scheme: dark) {
                 :root {
-                    --primary: #818cf8;
-                    --primary-light: #6366f1;
-                    --primary-rgb: 129, 140, 248;
+                    --primary: #EF874B;
+                    --primary-dark: #D94313;
+                    --primary-light: #FCDA7B;
+                    --primary-rgb: 239, 135, 75;
                     --text: #f1f5f9;
                     --text-light: #cbd5e0;
-                    --bg: #0f172a;
-                    --bg-offset: #1e293b;
-                    --border: #334155;
+                    --bg: #1a1a1a;
+                    --bg-offset: #2d2d2d;
+                    --border: #3a3a3a;
+                    --accent-red: #ef4444;
                 }
             }
 
@@ -90,6 +94,7 @@
                 position: relative;
                 display: inline-block;
                 overflow: visible;
+                text-shadow: 2px 2px 0px rgba(var(--primary-rgb), 0.2);
             }
             
             .error-code::before {
@@ -294,13 +299,35 @@
                 <div class="divider"></div>
                 
                 <p class="error-description">
-                    Sorry, we encountered a problem while processing your request. Please try again or return to the homepage.
+                    @if(isset($exception))
+                        @if($exception->getStatusCode() == 401)
+                            Anda perlu login untuk mengakses halaman ini. Silahkan login terlebih dahulu.
+                        @elseif($exception->getStatusCode() == 402)
+                            Pembayaran diperlukan untuk mengakses sumber daya ini.
+                        @elseif($exception->getStatusCode() == 403)
+                            Anda tidak memiliki izin untuk mengakses halaman ini. Hubungi administrator jika Anda merasa ini adalah kesalahan.
+                        @elseif($exception->getStatusCode() == 404)
+                            Halaman yang Anda cari tidak ditemukan. Mungkin telah dihapus atau URL tidak sesuai.
+                        @elseif($exception->getStatusCode() == 419)
+                            Sesi Anda telah berakhir. Silahkan muat ulang halaman dan coba lagi.
+                        @elseif($exception->getStatusCode() == 429)
+                            Anda telah membuat terlalu banyak permintaan. Mohon tunggu beberapa saat sebelum mencoba lagi.
+                        @elseif($exception->getStatusCode() == 500)
+                            Terjadi kesalahan pada server. Tim kami sedang mengatasi masalah ini.
+                        @elseif($exception->getStatusCode() == 503)
+                            Server sedang dalam pemeliharaan. Silahkan coba lagi nanti.
+                        @else
+                            Terjadi kesalahan saat memproses permintaan Anda. Silahkan coba lagi atau kembali ke beranda.
+                        @endif
+                    @else
+                        Terjadi kesalahan saat memproses permintaan Anda. Silahkan coba lagi atau kembali ke beranda.
+                    @endif
                 </p>
                 <a href="/" class="action-button">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Back to Homepage
+                    Kembali ke Beranda
                 </a>
             </div>
         </div>
