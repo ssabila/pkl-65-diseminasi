@@ -19,19 +19,6 @@ const props = defineProps({
     }
 })
 
-const page = usePage()
-
-// Extract NIM from email (assuming format: nim@stis.ac.id)
-const userNIM = computed(() => {
-    if (props.user.email) {
-        const emailParts = props.user.email.split('@')
-        if (emailParts[0] && /^\d+$/.test(emailParts[0])) {
-            return emailParts[0]
-        }
-    }
-    return '222012345' // Default NIM for demo
-})
-
 const profileForm = useForm({
     name: props.user.name,
     email: props.user.email,
