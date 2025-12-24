@@ -3,22 +3,22 @@ import { onMounted } from 'vue';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
+// KONTEN CAKUPAN PENELITIAN
 const cakupanItems = [
     {
         no: '01',
-        text: "Primary sampling unit mencakup seluruh daftar kabupaten/kota terpilih beserta estimasi jumlah Gig Worker di Provinsi D.I. Yogyakarta untuk Sensus Ekonomi 2026."
+        title: 'Wilayah Penelitian',
+        text: "Mencakup 5 Kabupaten/Kota di Provinsi D.I. Yogyakarta: Sleman (42 Tim), Kota Yogyakarta (42 Tim), Bantul (12 Tim), Kulon Progo (6 Tim), dan Gunung Kidul (6 Tim)."
     },
     {
         no: '02',
-        text: "Secondary sampling unit meliputi blok sensus terpilih yang merepresentasikan karakteristik wilayah perkotaan dan perdesaan secara proporsional."
+        title: 'Subjek Penelitian',
+        text: "Berfokus pada Pekerja Gig (Gig Workers), baik yang berbasis lokasi (Location Based) seperti pengemudi transportasi online, maupun berbasis daring (Online Based)."
     },
     {
         no: '03',
-        text: "Unit observasi mencakup seluruh pekerja gig yang teridentifikasi dalam kerangka sampel terpilih, baik berbasis platform maupun non-platform."
-    },
-    {
-        no: '04',
-        text: "Lingkup variabel penelitian meliputi karakteristik demografi, pola kerja, pendapatan, pengeluaran, perlindungan sosial, dan persepsi kelayakan kerja."
+        title: 'Tenaga Lapangan',
+        text: "Melibatkan total 512 mahasiswa Politeknik Statistika STIS yang terbagi ke dalam 108 tim pencacah lapangan, terdiri dari Koordinator Tim (Kortim) dan Petugas Cacah Lapangan (PCL)."
     }
 ];
 
@@ -26,17 +26,19 @@ const assets = {
     bungaCakupan: '/images/assets/bunga-cakupan.svg'
 };
 
+// PALET WARNA (Dipakai untuk Background Section & Teks Statis)
 const colors = {
     bgCream: '#FFFBDF',
-    primaryOrange: '#EF874B',
-    textDark: '#D94313'
+    darkOrange: '#D94313',     
+    textBrown: '#5D4037',      
+    sageGreen: '#748D63'
 };
 
 onMounted(() => {
     AOS.init({
-        duration: 700, // Kecepatan transisi snappy
-        once: false,   // Berulang saat scroll bawah
-        mirror: true,  // Berulang saat scroll atas
+        duration: 700, 
+        once: false,  
+        mirror: true,  
         easing: 'ease-out',
     });
 });
@@ -50,7 +52,7 @@ onMounted(() => {
     >
         
         <div 
-            class="hidden lg:block absolute top-0 bottom-0 left-0 w-16 z-0 opacity-40 pointer-events-none"
+            class="hidden lg:block absolute top-0 bottom-0 left-0 w-16 z-0 opacity-60 pointer-events-none"
             :style="{ 
                 backgroundImage: `url('${assets.bungaCakupan}')`, 
                 backgroundRepeat: 'repeat-y',
@@ -60,7 +62,7 @@ onMounted(() => {
         ></div>
 
         <div 
-            class="hidden lg:block absolute top-0 bottom-0 right-0 w-16 z-0 transform -scale-x-100 opacity-40 pointer-events-none"
+            class="hidden lg:block absolute top-0 bottom-0 right-0 w-16 z-0 transform -scale-x-100 opacity-60 pointer-events-none"
             :style="{ 
                 backgroundImage: `url('${assets.bungaCakupan}')`, 
                 backgroundRepeat: 'repeat-y',
@@ -73,7 +75,7 @@ onMounted(() => {
             
             <h2 
                 class="text-4xl md:text-5xl lg:text-6xl font-headline mb-12 md:mb-20 font-bold text-center md:text-left leading-tight"
-                :style="{ color: colors.primaryOrange }"
+                :style="{ color: colors.darkOrange }"
                 data-aos="fade-down"
             >
                 Cakupan Penelitian
@@ -84,29 +86,33 @@ onMounted(() => {
                 <div 
                     v-for="(item, index) in cakupanItems" 
                     :key="index" 
-                    class="group flex gap-4 md:gap-10 items-start relative p-3 md:p-0 rounded-2xl transition-all duration-300 hover:bg-orange-100/30 md:hover:bg-transparent"
+                    class="group flex gap-4 md:gap-10 items-start relative p-4 md:p-6 rounded-3xl transition-all duration-300 hover:bg-white/40 border-2 border-transparent hover:border-orange-200/50"
                     data-aos="fade-right"
                     :data-aos-delay="index * 100"
                 >
                     <div 
-                        class="text-4xl md:text-6xl lg:text-7xl font-headline font-bold shrink-0 leading-none opacity-30 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 group-hover:text-orange-600"
-                        :style="{ color: colors.primaryOrange }"
+                        class="text-4xl md:text-6xl lg:text-7xl font-headline font-bold shrink-0 leading-none opacity-40 transition-all duration-500 group-hover:opacity-100 group-hover:scale-110 text-[#EF874B] group-hover:text-[#748D63]"
                     >
                         {{ item.no }}
                     </div>
 
                     <div class="flex flex-col w-full pt-1 md:pt-4">
+                        <h3 class="text-xl md:text-2xl font-bold font-headline mb-2 transition-colors"
+                            :style="{ color: colors.darkOrange }">
+                            {{ item.title }}
+                        </h3>
+
                         <p 
-                            class="text-base md:text-xl lg:text-2xl font-sans font-bold leading-relaxed mb-6 transition-colors duration-300 group-hover:text-[#D94313]"
-                            :style="{ color: colors.primaryOrange }" 
+                            class="text-base md:text-lg font-sans leading-relaxed mb-6 font-medium"
+                            :style="{ color: colors.textBrown }"
                         >
                             {{ item.text }}
                         </p>
                         
-                        <div class="relative h-[2px] w-full bg-orange-200/40 overflow-hidden rounded-full">
+                        <div class="relative h-[3px] w-full bg-orange-900/10 overflow-hidden rounded-full">
                             <div 
                                 class="absolute top-0 left-0 h-full w-full transform -translate-x-full group-hover:translate-x-0 transition-transform duration-700 ease-out-expo"
-                                :style="{ backgroundColor: colors.primaryOrange }"
+                                :style="{ backgroundColor: colors.sageGreen }"
                             ></div>
                         </div>
                     </div>
@@ -126,12 +132,10 @@ onMounted(() => {
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Custom easing untuk divider agar lebih elegan */
 .ease-out-expo {
     transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* Pastikan transisi scale lancar */
 .group div {
     backface-visibility: hidden;
 }

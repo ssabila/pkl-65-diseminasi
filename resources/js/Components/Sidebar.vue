@@ -36,8 +36,9 @@ onMounted(() => {
 
 <template>
     <aside
-        class="fixed inset-y-0 left-0 z-50 w-72 md:w-80 bg-pkl-base-orange flex flex-col shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:h-screen md:shadow-none"
+        class="fixed inset-y-0 left-0 z-50 w-72 md:w-80 bg-[#E87A3E] flex flex-col shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:h-screen md:shadow-none"
         v-bind="$attrs">
+        
         <div class="px-6 pt-6 pb-3 z-10 flex items-start justify-between">
             <Link
                 href="/"
@@ -48,7 +49,7 @@ onMounted(() => {
                     class="h-10 w-10 rounded-full bg-white p-1" />
                 <div class="flex flex-col justify-center">
                     <h2
-                        class="font-headline text-lg text-white tracking-wide leading-tight group-hover:text-pkl-compliment-yellow transition">
+                        class="font-headline text-lg text-white tracking-wide leading-tight group-hover:text-yellow-200 transition">
                         Website Hasil PKL 65
                     </h2>
                     <p
@@ -117,8 +118,9 @@ onMounted(() => {
                                 @click="closeSidebar"
                                 :class="[
                                     'flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 w-full shadow-sm',
+                                    // REVISI: Text aktif pakai warna orange solid (#E87A3E)
                                     String(topic.id) === String(selectedTopicId)
-                                        ? 'bg-white text-pkl-base-orange shadow-md translate-x-1 font-bold'
+                                        ? 'bg-white text-[#E87A3E] shadow-md translate-x-1 font-bold'
                                         : 'text-white/80 hover:text-white hover:bg-white/10 hover:translate-x-1'
                                 ]">
                                 <span class="tracking-wide font-sans text-sm">
@@ -142,8 +144,9 @@ onMounted(() => {
                             @click="closeSidebar"
                             :class="[
                                 'flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-all w-full',
+                                // REVISI: Text aktif pakai #E87A3E
                                 activePage === 'dokumen'
-                                    ? 'bg-white text-pkl-base-orange shadow-md translate-x-1 font-bold'
+                                    ? 'bg-white text-[#E87A3E] shadow-md translate-x-1 font-bold'
                                     : 'text-white hover:bg-white/10 hover:translate-x-1'
                             ]">
                             DOKUMEN
@@ -153,7 +156,7 @@ onMounted(() => {
                     <li class="mt-4 px-2">
                         <Link
                             href="/"
-                            class="flex items-center justify-center gap-2 px-4 py-3 text-xs font-bold rounded-xl bg-white text-pkl-base-orange shadow-lg hover:bg-pkl-compliment-yellow hover:text-pkl-base-orange transition-all duration-300 transform hover:-translate-y-1 active:scale-95 w-full group tracking-widest">
+                            class="flex items-center justify-center gap-2 px-4 py-3 text-xs font-bold rounded-xl bg-white text-[#E87A3E] shadow-lg hover:bg-yellow-50 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 w-full group tracking-widest">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 class="h-4 w-4 transition-transform group-hover:scale-110"
@@ -173,7 +176,7 @@ onMounted(() => {
             </div>
         </nav>
 
-        <div class="p-4 text-center opacity-60 bg-orange-900/10 mt-auto">
+        <div class="p-4 text-center opacity-60 bg-black/10 mt-auto">
             <p class="text-[10px] text-white font-sub uppercase tracking-widest">
                 &copy; 2025 Polstat STIS
             </p>
