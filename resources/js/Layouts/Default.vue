@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import Logo from '@/Components/Logo.vue'
 import NavProfile from '@/Components/NavProfile.vue'
+import AdminNavbar from '@/Components/AdminNavbar.vue'
 import NavSidebarDesktop from '@/Components/NavSidebarDesktop.vue'
 
 const page = usePage()

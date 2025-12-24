@@ -18,8 +18,8 @@ return new class extends Migration
             $table->dateTime('visible_from')->nullable();
             $table->dateTime('expires_at')->nullable();
 
-            // PERBAIKAN: Menyesuaikan dengan tabel Users yang pakai ULID
-            // $table->foreignUlid('created_by')->constrained('users')->cascadeOnDelete(); 
+            // PERBAIKAN: Menyesuaikan dengan tabel Users yang pakai BIGINT
+            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete(); 
 
             $table->timestamps();
         });

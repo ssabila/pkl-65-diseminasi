@@ -17,113 +17,33 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $userRisetId = Auth::user()?->riset_id;
-
-        $visualizationsQuery = Visualization::with(['topic.riset', 'type'])
-            ->latest('updated_at');
-
-        if ($userRisetId) {
-            $visualizationsQuery->whereHas('topic', function ($query) use ($userRisetId) {
-                $query->where('riset_id', $userRisetId);
-            });
-        }
-
-        $visualizations = $visualizationsQuery
+        $visualizations = Visualization::with(['topic.riset', 'type'])
+            ->where('is_published', true)
+            ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($visualization) {
+            ->map(function ($viz) {
                 return [
-                    'id' => $visualization->id,
-                    'title' => $visualization->title,
-                    'interpretation' => Str::limit(strip_tags($visualization->interpretation ?? ''), 140),
-                    'riset_name' => $visualization->topic?->riset?->name ?? '-',
-                    'topic_name' => $visualization->topic?->name ?? '-',
-                    'type_name' => $visualization->type?->type_name ?? '-',
-                    'type_code' => $visualization->type?->type_code,
-                    'created_at' => optional($visualization->created_at)->format('d M Y'),
-                    'updated_at' => optional($visualization->updated_at)->format('d M Y'),
+                    'id' => $viz->id,
+                    'title' => $viz->title,
+                    'interpretation' => $viz->interpretation,
+                    'riset_name' => $viz->topic->riset->name ?? '-',
+                    'topic_name' => $viz->topic->name ?? '-',
+                    'type_name' => $viz->type->type_name ?? '-',
+                    'updated_at' => $viz->updated_at->format('d M Y'),
                 ];
-            })
-            ->values();
+            });
 
-        $totalDiseminasi = $visualizations->count();
-        $totalUpdated = Visualization::whereColumn('updated_at', '>', 'created_at')
-            ->when($userRisetId, function ($query) use ($userRisetId) {
-                $query->whereHas('topic', function ($topicQuery) use ($userRisetId) {
-                    $topicQuery->where('riset_id', $userRisetId);
-                });
-            })
+        $totalDiseminasi = Visualization::where('is_published', true)->count();
+        $totalUpdated = Visualization::where('is_published', true)
+            ->where('updated_at', '>=', now()->subMonth())
             ->count();
-
-        $totalDeleted = Visualization::onlyTrashed()
-            ->when($userRisetId, function ($query) use ($userRisetId) {
-                $query->whereHas('topic', function ($topicQuery) use ($userRisetId) {
-                    $topicQuery->where('riset_id', $userRisetId);
-                });
-            })
-            ->count();
+        $totalDeleted = Visualization::onlyTrashed()->count();
 
         return Inertia::render('Dashboard', [
+            'visualizations' => $visualizations,
             'totalDiseminasi' => $totalDiseminasi,
             'totalUpdated' => $totalUpdated,
             'totalDeleted' => $totalDeleted,
-            'visualizations' => $visualizations,
-        ]);
-    }
-
-    public function edit(Visualization $visualization)
-    {
-        // Check access - return error response instead of abort
-        $risetId = $visualization->topic?->riset_id;
-        if (!$risetId) {
-            return Inertia::render('Admin/Data', [
-                'risets' => [],
-                'visualizationTypes' => [],
-                'editingVisualization' => null,
-                'accessError' => 'Visualisasi tidak ditemukan.',
-            ]);
-        }
-
-        $user = Auth::user();
-        if ($user && $user->riset_id && (int) $user->riset_id !== (int) $risetId) {
-            return Inertia::render('Admin/Data', [
-                'risets' => [],
-                'visualizationTypes' => [],
-                'editingVisualization' => null,
-                'accessError' => 'Anda tidak bisa mengedit visualisasi ini. Visualisasi ini milik riset lain.',
-            ]);
-        }
-
-        $visualization->load(['topic.riset', 'type']);
-
-        $risetsQuery = Riset::where('is_published', true)
-            ->select('id', 'name')
-            ->orderBy('name');
-
-        if ($assignedRisetId = Auth::user()?->riset_id) {
-            $risetsQuery->where('id', $assignedRisetId);
-        }
-
-        $visualizationTypes = VisualizationType::select('id', 'type_code', 'type_name')
-            ->orderBy('type_name')
-            ->get();
-
-        return Inertia::render('Admin/Data', [
-            'risets' => $risetsQuery->get(),
-            'visualizationTypes' => $visualizationTypes,
-            'editingVisualization' => [
-                'id' => $visualization->id,
-                'topic_id' => $visualization->topic_id,
-                'visualization_type_id' => $visualization->visualization_type_id,
-                'title' => $visualization->title,
-                'interpretation' => $visualization->interpretation,
-                'chart_data' => $visualization->chart_data,
-                'chart_options' => $visualization->chart_options,
-                'riset_id' => $visualization->topic?->riset?->id,
-                'topic_name' => $visualization->topic?->name,
-                'riset_name' => $visualization->topic?->riset?->name,
-                'type_code' => $visualization->type?->type_code,
-            ],
-            'accessError' => null,
         ]);
     }
 
@@ -168,8 +88,8 @@ class DashboardController extends Controller
             'riset_id' => 'required|exists:risets,id'
         ]);
 
-        $topics = Topic::where('riset_id', $request->riset_id)
-            ->where('is_published', true)
+        $risetId = $request->riset_id;
+        $topics = Topic::where('riset_id', $risetId)
             ->select('id', 'name', 'slug', 'order')
             ->orderBy('order')
             ->orderBy('name')

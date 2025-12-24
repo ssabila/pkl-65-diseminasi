@@ -13,6 +13,7 @@ class DataController extends Controller
     // Untuk route /admin/data - Menampilkan FORM INPUT
     public function index()
     {
+<<<<<<< HEAD
         $risetsQuery = Riset::query()
             ->where('is_published', true)
             ->select('id', 'name')
@@ -27,6 +28,13 @@ class DataController extends Controller
             'visualizationTypes' => VisualizationType::select('id', 'type_code', 'type_name')->orderBy('type_name')->get(),
             'editingVisualization' => null,
             'accessError' => null,
+=======
+        $risets = Riset::whereIn('id', [1, 2, 5])->where('is_published', true)->orderBy('id')->get();
+        
+        return Inertia::render('Data', [
+            'risets' => $risets,
+            'visualizationTypes' => VisualizationType::all(),
+>>>>>>> 53c998f (menyimpan perbaikan merge)
         ]);
     }
 }
